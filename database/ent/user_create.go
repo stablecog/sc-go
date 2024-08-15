@@ -176,6 +176,62 @@ func (uc *UserCreate) SetNillableUsernameChangedAt(t *time.Time) *UserCreate {
 	return uc
 }
 
+// SetStripeHighestProductID sets the "stripe_highest_product_id" field.
+func (uc *UserCreate) SetStripeHighestProductID(s string) *UserCreate {
+	uc.mutation.SetStripeHighestProductID(s)
+	return uc
+}
+
+// SetNillableStripeHighestProductID sets the "stripe_highest_product_id" field if the given value is not nil.
+func (uc *UserCreate) SetNillableStripeHighestProductID(s *string) *UserCreate {
+	if s != nil {
+		uc.SetStripeHighestProductID(*s)
+	}
+	return uc
+}
+
+// SetStripeHighestPriceID sets the "stripe_highest_price_id" field.
+func (uc *UserCreate) SetStripeHighestPriceID(s string) *UserCreate {
+	uc.mutation.SetStripeHighestPriceID(s)
+	return uc
+}
+
+// SetNillableStripeHighestPriceID sets the "stripe_highest_price_id" field if the given value is not nil.
+func (uc *UserCreate) SetNillableStripeHighestPriceID(s *string) *UserCreate {
+	if s != nil {
+		uc.SetStripeHighestPriceID(*s)
+	}
+	return uc
+}
+
+// SetStripeCancelsAt sets the "stripe_cancels_at" field.
+func (uc *UserCreate) SetStripeCancelsAt(t time.Time) *UserCreate {
+	uc.mutation.SetStripeCancelsAt(t)
+	return uc
+}
+
+// SetNillableStripeCancelsAt sets the "stripe_cancels_at" field if the given value is not nil.
+func (uc *UserCreate) SetNillableStripeCancelsAt(t *time.Time) *UserCreate {
+	if t != nil {
+		uc.SetStripeCancelsAt(*t)
+	}
+	return uc
+}
+
+// SetStripeRenewsAt sets the "stripe_renews_at" field.
+func (uc *UserCreate) SetStripeRenewsAt(t time.Time) *UserCreate {
+	uc.mutation.SetStripeRenewsAt(t)
+	return uc
+}
+
+// SetNillableStripeRenewsAt sets the "stripe_renews_at" field if the given value is not nil.
+func (uc *UserCreate) SetNillableStripeRenewsAt(t *time.Time) *UserCreate {
+	if t != nil {
+		uc.SetStripeRenewsAt(*t)
+	}
+	return uc
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (uc *UserCreate) SetCreatedAt(t time.Time) *UserCreate {
 	uc.mutation.SetCreatedAt(t)
@@ -509,6 +565,22 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.UsernameChangedAt(); ok {
 		_spec.SetField(user.FieldUsernameChangedAt, field.TypeTime, value)
 		_node.UsernameChangedAt = &value
+	}
+	if value, ok := uc.mutation.StripeHighestProductID(); ok {
+		_spec.SetField(user.FieldStripeHighestProductID, field.TypeString, value)
+		_node.StripeHighestProductID = &value
+	}
+	if value, ok := uc.mutation.StripeHighestPriceID(); ok {
+		_spec.SetField(user.FieldStripeHighestPriceID, field.TypeString, value)
+		_node.StripeHighestPriceID = &value
+	}
+	if value, ok := uc.mutation.StripeCancelsAt(); ok {
+		_spec.SetField(user.FieldStripeCancelsAt, field.TypeTime, value)
+		_node.StripeCancelsAt = &value
+	}
+	if value, ok := uc.mutation.StripeRenewsAt(); ok {
+		_spec.SetField(user.FieldStripeRenewsAt, field.TypeTime, value)
+		_node.StripeRenewsAt = &value
 	}
 	if value, ok := uc.mutation.CreatedAt(); ok {
 		_spec.SetField(user.FieldCreatedAt, field.TypeTime, value)
@@ -906,6 +978,78 @@ func (u *UserUpsert) ClearUsernameChangedAt() *UserUpsert {
 	return u
 }
 
+// SetStripeHighestProductID sets the "stripe_highest_product_id" field.
+func (u *UserUpsert) SetStripeHighestProductID(v string) *UserUpsert {
+	u.Set(user.FieldStripeHighestProductID, v)
+	return u
+}
+
+// UpdateStripeHighestProductID sets the "stripe_highest_product_id" field to the value that was provided on create.
+func (u *UserUpsert) UpdateStripeHighestProductID() *UserUpsert {
+	u.SetExcluded(user.FieldStripeHighestProductID)
+	return u
+}
+
+// ClearStripeHighestProductID clears the value of the "stripe_highest_product_id" field.
+func (u *UserUpsert) ClearStripeHighestProductID() *UserUpsert {
+	u.SetNull(user.FieldStripeHighestProductID)
+	return u
+}
+
+// SetStripeHighestPriceID sets the "stripe_highest_price_id" field.
+func (u *UserUpsert) SetStripeHighestPriceID(v string) *UserUpsert {
+	u.Set(user.FieldStripeHighestPriceID, v)
+	return u
+}
+
+// UpdateStripeHighestPriceID sets the "stripe_highest_price_id" field to the value that was provided on create.
+func (u *UserUpsert) UpdateStripeHighestPriceID() *UserUpsert {
+	u.SetExcluded(user.FieldStripeHighestPriceID)
+	return u
+}
+
+// ClearStripeHighestPriceID clears the value of the "stripe_highest_price_id" field.
+func (u *UserUpsert) ClearStripeHighestPriceID() *UserUpsert {
+	u.SetNull(user.FieldStripeHighestPriceID)
+	return u
+}
+
+// SetStripeCancelsAt sets the "stripe_cancels_at" field.
+func (u *UserUpsert) SetStripeCancelsAt(v time.Time) *UserUpsert {
+	u.Set(user.FieldStripeCancelsAt, v)
+	return u
+}
+
+// UpdateStripeCancelsAt sets the "stripe_cancels_at" field to the value that was provided on create.
+func (u *UserUpsert) UpdateStripeCancelsAt() *UserUpsert {
+	u.SetExcluded(user.FieldStripeCancelsAt)
+	return u
+}
+
+// ClearStripeCancelsAt clears the value of the "stripe_cancels_at" field.
+func (u *UserUpsert) ClearStripeCancelsAt() *UserUpsert {
+	u.SetNull(user.FieldStripeCancelsAt)
+	return u
+}
+
+// SetStripeRenewsAt sets the "stripe_renews_at" field.
+func (u *UserUpsert) SetStripeRenewsAt(v time.Time) *UserUpsert {
+	u.Set(user.FieldStripeRenewsAt, v)
+	return u
+}
+
+// UpdateStripeRenewsAt sets the "stripe_renews_at" field to the value that was provided on create.
+func (u *UserUpsert) UpdateStripeRenewsAt() *UserUpsert {
+	u.SetExcluded(user.FieldStripeRenewsAt)
+	return u
+}
+
+// ClearStripeRenewsAt clears the value of the "stripe_renews_at" field.
+func (u *UserUpsert) ClearStripeRenewsAt() *UserUpsert {
+	u.SetNull(user.FieldStripeRenewsAt)
+	return u
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (u *UserUpsert) SetUpdatedAt(v time.Time) *UserUpsert {
 	u.Set(user.FieldUpdatedAt, v)
@@ -1190,6 +1334,90 @@ func (u *UserUpsertOne) UpdateUsernameChangedAt() *UserUpsertOne {
 func (u *UserUpsertOne) ClearUsernameChangedAt() *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
 		s.ClearUsernameChangedAt()
+	})
+}
+
+// SetStripeHighestProductID sets the "stripe_highest_product_id" field.
+func (u *UserUpsertOne) SetStripeHighestProductID(v string) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetStripeHighestProductID(v)
+	})
+}
+
+// UpdateStripeHighestProductID sets the "stripe_highest_product_id" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateStripeHighestProductID() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateStripeHighestProductID()
+	})
+}
+
+// ClearStripeHighestProductID clears the value of the "stripe_highest_product_id" field.
+func (u *UserUpsertOne) ClearStripeHighestProductID() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearStripeHighestProductID()
+	})
+}
+
+// SetStripeHighestPriceID sets the "stripe_highest_price_id" field.
+func (u *UserUpsertOne) SetStripeHighestPriceID(v string) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetStripeHighestPriceID(v)
+	})
+}
+
+// UpdateStripeHighestPriceID sets the "stripe_highest_price_id" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateStripeHighestPriceID() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateStripeHighestPriceID()
+	})
+}
+
+// ClearStripeHighestPriceID clears the value of the "stripe_highest_price_id" field.
+func (u *UserUpsertOne) ClearStripeHighestPriceID() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearStripeHighestPriceID()
+	})
+}
+
+// SetStripeCancelsAt sets the "stripe_cancels_at" field.
+func (u *UserUpsertOne) SetStripeCancelsAt(v time.Time) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetStripeCancelsAt(v)
+	})
+}
+
+// UpdateStripeCancelsAt sets the "stripe_cancels_at" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateStripeCancelsAt() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateStripeCancelsAt()
+	})
+}
+
+// ClearStripeCancelsAt clears the value of the "stripe_cancels_at" field.
+func (u *UserUpsertOne) ClearStripeCancelsAt() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearStripeCancelsAt()
+	})
+}
+
+// SetStripeRenewsAt sets the "stripe_renews_at" field.
+func (u *UserUpsertOne) SetStripeRenewsAt(v time.Time) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetStripeRenewsAt(v)
+	})
+}
+
+// UpdateStripeRenewsAt sets the "stripe_renews_at" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateStripeRenewsAt() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateStripeRenewsAt()
+	})
+}
+
+// ClearStripeRenewsAt clears the value of the "stripe_renews_at" field.
+func (u *UserUpsertOne) ClearStripeRenewsAt() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearStripeRenewsAt()
 	})
 }
 
@@ -1646,6 +1874,90 @@ func (u *UserUpsertBulk) UpdateUsernameChangedAt() *UserUpsertBulk {
 func (u *UserUpsertBulk) ClearUsernameChangedAt() *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
 		s.ClearUsernameChangedAt()
+	})
+}
+
+// SetStripeHighestProductID sets the "stripe_highest_product_id" field.
+func (u *UserUpsertBulk) SetStripeHighestProductID(v string) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetStripeHighestProductID(v)
+	})
+}
+
+// UpdateStripeHighestProductID sets the "stripe_highest_product_id" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateStripeHighestProductID() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateStripeHighestProductID()
+	})
+}
+
+// ClearStripeHighestProductID clears the value of the "stripe_highest_product_id" field.
+func (u *UserUpsertBulk) ClearStripeHighestProductID() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearStripeHighestProductID()
+	})
+}
+
+// SetStripeHighestPriceID sets the "stripe_highest_price_id" field.
+func (u *UserUpsertBulk) SetStripeHighestPriceID(v string) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetStripeHighestPriceID(v)
+	})
+}
+
+// UpdateStripeHighestPriceID sets the "stripe_highest_price_id" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateStripeHighestPriceID() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateStripeHighestPriceID()
+	})
+}
+
+// ClearStripeHighestPriceID clears the value of the "stripe_highest_price_id" field.
+func (u *UserUpsertBulk) ClearStripeHighestPriceID() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearStripeHighestPriceID()
+	})
+}
+
+// SetStripeCancelsAt sets the "stripe_cancels_at" field.
+func (u *UserUpsertBulk) SetStripeCancelsAt(v time.Time) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetStripeCancelsAt(v)
+	})
+}
+
+// UpdateStripeCancelsAt sets the "stripe_cancels_at" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateStripeCancelsAt() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateStripeCancelsAt()
+	})
+}
+
+// ClearStripeCancelsAt clears the value of the "stripe_cancels_at" field.
+func (u *UserUpsertBulk) ClearStripeCancelsAt() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearStripeCancelsAt()
+	})
+}
+
+// SetStripeRenewsAt sets the "stripe_renews_at" field.
+func (u *UserUpsertBulk) SetStripeRenewsAt(v time.Time) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetStripeRenewsAt(v)
+	})
+}
+
+// UpdateStripeRenewsAt sets the "stripe_renews_at" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateStripeRenewsAt() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateStripeRenewsAt()
+	})
+}
+
+// ClearStripeRenewsAt clears the value of the "stripe_renews_at" field.
+func (u *UserUpsertBulk) ClearStripeRenewsAt() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearStripeRenewsAt()
 	})
 }
 

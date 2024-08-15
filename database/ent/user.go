@@ -42,6 +42,14 @@ type User struct {
 	Username string `json:"username,omitempty"`
 	// UsernameChangedAt holds the value of the "username_changed_at" field.
 	UsernameChangedAt *time.Time `json:"username_changed_at,omitempty"`
+	// StripeHighestProductID holds the value of the "stripe_highest_product_id" field.
+	StripeHighestProductID *string `json:"stripe_highest_product_id,omitempty"`
+	// StripeHighestPriceID holds the value of the "stripe_highest_price_id" field.
+	StripeHighestPriceID *string `json:"stripe_highest_price_id,omitempty"`
+	// StripeCancelsAt holds the value of the "stripe_cancels_at" field.
+	StripeCancelsAt *time.Time `json:"stripe_cancels_at,omitempty"`
+	// StripeRenewsAt holds the value of the "stripe_renews_at" field.
+	StripeRenewsAt *time.Time `json:"stripe_renews_at,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -165,9 +173,9 @@ func (*User) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case user.FieldWantsEmail:
 			values[i] = new(sql.NullBool)
-		case user.FieldEmail, user.FieldStripeCustomerID, user.FieldActiveProductID, user.FieldDiscordID, user.FieldUsername:
+		case user.FieldEmail, user.FieldStripeCustomerID, user.FieldActiveProductID, user.FieldDiscordID, user.FieldUsername, user.FieldStripeHighestProductID, user.FieldStripeHighestPriceID:
 			values[i] = new(sql.NullString)
-		case user.FieldLastSignInAt, user.FieldLastSeenAt, user.FieldBannedAt, user.FieldScheduledForDeletionOn, user.FieldDataDeletedAt, user.FieldUsernameChangedAt, user.FieldCreatedAt, user.FieldUpdatedAt:
+		case user.FieldLastSignInAt, user.FieldLastSeenAt, user.FieldBannedAt, user.FieldScheduledForDeletionOn, user.FieldDataDeletedAt, user.FieldUsernameChangedAt, user.FieldStripeCancelsAt, user.FieldStripeRenewsAt, user.FieldCreatedAt, user.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		case user.FieldID:
 			values[i] = new(uuid.UUID)
@@ -271,6 +279,34 @@ func (u *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				u.UsernameChangedAt = new(time.Time)
 				*u.UsernameChangedAt = value.Time
+			}
+		case user.FieldStripeHighestProductID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field stripe_highest_product_id", values[i])
+			} else if value.Valid {
+				u.StripeHighestProductID = new(string)
+				*u.StripeHighestProductID = value.String
+			}
+		case user.FieldStripeHighestPriceID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field stripe_highest_price_id", values[i])
+			} else if value.Valid {
+				u.StripeHighestPriceID = new(string)
+				*u.StripeHighestPriceID = value.String
+			}
+		case user.FieldStripeCancelsAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field stripe_cancels_at", values[i])
+			} else if value.Valid {
+				u.StripeCancelsAt = new(time.Time)
+				*u.StripeCancelsAt = value.Time
+			}
+		case user.FieldStripeRenewsAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field stripe_renews_at", values[i])
+			} else if value.Valid {
+				u.StripeRenewsAt = new(time.Time)
+				*u.StripeRenewsAt = value.Time
 			}
 		case user.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -414,6 +450,26 @@ func (u *User) String() string {
 	builder.WriteString(", ")
 	if v := u.UsernameChangedAt; v != nil {
 		builder.WriteString("username_changed_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	if v := u.StripeHighestProductID; v != nil {
+		builder.WriteString("stripe_highest_product_id=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := u.StripeHighestPriceID; v != nil {
+		builder.WriteString("stripe_highest_price_id=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := u.StripeCancelsAt; v != nil {
+		builder.WriteString("stripe_cancels_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	if v := u.StripeRenewsAt; v != nil {
+		builder.WriteString("stripe_renews_at=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
 	builder.WriteString(", ")

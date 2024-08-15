@@ -19910,6 +19910,10 @@ type UserMutation struct {
 	discord_id                     *string
 	username                       *string
 	username_changed_at            *time.Time
+	stripe_highest_product_id      *string
+	stripe_highest_price_id        *string
+	stripe_cancels_at              *time.Time
+	stripe_renews_at               *time.Time
 	created_at                     *time.Time
 	updated_at                     *time.Time
 	clearedFields                  map[string]struct{}
@@ -20585,6 +20589,202 @@ func (m *UserMutation) ResetUsernameChangedAt() {
 	delete(m.clearedFields, user.FieldUsernameChangedAt)
 }
 
+// SetStripeHighestProductID sets the "stripe_highest_product_id" field.
+func (m *UserMutation) SetStripeHighestProductID(s string) {
+	m.stripe_highest_product_id = &s
+}
+
+// StripeHighestProductID returns the value of the "stripe_highest_product_id" field in the mutation.
+func (m *UserMutation) StripeHighestProductID() (r string, exists bool) {
+	v := m.stripe_highest_product_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStripeHighestProductID returns the old "stripe_highest_product_id" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldStripeHighestProductID(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStripeHighestProductID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStripeHighestProductID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStripeHighestProductID: %w", err)
+	}
+	return oldValue.StripeHighestProductID, nil
+}
+
+// ClearStripeHighestProductID clears the value of the "stripe_highest_product_id" field.
+func (m *UserMutation) ClearStripeHighestProductID() {
+	m.stripe_highest_product_id = nil
+	m.clearedFields[user.FieldStripeHighestProductID] = struct{}{}
+}
+
+// StripeHighestProductIDCleared returns if the "stripe_highest_product_id" field was cleared in this mutation.
+func (m *UserMutation) StripeHighestProductIDCleared() bool {
+	_, ok := m.clearedFields[user.FieldStripeHighestProductID]
+	return ok
+}
+
+// ResetStripeHighestProductID resets all changes to the "stripe_highest_product_id" field.
+func (m *UserMutation) ResetStripeHighestProductID() {
+	m.stripe_highest_product_id = nil
+	delete(m.clearedFields, user.FieldStripeHighestProductID)
+}
+
+// SetStripeHighestPriceID sets the "stripe_highest_price_id" field.
+func (m *UserMutation) SetStripeHighestPriceID(s string) {
+	m.stripe_highest_price_id = &s
+}
+
+// StripeHighestPriceID returns the value of the "stripe_highest_price_id" field in the mutation.
+func (m *UserMutation) StripeHighestPriceID() (r string, exists bool) {
+	v := m.stripe_highest_price_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStripeHighestPriceID returns the old "stripe_highest_price_id" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldStripeHighestPriceID(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStripeHighestPriceID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStripeHighestPriceID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStripeHighestPriceID: %w", err)
+	}
+	return oldValue.StripeHighestPriceID, nil
+}
+
+// ClearStripeHighestPriceID clears the value of the "stripe_highest_price_id" field.
+func (m *UserMutation) ClearStripeHighestPriceID() {
+	m.stripe_highest_price_id = nil
+	m.clearedFields[user.FieldStripeHighestPriceID] = struct{}{}
+}
+
+// StripeHighestPriceIDCleared returns if the "stripe_highest_price_id" field was cleared in this mutation.
+func (m *UserMutation) StripeHighestPriceIDCleared() bool {
+	_, ok := m.clearedFields[user.FieldStripeHighestPriceID]
+	return ok
+}
+
+// ResetStripeHighestPriceID resets all changes to the "stripe_highest_price_id" field.
+func (m *UserMutation) ResetStripeHighestPriceID() {
+	m.stripe_highest_price_id = nil
+	delete(m.clearedFields, user.FieldStripeHighestPriceID)
+}
+
+// SetStripeCancelsAt sets the "stripe_cancels_at" field.
+func (m *UserMutation) SetStripeCancelsAt(t time.Time) {
+	m.stripe_cancels_at = &t
+}
+
+// StripeCancelsAt returns the value of the "stripe_cancels_at" field in the mutation.
+func (m *UserMutation) StripeCancelsAt() (r time.Time, exists bool) {
+	v := m.stripe_cancels_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStripeCancelsAt returns the old "stripe_cancels_at" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldStripeCancelsAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStripeCancelsAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStripeCancelsAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStripeCancelsAt: %w", err)
+	}
+	return oldValue.StripeCancelsAt, nil
+}
+
+// ClearStripeCancelsAt clears the value of the "stripe_cancels_at" field.
+func (m *UserMutation) ClearStripeCancelsAt() {
+	m.stripe_cancels_at = nil
+	m.clearedFields[user.FieldStripeCancelsAt] = struct{}{}
+}
+
+// StripeCancelsAtCleared returns if the "stripe_cancels_at" field was cleared in this mutation.
+func (m *UserMutation) StripeCancelsAtCleared() bool {
+	_, ok := m.clearedFields[user.FieldStripeCancelsAt]
+	return ok
+}
+
+// ResetStripeCancelsAt resets all changes to the "stripe_cancels_at" field.
+func (m *UserMutation) ResetStripeCancelsAt() {
+	m.stripe_cancels_at = nil
+	delete(m.clearedFields, user.FieldStripeCancelsAt)
+}
+
+// SetStripeRenewsAt sets the "stripe_renews_at" field.
+func (m *UserMutation) SetStripeRenewsAt(t time.Time) {
+	m.stripe_renews_at = &t
+}
+
+// StripeRenewsAt returns the value of the "stripe_renews_at" field in the mutation.
+func (m *UserMutation) StripeRenewsAt() (r time.Time, exists bool) {
+	v := m.stripe_renews_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStripeRenewsAt returns the old "stripe_renews_at" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldStripeRenewsAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStripeRenewsAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStripeRenewsAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStripeRenewsAt: %w", err)
+	}
+	return oldValue.StripeRenewsAt, nil
+}
+
+// ClearStripeRenewsAt clears the value of the "stripe_renews_at" field.
+func (m *UserMutation) ClearStripeRenewsAt() {
+	m.stripe_renews_at = nil
+	m.clearedFields[user.FieldStripeRenewsAt] = struct{}{}
+}
+
+// StripeRenewsAtCleared returns if the "stripe_renews_at" field was cleared in this mutation.
+func (m *UserMutation) StripeRenewsAtCleared() bool {
+	_, ok := m.clearedFields[user.FieldStripeRenewsAt]
+	return ok
+}
+
+// ResetStripeRenewsAt resets all changes to the "stripe_renews_at" field.
+func (m *UserMutation) ResetStripeRenewsAt() {
+	m.stripe_renews_at = nil
+	delete(m.clearedFields, user.FieldStripeRenewsAt)
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *UserMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -21177,7 +21377,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 14)
+	fields := make([]string, 0, 18)
 	if m.email != nil {
 		fields = append(fields, user.FieldEmail)
 	}
@@ -21213,6 +21413,18 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.username_changed_at != nil {
 		fields = append(fields, user.FieldUsernameChangedAt)
+	}
+	if m.stripe_highest_product_id != nil {
+		fields = append(fields, user.FieldStripeHighestProductID)
+	}
+	if m.stripe_highest_price_id != nil {
+		fields = append(fields, user.FieldStripeHighestPriceID)
+	}
+	if m.stripe_cancels_at != nil {
+		fields = append(fields, user.FieldStripeCancelsAt)
+	}
+	if m.stripe_renews_at != nil {
+		fields = append(fields, user.FieldStripeRenewsAt)
 	}
 	if m.created_at != nil {
 		fields = append(fields, user.FieldCreatedAt)
@@ -21252,6 +21464,14 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Username()
 	case user.FieldUsernameChangedAt:
 		return m.UsernameChangedAt()
+	case user.FieldStripeHighestProductID:
+		return m.StripeHighestProductID()
+	case user.FieldStripeHighestPriceID:
+		return m.StripeHighestPriceID()
+	case user.FieldStripeCancelsAt:
+		return m.StripeCancelsAt()
+	case user.FieldStripeRenewsAt:
+		return m.StripeRenewsAt()
 	case user.FieldCreatedAt:
 		return m.CreatedAt()
 	case user.FieldUpdatedAt:
@@ -21289,6 +21509,14 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldUsername(ctx)
 	case user.FieldUsernameChangedAt:
 		return m.OldUsernameChangedAt(ctx)
+	case user.FieldStripeHighestProductID:
+		return m.OldStripeHighestProductID(ctx)
+	case user.FieldStripeHighestPriceID:
+		return m.OldStripeHighestPriceID(ctx)
+	case user.FieldStripeCancelsAt:
+		return m.OldStripeCancelsAt(ctx)
+	case user.FieldStripeRenewsAt:
+		return m.OldStripeRenewsAt(ctx)
 	case user.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case user.FieldUpdatedAt:
@@ -21386,6 +21614,34 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetUsernameChangedAt(v)
 		return nil
+	case user.FieldStripeHighestProductID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStripeHighestProductID(v)
+		return nil
+	case user.FieldStripeHighestPriceID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStripeHighestPriceID(v)
+		return nil
+	case user.FieldStripeCancelsAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStripeCancelsAt(v)
+		return nil
+	case user.FieldStripeRenewsAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStripeRenewsAt(v)
+		return nil
 	case user.FieldCreatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -21454,6 +21710,18 @@ func (m *UserMutation) ClearedFields() []string {
 	if m.FieldCleared(user.FieldUsernameChangedAt) {
 		fields = append(fields, user.FieldUsernameChangedAt)
 	}
+	if m.FieldCleared(user.FieldStripeHighestProductID) {
+		fields = append(fields, user.FieldStripeHighestProductID)
+	}
+	if m.FieldCleared(user.FieldStripeHighestPriceID) {
+		fields = append(fields, user.FieldStripeHighestPriceID)
+	}
+	if m.FieldCleared(user.FieldStripeCancelsAt) {
+		fields = append(fields, user.FieldStripeCancelsAt)
+	}
+	if m.FieldCleared(user.FieldStripeRenewsAt) {
+		fields = append(fields, user.FieldStripeRenewsAt)
+	}
 	return fields
 }
 
@@ -21491,6 +21759,18 @@ func (m *UserMutation) ClearField(name string) error {
 		return nil
 	case user.FieldUsernameChangedAt:
 		m.ClearUsernameChangedAt()
+		return nil
+	case user.FieldStripeHighestProductID:
+		m.ClearStripeHighestProductID()
+		return nil
+	case user.FieldStripeHighestPriceID:
+		m.ClearStripeHighestPriceID()
+		return nil
+	case user.FieldStripeCancelsAt:
+		m.ClearStripeCancelsAt()
+		return nil
+	case user.FieldStripeRenewsAt:
+		m.ClearStripeRenewsAt()
 		return nil
 	}
 	return fmt.Errorf("unknown User nullable field %s", name)
@@ -21535,6 +21815,18 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldUsernameChangedAt:
 		m.ResetUsernameChangedAt()
+		return nil
+	case user.FieldStripeHighestProductID:
+		m.ResetStripeHighestProductID()
+		return nil
+	case user.FieldStripeHighestPriceID:
+		m.ResetStripeHighestPriceID()
+		return nil
+	case user.FieldStripeCancelsAt:
+		m.ResetStripeCancelsAt()
+		return nil
+	case user.FieldStripeRenewsAt:
+		m.ResetStripeRenewsAt()
 		return nil
 	case user.FieldCreatedAt:
 		m.ResetCreatedAt()

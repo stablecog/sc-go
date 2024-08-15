@@ -33,6 +33,10 @@ func (User) Fields() []ent.Field {
 		field.Text("discord_id").Optional().Nillable(),
 		field.Text("username").Unique(),
 		field.Time("username_changed_at").Optional().Nillable(),
+		field.Text("stripe_highest_product_id").Optional().Nillable(),
+		field.Text("stripe_highest_price_id").Optional().Nillable(),
+		field.Time("stripe_cancels_at").Optional().Nillable(),
+		field.Time("stripe_renews_at").Optional().Nillable(),
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}

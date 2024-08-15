@@ -661,6 +661,10 @@ var (
 		{Name: "discord_id", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "username", Type: field.TypeString, Unique: true, Size: 2147483647},
 		{Name: "username_changed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "stripe_highest_product_id", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "stripe_highest_price_id", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "stripe_cancels_at", Type: field.TypeTime, Nullable: true},
+		{Name: "stripe_renews_at", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}

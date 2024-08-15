@@ -39,6 +39,14 @@ const (
 	FieldUsername = "username"
 	// FieldUsernameChangedAt holds the string denoting the username_changed_at field in the database.
 	FieldUsernameChangedAt = "username_changed_at"
+	// FieldStripeHighestProductID holds the string denoting the stripe_highest_product_id field in the database.
+	FieldStripeHighestProductID = "stripe_highest_product_id"
+	// FieldStripeHighestPriceID holds the string denoting the stripe_highest_price_id field in the database.
+	FieldStripeHighestPriceID = "stripe_highest_price_id"
+	// FieldStripeCancelsAt holds the string denoting the stripe_cancels_at field in the database.
+	FieldStripeCancelsAt = "stripe_cancels_at"
+	// FieldStripeRenewsAt holds the string denoting the stripe_renews_at field in the database.
+	FieldStripeRenewsAt = "stripe_renews_at"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -141,6 +149,10 @@ var Columns = []string{
 	FieldDiscordID,
 	FieldUsername,
 	FieldUsernameChangedAt,
+	FieldStripeHighestProductID,
+	FieldStripeHighestPriceID,
+	FieldStripeCancelsAt,
+	FieldStripeRenewsAt,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -240,6 +252,26 @@ func ByUsername(opts ...sql.OrderTermOption) OrderOption {
 // ByUsernameChangedAt orders the results by the username_changed_at field.
 func ByUsernameChangedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUsernameChangedAt, opts...).ToFunc()
+}
+
+// ByStripeHighestProductID orders the results by the stripe_highest_product_id field.
+func ByStripeHighestProductID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStripeHighestProductID, opts...).ToFunc()
+}
+
+// ByStripeHighestPriceID orders the results by the stripe_highest_price_id field.
+func ByStripeHighestPriceID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStripeHighestPriceID, opts...).ToFunc()
+}
+
+// ByStripeCancelsAt orders the results by the stripe_cancels_at field.
+func ByStripeCancelsAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStripeCancelsAt, opts...).ToFunc()
+}
+
+// ByStripeRenewsAt orders the results by the stripe_renews_at field.
+func ByStripeRenewsAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStripeRenewsAt, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.

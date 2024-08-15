@@ -116,6 +116,26 @@ func UsernameChangedAt(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldUsernameChangedAt, v))
 }
 
+// StripeHighestProductID applies equality check predicate on the "stripe_highest_product_id" field. It's identical to StripeHighestProductIDEQ.
+func StripeHighestProductID(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldStripeHighestProductID, v))
+}
+
+// StripeHighestPriceID applies equality check predicate on the "stripe_highest_price_id" field. It's identical to StripeHighestPriceIDEQ.
+func StripeHighestPriceID(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldStripeHighestPriceID, v))
+}
+
+// StripeCancelsAt applies equality check predicate on the "stripe_cancels_at" field. It's identical to StripeCancelsAtEQ.
+func StripeCancelsAt(v time.Time) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldStripeCancelsAt, v))
+}
+
+// StripeRenewsAt applies equality check predicate on the "stripe_renews_at" field. It's identical to StripeRenewsAtEQ.
+func StripeRenewsAt(v time.Time) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldStripeRenewsAt, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldCreatedAt, v))
@@ -779,6 +799,256 @@ func UsernameChangedAtIsNil() predicate.User {
 // UsernameChangedAtNotNil applies the NotNil predicate on the "username_changed_at" field.
 func UsernameChangedAtNotNil() predicate.User {
 	return predicate.User(sql.FieldNotNull(FieldUsernameChangedAt))
+}
+
+// StripeHighestProductIDEQ applies the EQ predicate on the "stripe_highest_product_id" field.
+func StripeHighestProductIDEQ(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldStripeHighestProductID, v))
+}
+
+// StripeHighestProductIDNEQ applies the NEQ predicate on the "stripe_highest_product_id" field.
+func StripeHighestProductIDNEQ(v string) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldStripeHighestProductID, v))
+}
+
+// StripeHighestProductIDIn applies the In predicate on the "stripe_highest_product_id" field.
+func StripeHighestProductIDIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldIn(FieldStripeHighestProductID, vs...))
+}
+
+// StripeHighestProductIDNotIn applies the NotIn predicate on the "stripe_highest_product_id" field.
+func StripeHighestProductIDNotIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldStripeHighestProductID, vs...))
+}
+
+// StripeHighestProductIDGT applies the GT predicate on the "stripe_highest_product_id" field.
+func StripeHighestProductIDGT(v string) predicate.User {
+	return predicate.User(sql.FieldGT(FieldStripeHighestProductID, v))
+}
+
+// StripeHighestProductIDGTE applies the GTE predicate on the "stripe_highest_product_id" field.
+func StripeHighestProductIDGTE(v string) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldStripeHighestProductID, v))
+}
+
+// StripeHighestProductIDLT applies the LT predicate on the "stripe_highest_product_id" field.
+func StripeHighestProductIDLT(v string) predicate.User {
+	return predicate.User(sql.FieldLT(FieldStripeHighestProductID, v))
+}
+
+// StripeHighestProductIDLTE applies the LTE predicate on the "stripe_highest_product_id" field.
+func StripeHighestProductIDLTE(v string) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldStripeHighestProductID, v))
+}
+
+// StripeHighestProductIDContains applies the Contains predicate on the "stripe_highest_product_id" field.
+func StripeHighestProductIDContains(v string) predicate.User {
+	return predicate.User(sql.FieldContains(FieldStripeHighestProductID, v))
+}
+
+// StripeHighestProductIDHasPrefix applies the HasPrefix predicate on the "stripe_highest_product_id" field.
+func StripeHighestProductIDHasPrefix(v string) predicate.User {
+	return predicate.User(sql.FieldHasPrefix(FieldStripeHighestProductID, v))
+}
+
+// StripeHighestProductIDHasSuffix applies the HasSuffix predicate on the "stripe_highest_product_id" field.
+func StripeHighestProductIDHasSuffix(v string) predicate.User {
+	return predicate.User(sql.FieldHasSuffix(FieldStripeHighestProductID, v))
+}
+
+// StripeHighestProductIDIsNil applies the IsNil predicate on the "stripe_highest_product_id" field.
+func StripeHighestProductIDIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldStripeHighestProductID))
+}
+
+// StripeHighestProductIDNotNil applies the NotNil predicate on the "stripe_highest_product_id" field.
+func StripeHighestProductIDNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldStripeHighestProductID))
+}
+
+// StripeHighestProductIDEqualFold applies the EqualFold predicate on the "stripe_highest_product_id" field.
+func StripeHighestProductIDEqualFold(v string) predicate.User {
+	return predicate.User(sql.FieldEqualFold(FieldStripeHighestProductID, v))
+}
+
+// StripeHighestProductIDContainsFold applies the ContainsFold predicate on the "stripe_highest_product_id" field.
+func StripeHighestProductIDContainsFold(v string) predicate.User {
+	return predicate.User(sql.FieldContainsFold(FieldStripeHighestProductID, v))
+}
+
+// StripeHighestPriceIDEQ applies the EQ predicate on the "stripe_highest_price_id" field.
+func StripeHighestPriceIDEQ(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldStripeHighestPriceID, v))
+}
+
+// StripeHighestPriceIDNEQ applies the NEQ predicate on the "stripe_highest_price_id" field.
+func StripeHighestPriceIDNEQ(v string) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldStripeHighestPriceID, v))
+}
+
+// StripeHighestPriceIDIn applies the In predicate on the "stripe_highest_price_id" field.
+func StripeHighestPriceIDIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldIn(FieldStripeHighestPriceID, vs...))
+}
+
+// StripeHighestPriceIDNotIn applies the NotIn predicate on the "stripe_highest_price_id" field.
+func StripeHighestPriceIDNotIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldStripeHighestPriceID, vs...))
+}
+
+// StripeHighestPriceIDGT applies the GT predicate on the "stripe_highest_price_id" field.
+func StripeHighestPriceIDGT(v string) predicate.User {
+	return predicate.User(sql.FieldGT(FieldStripeHighestPriceID, v))
+}
+
+// StripeHighestPriceIDGTE applies the GTE predicate on the "stripe_highest_price_id" field.
+func StripeHighestPriceIDGTE(v string) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldStripeHighestPriceID, v))
+}
+
+// StripeHighestPriceIDLT applies the LT predicate on the "stripe_highest_price_id" field.
+func StripeHighestPriceIDLT(v string) predicate.User {
+	return predicate.User(sql.FieldLT(FieldStripeHighestPriceID, v))
+}
+
+// StripeHighestPriceIDLTE applies the LTE predicate on the "stripe_highest_price_id" field.
+func StripeHighestPriceIDLTE(v string) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldStripeHighestPriceID, v))
+}
+
+// StripeHighestPriceIDContains applies the Contains predicate on the "stripe_highest_price_id" field.
+func StripeHighestPriceIDContains(v string) predicate.User {
+	return predicate.User(sql.FieldContains(FieldStripeHighestPriceID, v))
+}
+
+// StripeHighestPriceIDHasPrefix applies the HasPrefix predicate on the "stripe_highest_price_id" field.
+func StripeHighestPriceIDHasPrefix(v string) predicate.User {
+	return predicate.User(sql.FieldHasPrefix(FieldStripeHighestPriceID, v))
+}
+
+// StripeHighestPriceIDHasSuffix applies the HasSuffix predicate on the "stripe_highest_price_id" field.
+func StripeHighestPriceIDHasSuffix(v string) predicate.User {
+	return predicate.User(sql.FieldHasSuffix(FieldStripeHighestPriceID, v))
+}
+
+// StripeHighestPriceIDIsNil applies the IsNil predicate on the "stripe_highest_price_id" field.
+func StripeHighestPriceIDIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldStripeHighestPriceID))
+}
+
+// StripeHighestPriceIDNotNil applies the NotNil predicate on the "stripe_highest_price_id" field.
+func StripeHighestPriceIDNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldStripeHighestPriceID))
+}
+
+// StripeHighestPriceIDEqualFold applies the EqualFold predicate on the "stripe_highest_price_id" field.
+func StripeHighestPriceIDEqualFold(v string) predicate.User {
+	return predicate.User(sql.FieldEqualFold(FieldStripeHighestPriceID, v))
+}
+
+// StripeHighestPriceIDContainsFold applies the ContainsFold predicate on the "stripe_highest_price_id" field.
+func StripeHighestPriceIDContainsFold(v string) predicate.User {
+	return predicate.User(sql.FieldContainsFold(FieldStripeHighestPriceID, v))
+}
+
+// StripeCancelsAtEQ applies the EQ predicate on the "stripe_cancels_at" field.
+func StripeCancelsAtEQ(v time.Time) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldStripeCancelsAt, v))
+}
+
+// StripeCancelsAtNEQ applies the NEQ predicate on the "stripe_cancels_at" field.
+func StripeCancelsAtNEQ(v time.Time) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldStripeCancelsAt, v))
+}
+
+// StripeCancelsAtIn applies the In predicate on the "stripe_cancels_at" field.
+func StripeCancelsAtIn(vs ...time.Time) predicate.User {
+	return predicate.User(sql.FieldIn(FieldStripeCancelsAt, vs...))
+}
+
+// StripeCancelsAtNotIn applies the NotIn predicate on the "stripe_cancels_at" field.
+func StripeCancelsAtNotIn(vs ...time.Time) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldStripeCancelsAt, vs...))
+}
+
+// StripeCancelsAtGT applies the GT predicate on the "stripe_cancels_at" field.
+func StripeCancelsAtGT(v time.Time) predicate.User {
+	return predicate.User(sql.FieldGT(FieldStripeCancelsAt, v))
+}
+
+// StripeCancelsAtGTE applies the GTE predicate on the "stripe_cancels_at" field.
+func StripeCancelsAtGTE(v time.Time) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldStripeCancelsAt, v))
+}
+
+// StripeCancelsAtLT applies the LT predicate on the "stripe_cancels_at" field.
+func StripeCancelsAtLT(v time.Time) predicate.User {
+	return predicate.User(sql.FieldLT(FieldStripeCancelsAt, v))
+}
+
+// StripeCancelsAtLTE applies the LTE predicate on the "stripe_cancels_at" field.
+func StripeCancelsAtLTE(v time.Time) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldStripeCancelsAt, v))
+}
+
+// StripeCancelsAtIsNil applies the IsNil predicate on the "stripe_cancels_at" field.
+func StripeCancelsAtIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldStripeCancelsAt))
+}
+
+// StripeCancelsAtNotNil applies the NotNil predicate on the "stripe_cancels_at" field.
+func StripeCancelsAtNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldStripeCancelsAt))
+}
+
+// StripeRenewsAtEQ applies the EQ predicate on the "stripe_renews_at" field.
+func StripeRenewsAtEQ(v time.Time) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldStripeRenewsAt, v))
+}
+
+// StripeRenewsAtNEQ applies the NEQ predicate on the "stripe_renews_at" field.
+func StripeRenewsAtNEQ(v time.Time) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldStripeRenewsAt, v))
+}
+
+// StripeRenewsAtIn applies the In predicate on the "stripe_renews_at" field.
+func StripeRenewsAtIn(vs ...time.Time) predicate.User {
+	return predicate.User(sql.FieldIn(FieldStripeRenewsAt, vs...))
+}
+
+// StripeRenewsAtNotIn applies the NotIn predicate on the "stripe_renews_at" field.
+func StripeRenewsAtNotIn(vs ...time.Time) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldStripeRenewsAt, vs...))
+}
+
+// StripeRenewsAtGT applies the GT predicate on the "stripe_renews_at" field.
+func StripeRenewsAtGT(v time.Time) predicate.User {
+	return predicate.User(sql.FieldGT(FieldStripeRenewsAt, v))
+}
+
+// StripeRenewsAtGTE applies the GTE predicate on the "stripe_renews_at" field.
+func StripeRenewsAtGTE(v time.Time) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldStripeRenewsAt, v))
+}
+
+// StripeRenewsAtLT applies the LT predicate on the "stripe_renews_at" field.
+func StripeRenewsAtLT(v time.Time) predicate.User {
+	return predicate.User(sql.FieldLT(FieldStripeRenewsAt, v))
+}
+
+// StripeRenewsAtLTE applies the LTE predicate on the "stripe_renews_at" field.
+func StripeRenewsAtLTE(v time.Time) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldStripeRenewsAt, v))
+}
+
+// StripeRenewsAtIsNil applies the IsNil predicate on the "stripe_renews_at" field.
+func StripeRenewsAtIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldStripeRenewsAt))
+}
+
+// StripeRenewsAtNotNil applies the NotNil predicate on the "stripe_renews_at" field.
+func StripeRenewsAtNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldStripeRenewsAt))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

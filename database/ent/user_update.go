@@ -254,6 +254,86 @@ func (uu *UserUpdate) ClearUsernameChangedAt() *UserUpdate {
 	return uu
 }
 
+// SetStripeHighestProductID sets the "stripe_highest_product_id" field.
+func (uu *UserUpdate) SetStripeHighestProductID(s string) *UserUpdate {
+	uu.mutation.SetStripeHighestProductID(s)
+	return uu
+}
+
+// SetNillableStripeHighestProductID sets the "stripe_highest_product_id" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableStripeHighestProductID(s *string) *UserUpdate {
+	if s != nil {
+		uu.SetStripeHighestProductID(*s)
+	}
+	return uu
+}
+
+// ClearStripeHighestProductID clears the value of the "stripe_highest_product_id" field.
+func (uu *UserUpdate) ClearStripeHighestProductID() *UserUpdate {
+	uu.mutation.ClearStripeHighestProductID()
+	return uu
+}
+
+// SetStripeHighestPriceID sets the "stripe_highest_price_id" field.
+func (uu *UserUpdate) SetStripeHighestPriceID(s string) *UserUpdate {
+	uu.mutation.SetStripeHighestPriceID(s)
+	return uu
+}
+
+// SetNillableStripeHighestPriceID sets the "stripe_highest_price_id" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableStripeHighestPriceID(s *string) *UserUpdate {
+	if s != nil {
+		uu.SetStripeHighestPriceID(*s)
+	}
+	return uu
+}
+
+// ClearStripeHighestPriceID clears the value of the "stripe_highest_price_id" field.
+func (uu *UserUpdate) ClearStripeHighestPriceID() *UserUpdate {
+	uu.mutation.ClearStripeHighestPriceID()
+	return uu
+}
+
+// SetStripeCancelsAt sets the "stripe_cancels_at" field.
+func (uu *UserUpdate) SetStripeCancelsAt(t time.Time) *UserUpdate {
+	uu.mutation.SetStripeCancelsAt(t)
+	return uu
+}
+
+// SetNillableStripeCancelsAt sets the "stripe_cancels_at" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableStripeCancelsAt(t *time.Time) *UserUpdate {
+	if t != nil {
+		uu.SetStripeCancelsAt(*t)
+	}
+	return uu
+}
+
+// ClearStripeCancelsAt clears the value of the "stripe_cancels_at" field.
+func (uu *UserUpdate) ClearStripeCancelsAt() *UserUpdate {
+	uu.mutation.ClearStripeCancelsAt()
+	return uu
+}
+
+// SetStripeRenewsAt sets the "stripe_renews_at" field.
+func (uu *UserUpdate) SetStripeRenewsAt(t time.Time) *UserUpdate {
+	uu.mutation.SetStripeRenewsAt(t)
+	return uu
+}
+
+// SetNillableStripeRenewsAt sets the "stripe_renews_at" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableStripeRenewsAt(t *time.Time) *UserUpdate {
+	if t != nil {
+		uu.SetStripeRenewsAt(*t)
+	}
+	return uu
+}
+
+// ClearStripeRenewsAt clears the value of the "stripe_renews_at" field.
+func (uu *UserUpdate) ClearStripeRenewsAt() *UserUpdate {
+	uu.mutation.ClearStripeRenewsAt()
+	return uu
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (uu *UserUpdate) SetUpdatedAt(t time.Time) *UserUpdate {
 	uu.mutation.SetUpdatedAt(t)
@@ -699,6 +779,30 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if uu.mutation.UsernameChangedAtCleared() {
 		_spec.ClearField(user.FieldUsernameChangedAt, field.TypeTime)
+	}
+	if value, ok := uu.mutation.StripeHighestProductID(); ok {
+		_spec.SetField(user.FieldStripeHighestProductID, field.TypeString, value)
+	}
+	if uu.mutation.StripeHighestProductIDCleared() {
+		_spec.ClearField(user.FieldStripeHighestProductID, field.TypeString)
+	}
+	if value, ok := uu.mutation.StripeHighestPriceID(); ok {
+		_spec.SetField(user.FieldStripeHighestPriceID, field.TypeString, value)
+	}
+	if uu.mutation.StripeHighestPriceIDCleared() {
+		_spec.ClearField(user.FieldStripeHighestPriceID, field.TypeString)
+	}
+	if value, ok := uu.mutation.StripeCancelsAt(); ok {
+		_spec.SetField(user.FieldStripeCancelsAt, field.TypeTime, value)
+	}
+	if uu.mutation.StripeCancelsAtCleared() {
+		_spec.ClearField(user.FieldStripeCancelsAt, field.TypeTime)
+	}
+	if value, ok := uu.mutation.StripeRenewsAt(); ok {
+		_spec.SetField(user.FieldStripeRenewsAt, field.TypeTime, value)
+	}
+	if uu.mutation.StripeRenewsAtCleared() {
+		_spec.ClearField(user.FieldStripeRenewsAt, field.TypeTime)
 	}
 	if value, ok := uu.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
@@ -1346,6 +1450,86 @@ func (uuo *UserUpdateOne) ClearUsernameChangedAt() *UserUpdateOne {
 	return uuo
 }
 
+// SetStripeHighestProductID sets the "stripe_highest_product_id" field.
+func (uuo *UserUpdateOne) SetStripeHighestProductID(s string) *UserUpdateOne {
+	uuo.mutation.SetStripeHighestProductID(s)
+	return uuo
+}
+
+// SetNillableStripeHighestProductID sets the "stripe_highest_product_id" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableStripeHighestProductID(s *string) *UserUpdateOne {
+	if s != nil {
+		uuo.SetStripeHighestProductID(*s)
+	}
+	return uuo
+}
+
+// ClearStripeHighestProductID clears the value of the "stripe_highest_product_id" field.
+func (uuo *UserUpdateOne) ClearStripeHighestProductID() *UserUpdateOne {
+	uuo.mutation.ClearStripeHighestProductID()
+	return uuo
+}
+
+// SetStripeHighestPriceID sets the "stripe_highest_price_id" field.
+func (uuo *UserUpdateOne) SetStripeHighestPriceID(s string) *UserUpdateOne {
+	uuo.mutation.SetStripeHighestPriceID(s)
+	return uuo
+}
+
+// SetNillableStripeHighestPriceID sets the "stripe_highest_price_id" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableStripeHighestPriceID(s *string) *UserUpdateOne {
+	if s != nil {
+		uuo.SetStripeHighestPriceID(*s)
+	}
+	return uuo
+}
+
+// ClearStripeHighestPriceID clears the value of the "stripe_highest_price_id" field.
+func (uuo *UserUpdateOne) ClearStripeHighestPriceID() *UserUpdateOne {
+	uuo.mutation.ClearStripeHighestPriceID()
+	return uuo
+}
+
+// SetStripeCancelsAt sets the "stripe_cancels_at" field.
+func (uuo *UserUpdateOne) SetStripeCancelsAt(t time.Time) *UserUpdateOne {
+	uuo.mutation.SetStripeCancelsAt(t)
+	return uuo
+}
+
+// SetNillableStripeCancelsAt sets the "stripe_cancels_at" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableStripeCancelsAt(t *time.Time) *UserUpdateOne {
+	if t != nil {
+		uuo.SetStripeCancelsAt(*t)
+	}
+	return uuo
+}
+
+// ClearStripeCancelsAt clears the value of the "stripe_cancels_at" field.
+func (uuo *UserUpdateOne) ClearStripeCancelsAt() *UserUpdateOne {
+	uuo.mutation.ClearStripeCancelsAt()
+	return uuo
+}
+
+// SetStripeRenewsAt sets the "stripe_renews_at" field.
+func (uuo *UserUpdateOne) SetStripeRenewsAt(t time.Time) *UserUpdateOne {
+	uuo.mutation.SetStripeRenewsAt(t)
+	return uuo
+}
+
+// SetNillableStripeRenewsAt sets the "stripe_renews_at" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableStripeRenewsAt(t *time.Time) *UserUpdateOne {
+	if t != nil {
+		uuo.SetStripeRenewsAt(*t)
+	}
+	return uuo
+}
+
+// ClearStripeRenewsAt clears the value of the "stripe_renews_at" field.
+func (uuo *UserUpdateOne) ClearStripeRenewsAt() *UserUpdateOne {
+	uuo.mutation.ClearStripeRenewsAt()
+	return uuo
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (uuo *UserUpdateOne) SetUpdatedAt(t time.Time) *UserUpdateOne {
 	uuo.mutation.SetUpdatedAt(t)
@@ -1821,6 +2005,30 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if uuo.mutation.UsernameChangedAtCleared() {
 		_spec.ClearField(user.FieldUsernameChangedAt, field.TypeTime)
+	}
+	if value, ok := uuo.mutation.StripeHighestProductID(); ok {
+		_spec.SetField(user.FieldStripeHighestProductID, field.TypeString, value)
+	}
+	if uuo.mutation.StripeHighestProductIDCleared() {
+		_spec.ClearField(user.FieldStripeHighestProductID, field.TypeString)
+	}
+	if value, ok := uuo.mutation.StripeHighestPriceID(); ok {
+		_spec.SetField(user.FieldStripeHighestPriceID, field.TypeString, value)
+	}
+	if uuo.mutation.StripeHighestPriceIDCleared() {
+		_spec.ClearField(user.FieldStripeHighestPriceID, field.TypeString)
+	}
+	if value, ok := uuo.mutation.StripeCancelsAt(); ok {
+		_spec.SetField(user.FieldStripeCancelsAt, field.TypeTime, value)
+	}
+	if uuo.mutation.StripeCancelsAtCleared() {
+		_spec.ClearField(user.FieldStripeCancelsAt, field.TypeTime)
+	}
+	if value, ok := uuo.mutation.StripeRenewsAt(); ok {
+		_spec.SetField(user.FieldStripeRenewsAt, field.TypeTime, value)
+	}
+	if uuo.mutation.StripeRenewsAtCleared() {
+		_spec.ClearField(user.FieldStripeRenewsAt, field.TypeTime)
 	}
 	if value, ok := uuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
