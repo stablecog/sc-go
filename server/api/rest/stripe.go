@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/go-chi/render"
@@ -362,7 +363,38 @@ func (c *RestAPI) HandleStripeWebhookSubscription(w http.ResponseWriter, r *http
 		return
 	}
 
+	if !strings.Contains(event.Type, "customer.subscription.") {
+		log.Infof(`🪝 🔵 Stripe webhook event is not a "customer.subscription" event, not handling: %s`, event.Type)
+		render.Status(r, http.StatusOK)
+		render.PlainText(w, r, "OK")
+	}
+
+	subscription, err := stripeObjectMapToCustomSubscriptionObject(event.Data.Object)
+	if err != nil || subscription == nil {
+		log.Error("Unable parsing stripe subscription object", "err", err)
+		responses.ErrInternalServerError(w, r, err.Error())
+		return
+	}
+
+	customer, err := c.StripeClient.Customers.Get(subscription.Customer, &stripe.CustomerParams{
+		Params: stripe.Params{
+			Expand: []*string{
+				stripe.String("subscriptions"),
+			},
+		},
+	})
+
+	if err != nil {
+		log.Error("Error getting customer from stripe, unknown error", "err", err)
+		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+		return
+	}
+
+	// Get subscription info
+	highestProductID, highestPriceID, cancelsAt, renewsAt := extractSubscriptionInfoFromCustomer(customer)
+
 	log.Infof("🪝 Stripe webhook event: %s", event.Type)
+	log.Infof("🪝 Stripe webhook subscription info: highestProductID: %s, highestPriceID: %s, cancelsAt: %v, renewsAt: %v", highestProductID, highestPriceID, cancelsAt, renewsAt)
 
 	render.Status(r, http.StatusOK)
 	render.PlainText(w, r, "OK")
@@ -807,6 +839,49 @@ func stripeObjectMapToInvoiceObject(obj map[string]interface{}) (*Invoice, error
 		return nil, err
 	}
 	return &invoice, nil
+}
+
+func extractStripeSubscriptionInfoFromCustomer(customer *stripe.Customer) (string, string, *time.Time, *time.Time) {
+	now := time.Now().UnixNano() / int64(time.Second)
+
+	var highestProductID string
+	var highestPriceID string
+	var cancelsAt *time.Time
+	var renewsAt *time.Time
+
+	if customer != nil && customer.Subscriptions != nil && customer.Subscriptions.Data != nil {
+		// Find highest subscription tier
+		for _, subscription := range customer.Subscriptions.Data {
+			if subscription.Items == nil || subscription.Items.Data == nil {
+				continue
+			}
+
+			for _, item := range subscription.Items.Data {
+				if item.Price == nil || item.Price.Product == nil {
+					continue
+				}
+				// Not expired or cancelled
+				if now > subscription.CurrentPeriodEnd || subscription.CanceledAt > subscription.CurrentPeriodEnd {
+					continue
+				}
+				highestPriceID = item.Price.ID
+				highestProductID = item.Price.Product.ID
+				// If not scheduled to be cancelled, we are done
+				if !subscription.CancelAtPeriodEnd {
+					cancelsAt = nil
+					break
+				}
+				cancelsAsTime := utils.SecondsSinceEpochToTime(subscription.CancelAt)
+				cancelsAt = &cancelsAsTime
+			}
+			if cancelsAt == nil && highestProductID != "" {
+				renewsAtTime := utils.SecondsSinceEpochToTime(subscription.CurrentPeriodEnd)
+				renewsAt = &renewsAtTime
+				break
+			}
+		}
+	}
+	return highestProductID, highestPriceID, cancelsAt, renewsAt
 }
 
 // Parse generic object into stripe subscription struct
