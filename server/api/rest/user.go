@@ -55,6 +55,7 @@ func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
 		return
 	} else if user == nil {
 		// Handle create user flow
+		m := time.Now()
 		err := createNewUser(email, userID, lastSignIn, c)
 		if err != nil {
 			log.Error("Error creating user", "err", err)
@@ -62,6 +63,7 @@ func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		go c.Track.SignUp(*userID, email, utils.GetIPAddress(r), utils.GetClientDeviceInfo(r))
+		log.Infof("HandleGetUserV2 - createNewUser: %dms", time.Since(m).Milliseconds())
 
 		user, err = c.Repo.GetUserWithRoles(*userID)
 		if err != nil {
