@@ -97,10 +97,10 @@ func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
 		operation        string
 	}
 
-	ch := make(chan result, 5)
+	goroutineCount := 4
+	ch := make(chan result, goroutineCount)
 	var wg sync.WaitGroup
-
-	wg.Add(4)
+	wg.Add(goroutineCount)
 
 	// Get total credits
 	go func() {
