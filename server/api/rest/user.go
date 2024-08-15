@@ -72,15 +72,15 @@ func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type result struct {
-		totalRemaining     int
-		customer           *stripe.Customer
-		paidCreditCount    int
-		err                error
-		stripeHadError     bool
-		updateLastSeenErr  error
-		paymentsMadeByUser int
-		duration           time.Duration
-		operation          string
+		totalRemaining    int
+		customer          *stripe.Customer
+		paidCreditCount   int
+		err               error
+		stripeHadError    bool
+		updateLastSeenErr error
+		hasPurchase       bool
+		duration          time.Duration
+		operation         string
 	}
 
 	ch := make(chan result, 5)
@@ -131,8 +131,8 @@ func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		defer wg.Done()
 		m := time.Now()
-		paymentsMade := getPaymentsMadeByCustomer(user.StripeCustomerID, c)
-		ch <- result{paymentsMadeByUser: paymentsMade, duration: time.Since(m), operation: "GO routine - GetPaymentMadeByCustomer"}
+		hasPurchase := getHasPurchaseForUser(user.ID, c)
+		ch <- result{hasPurchase: hasPurchase, duration: time.Since(m), operation: "GO routine - getHasPurchaseForUser"}
 	}()
 
 	go func() {
@@ -163,8 +163,8 @@ func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
 		if goroutineResult.updateLastSeenErr != nil {
 			log.Warn("Error updating last seen at", "err", goroutineResult.updateLastSeenErr, "user", userID.String())
 		}
-		if goroutineResult.paymentsMadeByUser != 0 {
-			res.paymentsMadeByUser = goroutineResult.paymentsMadeByUser
+		if goroutineResult.hasPurchase {
+			res.hasPurchase = goroutineResult.hasPurchase
 		}
 	}
 
@@ -180,7 +180,7 @@ func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
 	log.Infof("HandleGetUserV2 - Total: %dms", time.Since(s).Milliseconds())
 
 	render.Status(r, http.StatusOK)
-	render.JSON(w, r, responses.GetUserResponse{
+	render.JSON(w, r, responses.GetUserResponseV2{
 		UserID:                  userID,
 		TotalRemainingCredits:   res.totalRemaining,
 		HasNonfreeCredits:       res.paidCreditCount > 0,
@@ -200,7 +200,7 @@ func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
 		Username:                user.Username,
 		CreatedAt:               user.CreatedAt,
 		UsernameChangedAt:       user.UsernameChangedAt,
-		PurchaseCount:           res.paymentsMadeByUser,
+		HasPurchase:             res.hasPurchase,
 	})
 }
 
@@ -308,8 +308,8 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	m = time.Now()
-	paymentsMadeByCustomer := getPaymentsMadeByCustomer(user.StripeCustomerID, c)
-	log.Infof("HandleGetUser - GetPaymentMadeByCustomer: %dms", time.Since(m).Milliseconds())
+	purchaseCount := getPurchaseCountForCustomer(user.StripeCustomerID, c)
+	log.Infof("HandleGetUser - getPurchaseCountForCustomer: %dms", time.Since(m).Milliseconds())
 
 	log.Infof("HandleGetUser - Total: %dms", time.Since(s).Milliseconds())
 
@@ -334,8 +334,24 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		Username:                user.Username,
 		CreatedAt:               user.CreatedAt,
 		UsernameChangedAt:       user.UsernameChangedAt,
-		PurchaseCount:           paymentsMadeByCustomer,
+		PurchaseCount:           purchaseCount,
 	})
+}
+
+func getHasPurchaseForUser(userID uuid.UUID, c *RestAPI) bool {
+	hasPurchase := false
+	credits, err := c.Repo.GetAllCreditsForUser(userID)
+	if err != nil {
+		log.Error("Error getting credits for user", err)
+		return hasPurchase
+	}
+	for _, credit := range credits {
+		if credit.Edges.CreditType.StripeProductID != nil {
+			hasPurchase = true
+			break
+		}
+	}
+	return hasPurchase
 }
 
 func getMoreCreditsInfo(userID uuid.UUID, highestProduct string, renewsAt *time.Time, stripeHadError bool, c *RestAPI) (*time.Time, *int, *int, *int) {
@@ -458,18 +474,18 @@ func createNewUser(email string, userID *uuid.UUID, lastSignIn *time.Time, c *Re
 	return nil
 }
 
-func getPaymentsMadeByCustomer(customerId string, c *RestAPI) int {
-	paymentsMadeByCustomer := 0
+func getPurchaseCountForCustomer(customerId string, c *RestAPI) int {
+	purchaseCount := 0
 	paymentIntents := c.StripeClient.PaymentIntents.List(&stripe.PaymentIntentListParams{
 		Customer: stripe.String(customerId),
 	})
 	for paymentIntents.Next() {
 		intent := paymentIntents.PaymentIntent()
 		if intent != nil && intent.Status == stripe.PaymentIntentStatusSucceeded {
-			paymentsMadeByCustomer++
+			purchaseCount++
 		}
 	}
-	return paymentsMadeByCustomer
+	return purchaseCount
 }
 
 func extractSubscriptionInfoFromCustomer(customer *stripe.Customer) (string, string, *time.Time, *time.Time) {

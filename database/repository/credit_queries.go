@@ -37,6 +37,10 @@ func (r *Repository) GetCreditsForUser(userID uuid.UUID) ([]*UserCreditsQueryRes
 	return res, err
 }
 
+func (r *Repository) GetAllCreditsForUser(userID uuid.UUID) ([]*ent.Credit, error) {
+	return r.DB.Credit.Query().Where(credit.UserID(userID)).WithCreditType().All(r.Ctx)
+}
+
 // For mocking
 var Now = time.Now
 
