@@ -159,13 +159,13 @@ func TestCheckIfEmailExists(t *testing.T) {
 	assert.True(t, exists)
 
 	// Create a user with + in email
-	MockRepo.DB.User.Create().SetEmail("testcheckemail+123@gmail.com").SetStripeCustomerID("1234").SetUsername("testcheckemail").SaveX(context.Background())
+	MockRepo.DB.User.Create().SetEmail("test.checkemail+123@gmail.com").SetEmailNormalized("testcheckemail@gmail.com").SetStripeCustomerID("1234").SetUsername("testcheckemail").SaveX(context.Background())
 
 	// Check if email exists
 	_, exists, err = MockRepo.CheckIfEmailExistsV2("testcheckemail@gmail.com")
 	assert.Nil(t, err)
 	assert.True(t, exists)
-	_, exists, err = MockRepo.CheckIfEmailExistsV2("testcheckemail+abcdef@gmail.com")
+	_, exists, err = MockRepo.CheckIfEmailExistsV2("testch.eckemail+abcdef@gmail.com")
 	assert.Nil(t, err)
 	assert.True(t, exists)
 }
