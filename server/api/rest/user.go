@@ -105,15 +105,35 @@ func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		defer wg.Done()
 		m := time.Now()
-		highestProductID, highestPriceID, cancelsAt, renewsAt, err := c.GetAndSyncStripeSubscriptionInfo(user.StripeCustomerID)
-		stripeHadError := err != nil
+		var highestProductID string
+		var highestPriceID string
+		var cancelsAt *time.Time
+		var renewsAt *time.Time
+		var stripeHadError bool
+		var stripeErr error
+		var operation string
+
+		// If the user has info synced to the DB already, use that
+		if user.StripeSyncedAt != nil {
+			operation = "GO routine - GetStripeSubscriptionInfoFromDB"
+			highestPriceID = *user.StripeHighestPriceID
+			highestProductID = *user.StripeHighestProductID
+			cancelsAt = user.StripeCancelsAt
+			renewsAt = user.StripeRenewsAt
+		} else {
+			operation = "GO routine - GetAndSyncStripeSubscriptionInfo"
+			highestProductID, highestPriceID, cancelsAt, renewsAt, stripeErr = c.GetAndSyncStripeSubscriptionInfo(user.StripeCustomerID)
+			stripeHadError = stripeErr != nil
+		}
+
 		ch <- result{
 			highestProductID: highestProductID,
 			highestPriceID:   highestPriceID,
-			cancelsAt:        cancelsAt, renewsAt: renewsAt,
-			stripeHadError: stripeHadError,
-			duration:       time.Since(m),
-			operation:      "GO routine - GetAndSyncStripeSubscriptionInfo"}
+			cancelsAt:        cancelsAt,
+			renewsAt:         renewsAt,
+			stripeHadError:   stripeHadError,
+			duration:         time.Since(m),
+			operation:        operation}
 	}()
 
 	// Get paid credits
