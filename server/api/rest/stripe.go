@@ -344,6 +344,8 @@ func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Req
 }
 
 func (c *RestAPI) HandleStripeWebhookSubscription(w http.ResponseWriter, r *http.Request) {
+	s := time.Now()
+
 	stripePaymentIntentEvents := []string{
 		"payment_intent.created",
 		"payment_intent.canceled",
@@ -455,7 +457,7 @@ func (c *RestAPI) HandleStripeWebhookSubscription(w http.ResponseWriter, r *http
 		return
 	}
 
-	log.Infof("🪝 🟢 Updated Stripe subscription info in DB | userID: %s, customerID: %s, highestProductID: %s, highestPriceID: %s, cancelsAt: %v, renewsAt: %v", user.ID, customer.ID, highestProductID, highestPriceID, cancelsAt, renewsAt)
+	log.Infof("🪝 🟢 Updated Stripe subscription info in DB | %dms | userID: %s, customerID: %s, highestProductID: %s, highestPriceID: %s, cancelsAt: %v, renewsAt: %v", time.Since(s).Milliseconds(), user.ID, customer.ID, highestProductID, highestPriceID, cancelsAt, renewsAt)
 
 	render.Status(r, http.StatusOK)
 	render.PlainText(w, r, "OK")
