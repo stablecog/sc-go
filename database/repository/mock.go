@@ -57,7 +57,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 
 	// ! Mock users
 	// Create a user
-	u, err := repo.DB.User.Create().SetEmail("mockadmin@stablecog.com").SetID(uuid.MustParse(MOCK_ADMIN_UUID)).SetStripeCustomerID("1").SetUsername("1").Save(ctx)
+	u, err := repo.DB.User.Create().SetEmail("mockadmin@stablecog.com").SetEmailNormalized("mockadmin@stablecog.com").SetID(uuid.MustParse(MOCK_ADMIN_UUID)).SetStripeCustomerID("1").SetUsername("1").Save(ctx)
 	if err != nil {
 		return err
 	}
