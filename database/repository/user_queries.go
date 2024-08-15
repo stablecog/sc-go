@@ -59,6 +59,8 @@ func (r *Repository) UpdateUserStripeSubscriptionInfo(userID uuid.UUID, highestP
 		update.ClearStripeRenewsAt()
 	}
 
+	update.SetStripeSyncedAt(syncedAt)
+
 	user, err := update.Save(r.Ctx)
 	return user, err
 }
