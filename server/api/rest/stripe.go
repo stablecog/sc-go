@@ -347,7 +347,7 @@ func (c *RestAPI) HandleStripeWebhookSubscription(w http.ResponseWriter, r *http
 	// Parse request body
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.Error("Unable reading stripe webhook body", "err", err)
+		log.Error("🪝 🔴 Unable reading Stripe webhook body", err)
 		responses.ErrBadRequest(w, r, "invalid stripe webhook body", "")
 		return
 	}
@@ -357,12 +357,12 @@ func (c *RestAPI) HandleStripeWebhookSubscription(w http.ResponseWriter, r *http
 
 	event, err := webhook.ConstructEvent(reqBody, r.Header.Get("Stripe-Signature"), endpointSecret)
 	if err != nil {
-		log.Error("🪝 Unable verifying stripe webhook signature", "err", err)
+		log.Error("🪝 🔴 Unable verifying stripe webhook signature", err)
 		responses.ErrBadRequest(w, r, "invalid stripe webhook signature", "")
 		return
 	}
 
-	log.Info("🪝 Stripe webhook event", "type", event.Type)
+	log.Infof("🪝 Stripe webhook event: %s", event.Type)
 
 	render.Status(r, http.StatusOK)
 	render.PlainText(w, r, "OK")
