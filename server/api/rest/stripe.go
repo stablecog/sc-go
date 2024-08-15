@@ -371,7 +371,7 @@ func (c *RestAPI) HandleStripeWebhookSubscription(w http.ResponseWriter, r *http
 
 	subscription, err := stripeObjectMapToCustomSubscriptionObject(event.Data.Object)
 	if err != nil || subscription == nil {
-		log.Error("Unable parsing stripe subscription object", "err", err)
+		log.Error("🪝 Unable parsing stripe subscription object", "err", err)
 		responses.ErrInternalServerError(w, r, err.Error())
 		return
 	}
@@ -385,13 +385,27 @@ func (c *RestAPI) HandleStripeWebhookSubscription(w http.ResponseWriter, r *http
 	})
 
 	if err != nil {
-		log.Error("Error getting customer from stripe, unknown error", "err", err)
+		log.Error("🪝 Error getting customer from stripe, unknown error", "err", err)
+		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+		return
+	}
+
+	user, userErr := c.Repo.GetUserByStripeCustomerId(customer.ID)
+	if userErr != nil {
+		log.Error("🪝 Error getting user from stripe customer id", "err", userErr)
 		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 		return
 	}
 
 	// Get subscription info
 	highestProductID, highestPriceID, cancelsAt, renewsAt := extractSubscriptionInfoFromCustomer(customer)
+
+	_, updateErr := c.Repo.UpdateUserStripeSubscriptionInfo(user.ID, highestProductID, highestPriceID, cancelsAt, renewsAt)
+	if updateErr != nil {
+		log.Error("🪝 Error updating user stripe subscription info in the DB", "err", updateErr)
+		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+		return
+	}
 
 	log.Infof("🪝 Stripe webhook event: %s", event.Type)
 	log.Infof("🪝 Stripe webhook subscription info: highestProductID: %s, highestPriceID: %s, cancelsAt: %v, renewsAt: %v", highestProductID, highestPriceID, cancelsAt, renewsAt)

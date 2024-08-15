@@ -32,6 +32,27 @@ func (r *Repository) GetUserWithRoles(id uuid.UUID) (*ent.User, error) {
 	return user, err
 }
 
+func (r *Repository) UpdateUserStripeSubscriptionInfo(userID uuid.UUID, highestProductID string, highestPriceID string, cancelsAt *time.Time, renewsAt *time.Time) (*ent.User, error) {
+	var highestProductIDPtr *string
+	var highestPriceIDPtr *string
+
+	if highestProductID != "" {
+		highestProductIDPtr = &highestProductID
+	}
+	if highestPriceID != "" {
+		highestPriceIDPtr = &highestPriceID
+	}
+
+	update := r.DB.User.UpdateOneID(userID).
+		SetNillableStripeHighestProductID(highestProductIDPtr).
+		SetNillableStripeHighestPriceID(highestPriceIDPtr).
+		SetNillableStripeCancelsAt(cancelsAt).
+		SetNillableStripeRenewsAt(renewsAt)
+
+	user, err := update.Save(r.Ctx)
+	return user, err
+}
+
 func (r *Repository) GetUserByStripeCustomerId(customerId string) (*ent.User, error) {
 	user, err := r.DB.User.Query().Where(user.StripeCustomerIDEQ(customerId)).Only(r.Ctx)
 	if err != nil && ent.IsNotFound(err) {
