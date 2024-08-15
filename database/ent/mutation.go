@@ -19913,6 +19913,7 @@ type UserMutation struct {
 	stripe_highest_product_id      *string
 	stripe_highest_price_id        *string
 	stripe_cancels_at              *time.Time
+	stripe_synced_at               *time.Time
 	stripe_renews_at               *time.Time
 	created_at                     *time.Time
 	updated_at                     *time.Time
@@ -20736,6 +20737,55 @@ func (m *UserMutation) ResetStripeCancelsAt() {
 	delete(m.clearedFields, user.FieldStripeCancelsAt)
 }
 
+// SetStripeSyncedAt sets the "stripe_synced_at" field.
+func (m *UserMutation) SetStripeSyncedAt(t time.Time) {
+	m.stripe_synced_at = &t
+}
+
+// StripeSyncedAt returns the value of the "stripe_synced_at" field in the mutation.
+func (m *UserMutation) StripeSyncedAt() (r time.Time, exists bool) {
+	v := m.stripe_synced_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStripeSyncedAt returns the old "stripe_synced_at" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldStripeSyncedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStripeSyncedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStripeSyncedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStripeSyncedAt: %w", err)
+	}
+	return oldValue.StripeSyncedAt, nil
+}
+
+// ClearStripeSyncedAt clears the value of the "stripe_synced_at" field.
+func (m *UserMutation) ClearStripeSyncedAt() {
+	m.stripe_synced_at = nil
+	m.clearedFields[user.FieldStripeSyncedAt] = struct{}{}
+}
+
+// StripeSyncedAtCleared returns if the "stripe_synced_at" field was cleared in this mutation.
+func (m *UserMutation) StripeSyncedAtCleared() bool {
+	_, ok := m.clearedFields[user.FieldStripeSyncedAt]
+	return ok
+}
+
+// ResetStripeSyncedAt resets all changes to the "stripe_synced_at" field.
+func (m *UserMutation) ResetStripeSyncedAt() {
+	m.stripe_synced_at = nil
+	delete(m.clearedFields, user.FieldStripeSyncedAt)
+}
+
 // SetStripeRenewsAt sets the "stripe_renews_at" field.
 func (m *UserMutation) SetStripeRenewsAt(t time.Time) {
 	m.stripe_renews_at = &t
@@ -21377,7 +21427,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 18)
+	fields := make([]string, 0, 19)
 	if m.email != nil {
 		fields = append(fields, user.FieldEmail)
 	}
@@ -21422,6 +21472,9 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.stripe_cancels_at != nil {
 		fields = append(fields, user.FieldStripeCancelsAt)
+	}
+	if m.stripe_synced_at != nil {
+		fields = append(fields, user.FieldStripeSyncedAt)
 	}
 	if m.stripe_renews_at != nil {
 		fields = append(fields, user.FieldStripeRenewsAt)
@@ -21470,6 +21523,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.StripeHighestPriceID()
 	case user.FieldStripeCancelsAt:
 		return m.StripeCancelsAt()
+	case user.FieldStripeSyncedAt:
+		return m.StripeSyncedAt()
 	case user.FieldStripeRenewsAt:
 		return m.StripeRenewsAt()
 	case user.FieldCreatedAt:
@@ -21515,6 +21570,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldStripeHighestPriceID(ctx)
 	case user.FieldStripeCancelsAt:
 		return m.OldStripeCancelsAt(ctx)
+	case user.FieldStripeSyncedAt:
+		return m.OldStripeSyncedAt(ctx)
 	case user.FieldStripeRenewsAt:
 		return m.OldStripeRenewsAt(ctx)
 	case user.FieldCreatedAt:
@@ -21635,6 +21692,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetStripeCancelsAt(v)
 		return nil
+	case user.FieldStripeSyncedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStripeSyncedAt(v)
+		return nil
 	case user.FieldStripeRenewsAt:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -21719,6 +21783,9 @@ func (m *UserMutation) ClearedFields() []string {
 	if m.FieldCleared(user.FieldStripeCancelsAt) {
 		fields = append(fields, user.FieldStripeCancelsAt)
 	}
+	if m.FieldCleared(user.FieldStripeSyncedAt) {
+		fields = append(fields, user.FieldStripeSyncedAt)
+	}
 	if m.FieldCleared(user.FieldStripeRenewsAt) {
 		fields = append(fields, user.FieldStripeRenewsAt)
 	}
@@ -21768,6 +21835,9 @@ func (m *UserMutation) ClearField(name string) error {
 		return nil
 	case user.FieldStripeCancelsAt:
 		m.ClearStripeCancelsAt()
+		return nil
+	case user.FieldStripeSyncedAt:
+		m.ClearStripeSyncedAt()
 		return nil
 	case user.FieldStripeRenewsAt:
 		m.ClearStripeRenewsAt()
@@ -21824,6 +21894,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldStripeCancelsAt:
 		m.ResetStripeCancelsAt()
+		return nil
+	case user.FieldStripeSyncedAt:
+		m.ResetStripeSyncedAt()
 		return nil
 	case user.FieldStripeRenewsAt:
 		m.ResetStripeRenewsAt()

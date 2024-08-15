@@ -48,6 +48,8 @@ type User struct {
 	StripeHighestPriceID *string `json:"stripe_highest_price_id,omitempty"`
 	// StripeCancelsAt holds the value of the "stripe_cancels_at" field.
 	StripeCancelsAt *time.Time `json:"stripe_cancels_at,omitempty"`
+	// StripeSyncedAt holds the value of the "stripe_synced_at" field.
+	StripeSyncedAt *time.Time `json:"stripe_synced_at,omitempty"`
 	// StripeRenewsAt holds the value of the "stripe_renews_at" field.
 	StripeRenewsAt *time.Time `json:"stripe_renews_at,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
@@ -175,7 +177,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case user.FieldEmail, user.FieldStripeCustomerID, user.FieldActiveProductID, user.FieldDiscordID, user.FieldUsername, user.FieldStripeHighestProductID, user.FieldStripeHighestPriceID:
 			values[i] = new(sql.NullString)
-		case user.FieldLastSignInAt, user.FieldLastSeenAt, user.FieldBannedAt, user.FieldScheduledForDeletionOn, user.FieldDataDeletedAt, user.FieldUsernameChangedAt, user.FieldStripeCancelsAt, user.FieldStripeRenewsAt, user.FieldCreatedAt, user.FieldUpdatedAt:
+		case user.FieldLastSignInAt, user.FieldLastSeenAt, user.FieldBannedAt, user.FieldScheduledForDeletionOn, user.FieldDataDeletedAt, user.FieldUsernameChangedAt, user.FieldStripeCancelsAt, user.FieldStripeSyncedAt, user.FieldStripeRenewsAt, user.FieldCreatedAt, user.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		case user.FieldID:
 			values[i] = new(uuid.UUID)
@@ -300,6 +302,13 @@ func (u *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				u.StripeCancelsAt = new(time.Time)
 				*u.StripeCancelsAt = value.Time
+			}
+		case user.FieldStripeSyncedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field stripe_synced_at", values[i])
+			} else if value.Valid {
+				u.StripeSyncedAt = new(time.Time)
+				*u.StripeSyncedAt = value.Time
 			}
 		case user.FieldStripeRenewsAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -465,6 +474,11 @@ func (u *User) String() string {
 	builder.WriteString(", ")
 	if v := u.StripeCancelsAt; v != nil {
 		builder.WriteString("stripe_cancels_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	if v := u.StripeSyncedAt; v != nil {
+		builder.WriteString("stripe_synced_at=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
 	builder.WriteString(", ")

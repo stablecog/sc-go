@@ -218,6 +218,20 @@ func (uc *UserCreate) SetNillableStripeCancelsAt(t *time.Time) *UserCreate {
 	return uc
 }
 
+// SetStripeSyncedAt sets the "stripe_synced_at" field.
+func (uc *UserCreate) SetStripeSyncedAt(t time.Time) *UserCreate {
+	uc.mutation.SetStripeSyncedAt(t)
+	return uc
+}
+
+// SetNillableStripeSyncedAt sets the "stripe_synced_at" field if the given value is not nil.
+func (uc *UserCreate) SetNillableStripeSyncedAt(t *time.Time) *UserCreate {
+	if t != nil {
+		uc.SetStripeSyncedAt(*t)
+	}
+	return uc
+}
+
 // SetStripeRenewsAt sets the "stripe_renews_at" field.
 func (uc *UserCreate) SetStripeRenewsAt(t time.Time) *UserCreate {
 	uc.mutation.SetStripeRenewsAt(t)
@@ -577,6 +591,10 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.StripeCancelsAt(); ok {
 		_spec.SetField(user.FieldStripeCancelsAt, field.TypeTime, value)
 		_node.StripeCancelsAt = &value
+	}
+	if value, ok := uc.mutation.StripeSyncedAt(); ok {
+		_spec.SetField(user.FieldStripeSyncedAt, field.TypeTime, value)
+		_node.StripeSyncedAt = &value
 	}
 	if value, ok := uc.mutation.StripeRenewsAt(); ok {
 		_spec.SetField(user.FieldStripeRenewsAt, field.TypeTime, value)
@@ -1032,6 +1050,24 @@ func (u *UserUpsert) ClearStripeCancelsAt() *UserUpsert {
 	return u
 }
 
+// SetStripeSyncedAt sets the "stripe_synced_at" field.
+func (u *UserUpsert) SetStripeSyncedAt(v time.Time) *UserUpsert {
+	u.Set(user.FieldStripeSyncedAt, v)
+	return u
+}
+
+// UpdateStripeSyncedAt sets the "stripe_synced_at" field to the value that was provided on create.
+func (u *UserUpsert) UpdateStripeSyncedAt() *UserUpsert {
+	u.SetExcluded(user.FieldStripeSyncedAt)
+	return u
+}
+
+// ClearStripeSyncedAt clears the value of the "stripe_synced_at" field.
+func (u *UserUpsert) ClearStripeSyncedAt() *UserUpsert {
+	u.SetNull(user.FieldStripeSyncedAt)
+	return u
+}
+
 // SetStripeRenewsAt sets the "stripe_renews_at" field.
 func (u *UserUpsert) SetStripeRenewsAt(v time.Time) *UserUpsert {
 	u.Set(user.FieldStripeRenewsAt, v)
@@ -1397,6 +1433,27 @@ func (u *UserUpsertOne) UpdateStripeCancelsAt() *UserUpsertOne {
 func (u *UserUpsertOne) ClearStripeCancelsAt() *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
 		s.ClearStripeCancelsAt()
+	})
+}
+
+// SetStripeSyncedAt sets the "stripe_synced_at" field.
+func (u *UserUpsertOne) SetStripeSyncedAt(v time.Time) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetStripeSyncedAt(v)
+	})
+}
+
+// UpdateStripeSyncedAt sets the "stripe_synced_at" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateStripeSyncedAt() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateStripeSyncedAt()
+	})
+}
+
+// ClearStripeSyncedAt clears the value of the "stripe_synced_at" field.
+func (u *UserUpsertOne) ClearStripeSyncedAt() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearStripeSyncedAt()
 	})
 }
 
@@ -1937,6 +1994,27 @@ func (u *UserUpsertBulk) UpdateStripeCancelsAt() *UserUpsertBulk {
 func (u *UserUpsertBulk) ClearStripeCancelsAt() *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
 		s.ClearStripeCancelsAt()
+	})
+}
+
+// SetStripeSyncedAt sets the "stripe_synced_at" field.
+func (u *UserUpsertBulk) SetStripeSyncedAt(v time.Time) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetStripeSyncedAt(v)
+	})
+}
+
+// UpdateStripeSyncedAt sets the "stripe_synced_at" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateStripeSyncedAt() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateStripeSyncedAt()
+	})
+}
+
+// ClearStripeSyncedAt clears the value of the "stripe_synced_at" field.
+func (u *UserUpsertBulk) ClearStripeSyncedAt() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearStripeSyncedAt()
 	})
 }
 

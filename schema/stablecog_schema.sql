@@ -396,6 +396,7 @@ CREATE TABLE public.users (
     stripe_highest_price_id text,
     stripe_cancels_at timestamp with time zone,
     stripe_renews_at timestamp with time zone,
+    stripe_synced_at timestamp with time zone,
     created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );

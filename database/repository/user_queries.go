@@ -32,7 +32,7 @@ func (r *Repository) GetUserWithRoles(id uuid.UUID) (*ent.User, error) {
 	return user, err
 }
 
-func (r *Repository) UpdateUserStripeSubscriptionInfo(userID uuid.UUID, highestProductID string, highestPriceID string, cancelsAt *time.Time, renewsAt *time.Time) (*ent.User, error) {
+func (r *Repository) UpdateUserStripeSubscriptionInfo(userID uuid.UUID, highestProductID string, highestPriceID string, cancelsAt *time.Time, renewsAt *time.Time, syncedAt time.Time) (*ent.User, error) {
 	var highestProductIDPtr *string
 	var highestPriceIDPtr *string
 
@@ -47,7 +47,8 @@ func (r *Repository) UpdateUserStripeSubscriptionInfo(userID uuid.UUID, highestP
 		SetNillableStripeHighestProductID(highestProductIDPtr).
 		SetNillableStripeHighestPriceID(highestPriceIDPtr).
 		SetNillableStripeCancelsAt(cancelsAt).
-		SetNillableStripeRenewsAt(renewsAt)
+		SetNillableStripeRenewsAt(renewsAt).
+		SetStripeSyncedAt(syncedAt)
 
 	user, err := update.Save(r.Ctx)
 	return user, err

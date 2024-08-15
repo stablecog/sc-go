@@ -465,7 +465,7 @@ func (c *RestAPI) GetAndSyncStripeSubscriptionInfo(stripeCustomerID string) (str
 		return "", "", nil, nil, userErr
 	}
 
-	_, updateErr := c.Repo.UpdateUserStripeSubscriptionInfo(user.ID, highestProductID, highestPriceID, cancelsAt, renewsAt)
+	_, updateErr := c.Repo.UpdateUserStripeSubscriptionInfo(user.ID, highestProductID, highestPriceID, cancelsAt, renewsAt, time.Now())
 	if updateErr != nil {
 		log.Error("🔴 GetAndSyncStripeSubscriptionInfo: Unable updating user stripe subscription info", updateErr)
 		return "", "", nil, nil, updateErr

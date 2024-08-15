@@ -45,6 +45,8 @@ const (
 	FieldStripeHighestPriceID = "stripe_highest_price_id"
 	// FieldStripeCancelsAt holds the string denoting the stripe_cancels_at field in the database.
 	FieldStripeCancelsAt = "stripe_cancels_at"
+	// FieldStripeSyncedAt holds the string denoting the stripe_synced_at field in the database.
+	FieldStripeSyncedAt = "stripe_synced_at"
 	// FieldStripeRenewsAt holds the string denoting the stripe_renews_at field in the database.
 	FieldStripeRenewsAt = "stripe_renews_at"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
@@ -152,6 +154,7 @@ var Columns = []string{
 	FieldStripeHighestProductID,
 	FieldStripeHighestPriceID,
 	FieldStripeCancelsAt,
+	FieldStripeSyncedAt,
 	FieldStripeRenewsAt,
 	FieldCreatedAt,
 	FieldUpdatedAt,
@@ -267,6 +270,11 @@ func ByStripeHighestPriceID(opts ...sql.OrderTermOption) OrderOption {
 // ByStripeCancelsAt orders the results by the stripe_cancels_at field.
 func ByStripeCancelsAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldStripeCancelsAt, opts...).ToFunc()
+}
+
+// ByStripeSyncedAt orders the results by the stripe_synced_at field.
+func ByStripeSyncedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStripeSyncedAt, opts...).ToFunc()
 }
 
 // ByStripeRenewsAt orders the results by the stripe_renews_at field.

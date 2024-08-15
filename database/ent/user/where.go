@@ -131,6 +131,11 @@ func StripeCancelsAt(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldStripeCancelsAt, v))
 }
 
+// StripeSyncedAt applies equality check predicate on the "stripe_synced_at" field. It's identical to StripeSyncedAtEQ.
+func StripeSyncedAt(v time.Time) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldStripeSyncedAt, v))
+}
+
 // StripeRenewsAt applies equality check predicate on the "stripe_renews_at" field. It's identical to StripeRenewsAtEQ.
 func StripeRenewsAt(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldStripeRenewsAt, v))
@@ -999,6 +1004,56 @@ func StripeCancelsAtIsNil() predicate.User {
 // StripeCancelsAtNotNil applies the NotNil predicate on the "stripe_cancels_at" field.
 func StripeCancelsAtNotNil() predicate.User {
 	return predicate.User(sql.FieldNotNull(FieldStripeCancelsAt))
+}
+
+// StripeSyncedAtEQ applies the EQ predicate on the "stripe_synced_at" field.
+func StripeSyncedAtEQ(v time.Time) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldStripeSyncedAt, v))
+}
+
+// StripeSyncedAtNEQ applies the NEQ predicate on the "stripe_synced_at" field.
+func StripeSyncedAtNEQ(v time.Time) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldStripeSyncedAt, v))
+}
+
+// StripeSyncedAtIn applies the In predicate on the "stripe_synced_at" field.
+func StripeSyncedAtIn(vs ...time.Time) predicate.User {
+	return predicate.User(sql.FieldIn(FieldStripeSyncedAt, vs...))
+}
+
+// StripeSyncedAtNotIn applies the NotIn predicate on the "stripe_synced_at" field.
+func StripeSyncedAtNotIn(vs ...time.Time) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldStripeSyncedAt, vs...))
+}
+
+// StripeSyncedAtGT applies the GT predicate on the "stripe_synced_at" field.
+func StripeSyncedAtGT(v time.Time) predicate.User {
+	return predicate.User(sql.FieldGT(FieldStripeSyncedAt, v))
+}
+
+// StripeSyncedAtGTE applies the GTE predicate on the "stripe_synced_at" field.
+func StripeSyncedAtGTE(v time.Time) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldStripeSyncedAt, v))
+}
+
+// StripeSyncedAtLT applies the LT predicate on the "stripe_synced_at" field.
+func StripeSyncedAtLT(v time.Time) predicate.User {
+	return predicate.User(sql.FieldLT(FieldStripeSyncedAt, v))
+}
+
+// StripeSyncedAtLTE applies the LTE predicate on the "stripe_synced_at" field.
+func StripeSyncedAtLTE(v time.Time) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldStripeSyncedAt, v))
+}
+
+// StripeSyncedAtIsNil applies the IsNil predicate on the "stripe_synced_at" field.
+func StripeSyncedAtIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldStripeSyncedAt))
+}
+
+// StripeSyncedAtNotNil applies the NotNil predicate on the "stripe_synced_at" field.
+func StripeSyncedAtNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldStripeSyncedAt))
 }
 
 // StripeRenewsAtEQ applies the EQ predicate on the "stripe_renews_at" field.

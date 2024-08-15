@@ -314,6 +314,26 @@ func (uu *UserUpdate) ClearStripeCancelsAt() *UserUpdate {
 	return uu
 }
 
+// SetStripeSyncedAt sets the "stripe_synced_at" field.
+func (uu *UserUpdate) SetStripeSyncedAt(t time.Time) *UserUpdate {
+	uu.mutation.SetStripeSyncedAt(t)
+	return uu
+}
+
+// SetNillableStripeSyncedAt sets the "stripe_synced_at" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableStripeSyncedAt(t *time.Time) *UserUpdate {
+	if t != nil {
+		uu.SetStripeSyncedAt(*t)
+	}
+	return uu
+}
+
+// ClearStripeSyncedAt clears the value of the "stripe_synced_at" field.
+func (uu *UserUpdate) ClearStripeSyncedAt() *UserUpdate {
+	uu.mutation.ClearStripeSyncedAt()
+	return uu
+}
+
 // SetStripeRenewsAt sets the "stripe_renews_at" field.
 func (uu *UserUpdate) SetStripeRenewsAt(t time.Time) *UserUpdate {
 	uu.mutation.SetStripeRenewsAt(t)
@@ -797,6 +817,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if uu.mutation.StripeCancelsAtCleared() {
 		_spec.ClearField(user.FieldStripeCancelsAt, field.TypeTime)
+	}
+	if value, ok := uu.mutation.StripeSyncedAt(); ok {
+		_spec.SetField(user.FieldStripeSyncedAt, field.TypeTime, value)
+	}
+	if uu.mutation.StripeSyncedAtCleared() {
+		_spec.ClearField(user.FieldStripeSyncedAt, field.TypeTime)
 	}
 	if value, ok := uu.mutation.StripeRenewsAt(); ok {
 		_spec.SetField(user.FieldStripeRenewsAt, field.TypeTime, value)
@@ -1510,6 +1536,26 @@ func (uuo *UserUpdateOne) ClearStripeCancelsAt() *UserUpdateOne {
 	return uuo
 }
 
+// SetStripeSyncedAt sets the "stripe_synced_at" field.
+func (uuo *UserUpdateOne) SetStripeSyncedAt(t time.Time) *UserUpdateOne {
+	uuo.mutation.SetStripeSyncedAt(t)
+	return uuo
+}
+
+// SetNillableStripeSyncedAt sets the "stripe_synced_at" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableStripeSyncedAt(t *time.Time) *UserUpdateOne {
+	if t != nil {
+		uuo.SetStripeSyncedAt(*t)
+	}
+	return uuo
+}
+
+// ClearStripeSyncedAt clears the value of the "stripe_synced_at" field.
+func (uuo *UserUpdateOne) ClearStripeSyncedAt() *UserUpdateOne {
+	uuo.mutation.ClearStripeSyncedAt()
+	return uuo
+}
+
 // SetStripeRenewsAt sets the "stripe_renews_at" field.
 func (uuo *UserUpdateOne) SetStripeRenewsAt(t time.Time) *UserUpdateOne {
 	uuo.mutation.SetStripeRenewsAt(t)
@@ -2023,6 +2069,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if uuo.mutation.StripeCancelsAtCleared() {
 		_spec.ClearField(user.FieldStripeCancelsAt, field.TypeTime)
+	}
+	if value, ok := uuo.mutation.StripeSyncedAt(); ok {
+		_spec.SetField(user.FieldStripeSyncedAt, field.TypeTime, value)
+	}
+	if uuo.mutation.StripeSyncedAtCleared() {
+		_spec.ClearField(user.FieldStripeSyncedAt, field.TypeTime)
 	}
 	if value, ok := uuo.mutation.StripeRenewsAt(); ok {
 		_spec.SetField(user.FieldStripeRenewsAt, field.TypeTime, value)
