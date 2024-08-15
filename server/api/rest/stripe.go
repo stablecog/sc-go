@@ -435,6 +435,12 @@ func (c *RestAPI) HandleStripeWebhookSubscription(w http.ResponseWriter, r *http
 
 	highestProductID, highestPriceID, cancelsAt, renewsAt, err := c.GetAndSyncStripeSubscriptionInfo(customerID)
 
+	if err != nil {
+		log.Error("🪝 🔴 Unable getting and syncing stripe subscription info", err)
+		responses.ErrInternalServerError(w, r, err.Error())
+		return
+	}
+
 	log.Infof("🪝 🟢 Updated Stripe subscription info in DB | %dms | userID: %s, customerID: %s, highestProductID: %s, highestPriceID: %s, cancelsAt: %v, renewsAt: %v", time.Since(s).Milliseconds(), user.ID, customerID, highestProductID, highestPriceID, cancelsAt, renewsAt)
 
 	render.Status(r, http.StatusOK)
