@@ -113,7 +113,7 @@ func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
 			cancelsAt:        cancelsAt, renewsAt: renewsAt,
 			stripeHadError: stripeHadError,
 			duration:       time.Since(m),
-			operation:      "GO routine - GetStripeCustomer"}
+			operation:      "GO routine - GetAndSyncStripeSubscriptionInfo"}
 	}()
 
 	// Get paid credits
