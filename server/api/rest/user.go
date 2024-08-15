@@ -50,7 +50,7 @@ func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
 	user, err := c.Repo.GetUserWithRoles(*userID)
 
 	if err != nil {
-		log.Error("Error getting user", "err", err)
+		log.Error("HandleGetUserV2 - Error getting user", err)
 		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 		return
 	} else if user == nil {
@@ -58,7 +58,7 @@ func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
 		m := time.Now()
 		err := createNewUser(email, userID, lastSignIn, c)
 		if err != nil {
-			log.Error("Error creating user", "err", err)
+			log.Error("HandleGetUserV2 - Error creating user", err)
 			responses.ErrInternalServerError(w, r, err.Error())
 			return
 		}
@@ -67,31 +67,40 @@ func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
 
 		user, err = c.Repo.GetUserWithRoles(*userID)
 		if err != nil {
-			log.Error("Error getting user with roles", "err", err)
+			log.Error("HandleGetUserV2 - Error getting user with roles", "err", err)
 			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 			return
 		}
 	}
 
+	// Update last_seen_at in a separate GO routine, it's not critical to the result of this function
+	go func() {
+		m := time.Now()
+		err := c.Repo.UpdateLastSeenAt(*userID)
+		if err != nil {
+			log.Warn("HandleGetUserV2 - Error updating last seen at", "err", err, "user", userID.String())
+		}
+		log.Infof("HandleGetUserV2 - UpdateLastSeenAt: %dms", time.Since(m).Milliseconds())
+	}()
+
 	type result struct {
-		highestProductID  string
-		highestPriceID    string
-		cancelsAt         *time.Time
-		renewsAt          *time.Time
-		totalRemaining    int
-		paidCreditCount   int
-		err               error
-		stripeHadError    bool
-		updateLastSeenErr error
-		hasPurchase       bool
-		duration          time.Duration
-		operation         string
+		highestProductID string
+		highestPriceID   string
+		cancelsAt        *time.Time
+		renewsAt         *time.Time
+		totalRemaining   int
+		paidCreditCount  int
+		err              error
+		stripeHadError   bool
+		hasPurchase      bool
+		duration         time.Duration
+		operation        string
 	}
 
 	ch := make(chan result, 5)
 	var wg sync.WaitGroup
 
-	wg.Add(5)
+	wg.Add(4)
 
 	// Get total credits
 	go func() {
@@ -148,14 +157,6 @@ func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
 		ch <- result{paidCreditCount: paidCreditCount, err: err, duration: time.Since(m), operation: "GO routine - GetNonFreeCreditSum"}
 	}()
 
-	// Update last seen
-	go func() {
-		defer wg.Done()
-		m := time.Now()
-		err := c.Repo.UpdateLastSeenAt(*userID)
-		ch <- result{updateLastSeenErr: err, duration: time.Since(m), operation: "GO routine - UpdateLastSeenAt"}
-	}()
-
 	// Get payments made by customer
 	go func() {
 		defer wg.Done()
@@ -172,7 +173,7 @@ func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
 	var res result
 	for goroutineResult := range ch {
 		if goroutineResult.err != nil {
-			log.Error("Error in goroutine", "err", goroutineResult.err, "operation", goroutineResult.operation)
+			log.Error("HandleGetUserV2 - Error in goroutine", "err", goroutineResult.err, "operation", goroutineResult.operation)
 			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 			return
 		}
@@ -197,9 +198,6 @@ func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
 		}
 		if goroutineResult.stripeHadError {
 			res.stripeHadError = true
-		}
-		if goroutineResult.updateLastSeenErr != nil {
-			log.Warn("Error updating last seen at", "err", goroutineResult.updateLastSeenErr, "user", userID.String())
 		}
 		if goroutineResult.hasPurchase {
 			res.hasPurchase = goroutineResult.hasPurchase
