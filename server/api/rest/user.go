@@ -345,8 +345,12 @@ func getHasPurchaseForUser(userID uuid.UUID, c *RestAPI) bool {
 		log.Error("Error getting credits for user", err)
 		return hasPurchase
 	}
+	if credits == nil {
+		log.Error("No credits found for user", "user", userID.String())
+		return hasPurchase
+	}
 	for _, credit := range credits {
-		if credit.Edges.CreditType.StripeProductID != nil {
+		if credit.Edges.CreditType != nil && credit.Edges.CreditType.StripeProductID != nil {
 			hasPurchase = true
 			break
 		}
