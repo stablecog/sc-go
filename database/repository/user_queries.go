@@ -33,22 +33,31 @@ func (r *Repository) GetUserWithRoles(id uuid.UUID) (*ent.User, error) {
 }
 
 func (r *Repository) UpdateUserStripeSubscriptionInfo(userID uuid.UUID, highestProductID string, highestPriceID string, cancelsAt *time.Time, renewsAt *time.Time, syncedAt time.Time) (*ent.User, error) {
-	var highestProductIDPtr *string
-	var highestPriceIDPtr *string
+	update := r.DB.User.UpdateOneID(userID)
 
 	if highestProductID != "" {
-		highestProductIDPtr = &highestProductID
-	}
-	if highestPriceID != "" {
-		highestPriceIDPtr = &highestPriceID
+		update.SetStripeHighestProductID(highestProductID)
+	} else {
+		update.ClearStripeHighestProductID()
 	}
 
-	update := r.DB.User.UpdateOneID(userID).
-		SetNillableStripeHighestProductID(highestProductIDPtr).
-		SetNillableStripeHighestPriceID(highestPriceIDPtr).
-		SetNillableStripeCancelsAt(cancelsAt).
-		SetNillableStripeRenewsAt(renewsAt).
-		SetStripeSyncedAt(syncedAt)
+	if highestPriceID != "" {
+		update.SetStripeHighestPriceID(highestPriceID)
+	} else {
+		update.ClearStripeHighestPriceID()
+	}
+
+	if cancelsAt != nil {
+		update.SetStripeCancelsAt(*cancelsAt)
+	} else {
+		update.ClearStripeCancelsAt()
+	}
+
+	if renewsAt != nil {
+		update.SetStripeRenewsAt(*renewsAt)
+	} else {
+		update.ClearStripeRenewsAt()
+	}
 
 	user, err := update.Save(r.Ctx)
 	return user, err
