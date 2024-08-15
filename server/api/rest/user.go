@@ -170,9 +170,9 @@ func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	highestProduct, highestPrice, cancelsAt, renewsAt := extractSubscriptionInfoFromCustomer(res.customer)
+	highestProductID, highestPriceID, cancelsAt, renewsAt := extractSubscriptionInfoFromCustomer(res.customer)
 
-	moreCreditsAt, moreCreditsAtAmount, renewsAtAmount, freeCreditAmount := getMoreCreditsInfo(*userID, highestProduct, renewsAt, res.stripeHadError, c)
+	moreCreditsAt, moreCreditsAtAmount, renewsAtAmount, freeCreditAmount := getMoreCreditsInfo(*userID, highestProductID, renewsAt, res.stripeHadError, c)
 
 	roles := make([]string, len(user.Edges.Roles))
 	for i, role := range user.Edges.Roles {
@@ -186,8 +186,8 @@ func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
 		UserID:                  userID,
 		TotalRemainingCredits:   res.totalRemaining,
 		HasNonfreeCredits:       res.paidCreditCount > 0,
-		ProductID:               highestProduct,
-		PriceID:                 highestPrice,
+		ProductID:               highestProductID,
+		PriceID:                 highestPriceID,
 		CancelsAt:               cancelsAt,
 		RenewsAt:                renewsAt,
 		RenewsAtAmount:          renewsAtAmount,
@@ -280,7 +280,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	log.Infof("HandleGetUser - GetStripeCustomer: %dms", time.Since(m).Milliseconds())
 
 	// Get subscription info
-	highestProduct, highestPrice, cancelsAt, renewsAt := extractSubscriptionInfoFromCustomer(customer)
+	highestProductID, highestPriceID, cancelsAt, renewsAt := extractSubscriptionInfoFromCustomer(customer)
 
 	m = time.Now()
 	err = c.Repo.UpdateLastSeenAt(*userID)
@@ -291,7 +291,7 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 
 	// Figure out when free credits will be replenished
 	m = time.Now()
-	moreCreditsAt, moreCreditsAtAmount, renewsAtAmount, freeCreditAmount := getMoreCreditsInfo(*userID, highestProduct, renewsAt, stripeHadError, c)
+	moreCreditsAt, moreCreditsAtAmount, renewsAtAmount, freeCreditAmount := getMoreCreditsInfo(*userID, highestProductID, renewsAt, stripeHadError, c)
 	log.Infof("HandleGetUser - getMoreCreditsInfo: %dms", time.Since(m).Milliseconds())
 
 	// Get paid credits for user
@@ -320,8 +320,8 @@ func (c *RestAPI) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 		UserID:                  userID,
 		TotalRemainingCredits:   totalRemaining,
 		HasNonfreeCredits:       paidCreditCount > 0,
-		ProductID:               highestProduct,
-		PriceID:                 highestPrice,
+		ProductID:               highestProductID,
+		PriceID:                 highestPriceID,
 		CancelsAt:               cancelsAt,
 		RenewsAt:                renewsAt,
 		RenewsAtAmount:          renewsAtAmount,
@@ -360,7 +360,7 @@ func getHasPurchaseForUser(userID uuid.UUID, c *RestAPI) bool {
 	return hasPurchase
 }
 
-func getMoreCreditsInfo(userID uuid.UUID, highestProduct string, renewsAt *time.Time, stripeHadError bool, c *RestAPI) (*time.Time, *int, *int, *int) {
+func getMoreCreditsInfo(userID uuid.UUID, highestProductID string, renewsAt *time.Time, stripeHadError bool, c *RestAPI) (*time.Time, *int, *int, *int) {
 	var moreCreditsAt *time.Time
 	var moreCreditsAtAmount *int
 	var renewsAtAmount *int
@@ -368,7 +368,7 @@ func getMoreCreditsInfo(userID uuid.UUID, highestProduct string, renewsAt *time.
 	var ctype *ent.CreditType
 	var freeCreditAmount *int
 	var err error
-	if highestProduct == "" && !stripeHadError {
+	if highestProductID == "" && !stripeHadError {
 		moreCreditsAt, fcredit, ctype, err = c.Repo.GetFreeCreditReplenishesAtForUser(userID)
 		if err != nil {
 			log.Error("Error getting next free credit replenishment time", "err", err, "user", userID.String())
@@ -386,10 +386,10 @@ func getMoreCreditsInfo(userID uuid.UUID, highestProduct string, renewsAt *time.
 		}
 	} else if !stripeHadError && renewsAt != nil {
 		s := time.Now()
-		creditType, err := c.Repo.GetCreditTypeByStripeProductID(highestProduct)
+		creditType, err := c.Repo.GetCreditTypeByStripeProductID(highestProductID)
 		log.Infof("HandleGetUserV2 - GetCreditTypeByStripeProductID: %dms", time.Since(s).Milliseconds())
 		if err != nil {
-			log.Warnf("Error getting credit type from product id '%s' %v", highestProduct, err)
+			log.Warnf("Error getting credit type from product id '%s' %v", highestProductID, err)
 		} else {
 			renewsAtAmount = utils.ToPtr(int(creditType.Amount))
 		}
@@ -497,8 +497,8 @@ func getPurchaseCountForCustomer(customerId string, c *RestAPI) int {
 func extractSubscriptionInfoFromCustomer(customer *stripe.Customer) (string, string, *time.Time, *time.Time) {
 	now := time.Now().UnixNano() / int64(time.Second)
 
-	var highestProduct string
-	var highestPrice string
+	var highestProductID string
+	var highestPriceID string
 	var cancelsAt *time.Time
 	var renewsAt *time.Time
 
@@ -517,8 +517,8 @@ func extractSubscriptionInfoFromCustomer(customer *stripe.Customer) (string, str
 				if now > subscription.CurrentPeriodEnd || subscription.CanceledAt > subscription.CurrentPeriodEnd {
 					continue
 				}
-				highestPrice = item.Price.ID
-				highestProduct = item.Price.Product.ID
+				highestPriceID = item.Price.ID
+				highestProductID = item.Price.Product.ID
 				// If not scheduled to be cancelled, we are done
 				if !subscription.CancelAtPeriodEnd {
 					cancelsAt = nil
@@ -527,14 +527,14 @@ func extractSubscriptionInfoFromCustomer(customer *stripe.Customer) (string, str
 				cancelsAsTime := utils.SecondsSinceEpochToTime(subscription.CancelAt)
 				cancelsAt = &cancelsAsTime
 			}
-			if cancelsAt == nil && highestProduct != "" {
+			if cancelsAt == nil && highestProductID != "" {
 				renewsAtTime := utils.SecondsSinceEpochToTime(subscription.CurrentPeriodEnd)
 				renewsAt = &renewsAtTime
 				break
 			}
 		}
 	}
-	return highestProduct, highestPrice, cancelsAt, renewsAt
+	return highestProductID, highestPriceID, cancelsAt, renewsAt
 }
 
 // HTTP Get - generations for user
