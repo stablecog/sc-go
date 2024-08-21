@@ -2,6 +2,7 @@ package jobs
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -39,11 +40,36 @@ func (j *JobRunner) HandleOutputsWithNoNsfwCheck(log Logger) error {
 		imageUrls = append(imageUrls, utils.GetEnv().GetURLFromImagePath(output.ImagePath))
 	}
 
-	nsfwScores, err := j.CLIP.GetNsfwScores(imageUrls)
+	var nsfwScores []float32
+	var nsfwScoreErr error
+	countStr := "Unknown"
 
-	if err != nil {
-		log.Errorf("Error getting NSFW scores: %v", err)
-		return err
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		nsfwScores, nsfwScoreErr = j.CLIP.GetNsfwScores(imageUrls)
+	}()
+
+	go func() {
+		defer wg.Done()
+		m := time.Now()
+		count, err := j.Repo.GetCountOfOutputsWithNoNsfwCheck()
+		if err != nil {
+			log.Errorf("Error getting count of outputs with no NSFW check: %v", err)
+		} else {
+			log.Infof("Got count of outputs with no NSFW check: %dms", time.Since(m).Milliseconds())
+			formatter := message.NewPrinter(language.English)
+			countStr = formatter.Sprintf("%d", count)
+		}
+	}()
+
+	wg.Wait()
+
+	if nsfwScoreErr != nil {
+		log.Errorf("Error getting NSFW scores: %v", nsfwScoreErr)
+		return nsfwScoreErr
 	}
 
 	log.Infof("Got NSFW scores for %d output(s): %dms", len(nsfwScores), time.Since(m).Milliseconds())
@@ -89,15 +115,6 @@ func (j *JobRunner) HandleOutputsWithNoNsfwCheck(log Logger) error {
 	}
 	log.Infof("Updated %d output(s) with NSFW scores in Postgres & Qdrant: %dms", len(outputs), time.Since(m).Milliseconds())
 
-	m = time.Now()
-	count, err := j.Repo.GetCountOfOutputsWithNoNsfwCheck()
-	if err != nil {
-		log.Errorf("Error getting count of outputs with no NSFW check: %v", err)
-	}
-	log.Infof("Got count of outputs with no NSFW check: %dms", time.Since(m).Milliseconds())
-
-	formatter := message.NewPrinter(language.English)
-	countStr := formatter.Sprintf("%d", count)
 	e := time.Since(s)
 
 	log.Infof("✅ Job completed | %d item(s) | %dms | %s remaining", len(outputs), e.Milliseconds(), countStr)
