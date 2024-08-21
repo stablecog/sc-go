@@ -68,7 +68,6 @@ func (r *Repository) GetOutputsWithNoNsfwCheck(limit int) ([]*ent.GenerationOutp
 			generationoutput.HasEmbeddings(true),
 			generationoutput.ImagePathNEQ("placeholder.webp"),
 		).
-		Order(ent.Desc(generationoutput.FieldCreatedAt)).
 		WithGenerations(func(q *ent.GenerationQuery) {
 			q.WithPrompt().WithNegativePrompt()
 		}).
