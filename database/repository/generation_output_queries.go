@@ -84,6 +84,16 @@ func (r *Repository) GetOutputsWithNoNsfwCheck(limit int) ([]*ent.GenerationOutp
 	return outputs, err
 }
 
+func (r *Repository) GetCountOfOutputsWithNoNsfwCheck() (int, error) {
+	return r.DB.GenerationOutput.Query().
+		Where(
+			generationoutput.CheckedForNsfw(false),
+			generationoutput.HasEmbeddings(true),
+			generationoutput.ImagePathNEQ("placeholder.webp"),
+		).
+		Count(r.Ctx)
+}
+
 func (r *Repository) SetHasEmbeddingsAndScores(
 	id uuid.UUID,
 	hasEmbeddings bool,

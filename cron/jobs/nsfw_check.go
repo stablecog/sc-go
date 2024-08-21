@@ -7,6 +7,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/utils"
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
 )
 
 const NSFW_CHECK_JOB_NAME = "NSFW_CHECK_JOB"
@@ -87,9 +89,18 @@ func (j *JobRunner) HandleOutputsWithNoNsfwCheck(log Logger) error {
 	}
 	log.Infof("Updated %d output(s) with NSFW scores in Postgres & Qdrant: %dms", len(outputs), time.Since(m).Milliseconds())
 
+	m = time.Now()
+	count, err := j.Repo.GetCountOfOutputsWithNoNsfwCheck()
+	if err != nil {
+		log.Errorf("Error getting count of outputs with no NSFW check: %v", err)
+	}
+	log.Infof("Got count of outputs with no NSFW check: %dms", time.Since(m).Milliseconds())
+
+	formatter := message.NewPrinter(language.English)
+	countStr := formatter.Sprintf("%d", count)
 	e := time.Since(s)
 
-	log.Infof("✅ Job completed | %d item(s) | %dms", len(outputs), e.Milliseconds())
+	log.Infof("✅ Job completed | %d item(s) | %dms | %s remaining", len(outputs), e.Milliseconds(), countStr)
 
 	return nil
 }
