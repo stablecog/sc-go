@@ -15,7 +15,11 @@ import (
 const NSFW_CHECK_JOB_NAME = "NSFW_CHECK_JOB"
 const NSFW_CHECK_OUTPUTS_LIMIT = 50
 
+var runCount = 0
+
 func (j *JobRunner) HandleOutputsWithNoNsfwCheck(log Logger) error {
+	runCount++
+
 	log.Infof("Running job...")
 	s := time.Now()
 
@@ -54,6 +58,9 @@ func (j *JobRunner) HandleOutputsWithNoNsfwCheck(log Logger) error {
 
 	go func() {
 		defer wg.Done()
+		if runCount%10 != 1 {
+			return
+		}
 		m := time.Now()
 		count, err := j.Repo.GetCountOfOutputsWithNoNsfwCheck()
 		if err != nil {
@@ -117,7 +124,12 @@ func (j *JobRunner) HandleOutputsWithNoNsfwCheck(log Logger) error {
 
 	e := time.Since(s)
 
-	log.Infof("✅ Job completed | %d item(s) | %dms | %s remaining", len(outputs), e.Milliseconds(), countStr)
+	finalLogStr := fmt.Sprintf("✅ Job completed | %d item(s) | %dms", len(outputs), e.Milliseconds())
+	if countStr != "Unknown" {
+		finalLogStr += fmt.Sprintf(" | %s remaining", countStr)
+	}
+
+	log.Infof(finalLogStr)
 
 	return nil
 }
