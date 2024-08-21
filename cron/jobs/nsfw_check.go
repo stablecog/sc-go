@@ -129,7 +129,7 @@ func (j *JobRunner) HandleOutputsWithNoNsfwCheck(log Logger) error {
 	if countStr != "Unknown" {
 		finalLogStr += fmt.Sprintf(" | %s remaining", countStr)
 	} else {
-		finalLogStr += fmt.Sprintf(" | Check in %d run(s)", 10-runCount)
+		finalLogStr += fmt.Sprintf(" | Count check in %d run(s)", 10-runCount)
 	}
 
 	log.Infof(finalLogStr)
