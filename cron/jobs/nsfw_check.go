@@ -69,9 +69,9 @@ func (j *JobRunner) HandleOutputsWithNoNsfwCheck(log Logger) error {
 		if err != nil {
 			log.Errorf("Error getting count of outputs with no NSFW check: %v", err)
 		} else {
-			log.Infof("Got count of outputs with no NSFW check: %dms", time.Since(m).Milliseconds())
 			formatter := message.NewPrinter(language.English)
 			countStr = formatter.Sprintf("%d", count)
+			log.Infof("Outputs with no NSFW check: %s | %dms", countStr, time.Since(m).Milliseconds())
 		}
 	}()
 
