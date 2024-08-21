@@ -88,8 +88,6 @@ func (r *Repository) GetCountOfOutputsWithNoNsfwCheck() (int, error) {
 	return r.DB.GenerationOutput.Query().
 		Where(
 			generationoutput.CheckedForNsfw(false),
-			generationoutput.HasEmbeddings(true),
-			generationoutput.ImagePathNEQ("placeholder.webp"),
 		).
 		Count(r.Ctx)
 }
