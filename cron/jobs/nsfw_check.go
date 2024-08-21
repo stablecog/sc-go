@@ -17,9 +17,11 @@ const NSFW_CHECK_OUTPUTS_LIMIT = 50
 
 var runCount = -1
 
+const COUNT_CHECK_INTERVAL = 20
+
 func (j *JobRunner) HandleOutputsWithNoNsfwCheck(log Logger) error {
 	runCount++
-	runCount = runCount % 10
+	runCount = runCount % COUNT_CHECK_INTERVAL
 
 	log.Infof("Running job...")
 	s := time.Now()
@@ -59,7 +61,7 @@ func (j *JobRunner) HandleOutputsWithNoNsfwCheck(log Logger) error {
 
 	go func() {
 		defer wg.Done()
-		if runCount%10 != 0 {
+		if runCount%COUNT_CHECK_INTERVAL != 0 {
 			return
 		}
 		m := time.Now()
@@ -129,7 +131,7 @@ func (j *JobRunner) HandleOutputsWithNoNsfwCheck(log Logger) error {
 	if countStr != "Unknown" {
 		finalLogStr += fmt.Sprintf(" | %s remaining", countStr)
 	} else {
-		finalLogStr += fmt.Sprintf(" | Count check in %d run(s)", 10-runCount)
+		finalLogStr += fmt.Sprintf(" | Count check in %d run(s)", COUNT_CHECK_INTERVAL-runCount)
 	}
 
 	log.Infof(finalLogStr)
