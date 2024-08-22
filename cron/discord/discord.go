@@ -19,7 +19,7 @@ import (
 
 // Constants
 const unhealthyNotificationInterval = 5 * time.Minute
-const healthyNotificationInterval = 1 * time.Hour
+const healthyNotificationInterval = 30 * time.Minute
 const rTTL = 2 * time.Hour
 
 type HEALTH_STATUS int
