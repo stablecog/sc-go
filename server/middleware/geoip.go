@@ -53,7 +53,7 @@ func (m *Middleware) GeoIPMiddleware() func(next http.Handler) http.Handler {
 			userIDStr, _ := r.Context().Value("user_id").(string)
 			email, _ := r.Context().Value("user_email").(string)
 			thumbmarkID, _ := r.Context().Value("user_thumbmark_id").(string)
-			exampleCountryCode := "TR"
+			exampleCountryCode := "BD"
 			if utils.GetCountryCode(r) == exampleCountryCode {
 				// See if not in whitelist
 				whitelisted := false
