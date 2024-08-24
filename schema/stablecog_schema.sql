@@ -1213,7 +1213,7 @@ ALTER TABLE ONLY public.ip_blacklist
 -- Thumbmark ID Blacklist
 CREATE TABLE public.thumbmark_id_blacklist (
     id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
-    thumbmark_id text NOT NULL,
+    thumbmark_id text NOT NULL UNIQUE,
     created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );
