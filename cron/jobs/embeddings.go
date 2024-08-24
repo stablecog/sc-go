@@ -127,6 +127,10 @@ func (j *JobRunner) HandleOutputsWithNoEmbedding(log Logger) error {
 			if negativePromptObj != nil && negativePromptObj.Text != "" {
 				payload["negative_prompt"] = negativePromptObj.Text
 			}
+			if promptObj.TranslatedText != nil {
+				payload["translated_prompt"] = promptObj.TranslatedText
+			}
+
 			err = j.Qdrant.Upsert(
 				output.ID,
 				payload,
