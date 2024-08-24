@@ -1196,7 +1196,7 @@ alter table public.users alter column username set not null;
 
 CREATE TABLE public.ip_blacklist (
     id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
-    ip text NOT NULL,
+    ip text NOT NULL UNIQUE,
     created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );
