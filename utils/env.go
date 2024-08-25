@@ -159,6 +159,7 @@ func (e *SCEnv) GetCorsOrigins() []string {
 			"https://stablecog-git-v21-stablecog.vercel.app",
 			"https://stablecog-git-v3-stablecog.vercel.app",
 			"https://stablecog.com",
+			"https://web.stablecog.com",
 		}
 	}
 	return []string{
@@ -169,6 +170,7 @@ func (e *SCEnv) GetCorsOrigins() []string {
 		"https://stablecog-git-v21-stablecog.vercel.app",
 		"https://stablecog-git-v3-stablecog.vercel.app",
 		"https://stablecog.com",
+		"https://web.stablecog.com",
 	}
 }
 
