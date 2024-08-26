@@ -87,6 +87,7 @@ func (j *JobRunner) HandleOutputsWithNoNsfwCheck(log Logger) (int, error) {
 	log.Infof("Updating outputs with NSFW scores...")
 	m = time.Now()
 	r := j.Repo
+	count := 0
 	for i, output := range outputs {
 		if err := r.WithTx(func(tx *ent.Tx) error {
 			score := nsfwScores[i]
@@ -116,7 +117,7 @@ func (j *JobRunner) HandleOutputsWithNoNsfwCheck(log Logger) (int, error) {
 				log.Errorf("Error updating Qdrant with NSFW score | ID: %s | Err: %v", output.ID.String(), err)
 				return err
 			}
-
+			count++
 			return nil
 		}); err != nil {
 			log.Errorf("Error starting transaction in HandleOutputsWithNoNsfwCheck: %s | Error: %v", output.ID.String(), err)
@@ -136,5 +137,5 @@ func (j *JobRunner) HandleOutputsWithNoNsfwCheck(log Logger) (int, error) {
 
 	log.Infof(finalLogStr)
 
-	return len(outputs), nil
+	return count, nil
 }
