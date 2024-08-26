@@ -19,7 +19,7 @@ var runCount = -1
 
 const COUNT_CHECK_INTERVAL = 20
 
-func (j *JobRunner) HandleOutputsWithNoNsfwCheck(log Logger) error {
+func (j *JobRunner) HandleOutputsWithNoNsfwCheck(log Logger) (int, error) {
 	runCount++
 	runCount = runCount % COUNT_CHECK_INTERVAL
 
@@ -29,12 +29,12 @@ func (j *JobRunner) HandleOutputsWithNoNsfwCheck(log Logger) error {
 	outputs, err := j.Repo.GetOutputsWithNoNsfwCheck(NSFW_CHECK_OUTPUTS_LIMIT)
 	if err != nil {
 		log.Errorf("Error getting outputs with no NSFW check: %v", err)
-		return err
+		return 0, err
 	}
 
 	if len(outputs) < 1 {
 		log.Infof("No outputs found with no NSFW check: %dms", time.Since(s).Milliseconds())
-		return nil
+		return 0, nil
 	}
 
 	log.Infof("Found %d outputs with no NSFW check: %dms", len(outputs), time.Since(s).Milliseconds())
@@ -79,7 +79,7 @@ func (j *JobRunner) HandleOutputsWithNoNsfwCheck(log Logger) error {
 
 	if nsfwScoreErr != nil {
 		log.Errorf("Error getting NSFW scores: %v", nsfwScoreErr)
-		return nsfwScoreErr
+		return 0, nsfwScoreErr
 	}
 
 	log.Infof("Got NSFW scores for %d output(s): %dms", len(nsfwScores), time.Since(m).Milliseconds())
@@ -136,5 +136,5 @@ func (j *JobRunner) HandleOutputsWithNoNsfwCheck(log Logger) error {
 
 	log.Infof(finalLogStr)
 
-	return nil
+	return len(outputs), nil
 }
