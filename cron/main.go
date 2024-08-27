@@ -231,21 +231,6 @@ func main() {
 		if !*disableAutoUpscale {
 			go jobRunner.StartAutoUpscaleJob(jobs.NewJobLogger("AUTO_UPSCALE"))
 		}
-		// Temporary, run the nsfw check infinitely
-		go func() {
-			for {
-				count, nsfwErr := jobRunner.HandleOutputsWithNoNsfwCheck(jobs.NewJobLogger("NSFW_CHECK"))
-				if nsfwErr != nil {
-					log.Error("👙 🔴 Error running NSFW_CHECK job:", nsfwErr)
-					continue
-				}
-				if count == 0 {
-					const secs = 15
-					log.Infof("👙 No output to check NSFW status of. Waiting %d seconds..", secs)
-					time.Sleep(secs * time.Second)
-				}
-			}
-		}()
 		s.StartBlocking()
 		os.Exit(0)
 	}
