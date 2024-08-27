@@ -234,7 +234,6 @@ func main() {
 		s.StartBlocking()
 		os.Exit(0)
 	}
-
 	// Generic path, they didn't say what they wanted.
 	usage()
 	os.Exit(1)
