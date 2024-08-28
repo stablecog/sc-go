@@ -104,7 +104,7 @@ jobs:
           prod-webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
           qa-webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-color: 15548997
-          embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
+          embed-title: "[GO Apps] ${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
           embed-description: "```Tests Failed```"
 
   build:
@@ -127,7 +127,7 @@ jobs:
           prod-webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
           qa-webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-color: 16776960
-          embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
+          embed-title: "[GO Apps] ${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
           embed-description: "```Build Started```"
 
       - name: Cache Go modules
@@ -189,7 +189,7 @@ jobs:
           prod-webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
           qa-webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-color: 15548997
-          embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
+          embed-title: "[GO Apps] ${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
           embed-description: "```🚨 Build FAILED 🚨```"
 
   deploy_prod:
@@ -208,7 +208,7 @@ jobs:
         uses: ./.github/actions/k3s-deploy
         with:
           image: stablecog/sc-server:${{ needs.setup_env.outputs.branch_name}}-${{ env.GITHUB_RUN_ID }}
-          embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
+          embed-title: "[GO Apps] ${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
           prod-webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
           qa-webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           kube_config: ${{ secrets.K3S_KUBE_CONFIG }}

@@ -59,8 +59,8 @@ jobs:
           prod-webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
           qa-webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-color: 16776960
-          embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
-          embed-description: "```(Language) Build Started```"
+          embed-title: "[sc-auth] ${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
+          embed-description: "```Build Started```"
 
       - name: Setup Go with cache
         uses: actions/setup-go@v3
@@ -97,8 +97,8 @@ jobs:
           prod-webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
           qa-webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
           embed-color: 15548997
-          embed-title: "${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
-          embed-description: "```(Language) 🚨 Build FAILED 🚨```"
+          embed-title: "[sc-auth] ${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
+          embed-description: "```🚨 Build FAILED 🚨```"
 
   deploy_prod:
     name: 🚀 Deploy Auth API (PROD)
