@@ -58,7 +58,7 @@ func RequestLogger(f LogFormatter) func(next http.Handler) http.Handler {
 
 			t1 := time.Now()
 			defer func() {
-				entry.Write(ww.Status(), ww.BytesWritten(), ww.Header(), time.Duration(time.Since(t1).Milliseconds()), nil)
+				entry.Write(ww.Status(), ww.BytesWritten(), ww.Header(), time.Since(t1), nil)
 			}()
 
 			next.ServeHTTP(ww, WithLogEntry(r, entry))
@@ -150,12 +150,15 @@ func (l *defaultLogEntry) Write(status, bytes int, header http.Header, elapsed t
 	cW(l.buf, l.useColor, bBlue, " %dB", bytes)
 
 	l.buf.WriteString(" in ")
+
+	elapsedMillis := elapsed.Truncate(time.Millisecond)
+
 	if elapsed < 500*time.Millisecond {
-		cW(l.buf, l.useColor, nGreen, "%s", elapsed)
+		cW(l.buf, l.useColor, nGreen, "%s", elapsedMillis)
 	} else if elapsed < 5*time.Second {
-		cW(l.buf, l.useColor, nYellow, "%s", elapsed)
+		cW(l.buf, l.useColor, nYellow, "%s", elapsedMillis)
 	} else {
-		cW(l.buf, l.useColor, nRed, "%s", elapsed)
+		cW(l.buf, l.useColor, nRed, "%s", elapsedMillis)
 	}
 
 	log.Infof(l.buf.String())
