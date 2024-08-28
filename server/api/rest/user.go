@@ -177,7 +177,6 @@ func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
 			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 			return
 		}
-		log.Infof("HandleGetUserV2 - %s: %dms", goroutineResult.operation, goroutineResult.duration.Milliseconds())
 		if goroutineResult.totalRemaining != 0 {
 			res.totalRemaining = goroutineResult.totalRemaining
 		}
