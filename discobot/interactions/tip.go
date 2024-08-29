@@ -2,6 +2,7 @@ package interactions
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/google/uuid"
@@ -117,6 +118,14 @@ func (c *DiscordInteractionWrapper) NewTipCommmand() *DiscordInteraction {
 					log.Error("Failed to tip credits to user", "err", err)
 					return
 				}
+
+				// Send ssuccesful tip response
+				// User is already authenticated
+				responses.InitialInteractionResponse(s, i, &responses.InteractionResponseOptions{
+					EmbedTitle:   "✅",
+					EmbedContent: fmt.Sprintf("Your tip of %d credits to %s was successful!", tipAmount, userToTip.Username),
+					Privacy:      responses.PRIVATE,
+				})
 
 				// Send DM to the receiver
 				dmChl, err := s.UserChannelCreate(userToTip.ID)
