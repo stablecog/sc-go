@@ -115,7 +115,7 @@ func (c *RabbitMQClient) Publish(id string, msg any, priority uint8) error {
 		})
 	// Handle reconnect if conn closed
 	if err != nil {
-		if c.conn.IsClosed() || c.Channel == nil || c.Channel.IsClosed() {
+		if c.conn == nil || c.conn.IsClosed() || c.Channel == nil || c.Channel.IsClosed() {
 			log.Info("Connection to RabbitMQ lost. Attempting to reconnect...")
 			reconnectErr := c.Reconnect()
 			if reconnectErr != nil {
