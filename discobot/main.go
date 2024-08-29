@@ -164,20 +164,20 @@ func main() {
 	})
 
 	// Register messageCreate as a callback for the messageCreate events.
-	s.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
-		// Ignore all messages created by the bot itself
-		if m.Author.ID == s.State.User.ID {
-			return
-		}
+	// s.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
+	// 	// Ignore all messages created by the bot itself
+	// 	if m.Author.ID == s.State.User.ID {
+	// 		return
+	// 	}
 
-		// check if the message is "!tip"
-		if strings.HasPrefix(m.Content, "!tip") {
-			cmdWrapper.HandleTip(s, m)
-		}
-	})
+	// 	// check if the message is "!tip"
+	// 	if strings.HasPrefix(m.Content, "!tip") {
+	// 		cmdWrapper.HandleTip(s, m)
+	// 	}
+	// })
 
 	// Intents
-	s.Identify.Intents = discordgo.IntentsGuilds | discordgo.IntentsGuildMessages | discordgo.IntentsMessageContent
+	s.Identify.Intents = discordgo.IntentsGuilds | discordgo.IntentsGuildMessages
 
 	err = s.Open()
 	if err != nil {

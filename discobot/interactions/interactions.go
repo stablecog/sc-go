@@ -84,6 +84,7 @@ func NewDiscordInteractionWrapper(
 		wrapper.NewInfoCommand(),
 		wrapper.NewImageCommand(),
 		wrapper.NewUpscaleCommand(),
+		wrapper.NewTipCommmand(),
 		// wrapper.NewVoiceoverCommand(),
 	}
 	// Register component responses
