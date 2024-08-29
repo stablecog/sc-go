@@ -119,11 +119,19 @@ func (c *DiscordInteractionWrapper) NewTipCommmand() *DiscordInteraction {
 					return
 				}
 
-				// Send ssuccesful tip response
+				// Send succesful tip response
+				// Get remaining tippable credits
+				tipableRemaining, err := c.Repo.GetTippableSumForUser(tippedBy.ID)
+				msgContent := fmt.Sprintf("Your tip of %d credits to %s was successful!", tipAmount, userToTip.Username)
+				if err != nil {
+					log.Error("Failed to get tippable sum for user", "err", err)
+				} else {
+					msgContent += fmt.Sprintf("\nYou have **%d credits** remaining to tip.", tipableRemaining)
+				}
 				// User is already authenticated
 				responses.InitialInteractionResponse(s, i, &responses.InteractionResponseOptions{
 					EmbedTitle:   "✅",
-					EmbedContent: fmt.Sprintf("Your tip of %d credits to %s was successful!", tipAmount, userToTip.Username),
+					EmbedContent: msgContent,
 					Privacy:      responses.PRIVATE,
 				})
 
