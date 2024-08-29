@@ -73,7 +73,8 @@ func NewHelpEmbed() *discordgo.MessageEmbed {
 					"`/imagine` - Create an image with one of our generative AI models" + "\n" +
 					"`/upscale` - Upscale an image" + "\n" +
 					"`/info` - Get information about your account" + "\n" +
-					"`/help` - Display this help message",
+					"`/help` - Display this help message" + "\n" +
+					"`/tip` - Tip stablecog credits to other users",
 			},
 		},
 	}
