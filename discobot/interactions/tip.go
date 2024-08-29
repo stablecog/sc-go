@@ -2,7 +2,6 @@ package interactions
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/google/uuid"
@@ -119,14 +118,16 @@ func (c *DiscordInteractionWrapper) NewTipCommmand() *DiscordInteraction {
 					return
 				}
 
+				prettyPrinter := message.NewPrinter(language.English)
+
 				// Send succesful tip response
 				// Get remaining tippable credits
 				tipableRemaining, err := c.Repo.GetTippableSumForUser(tippedBy.ID)
-				msgContent := fmt.Sprintf("Your tip of %d credits to %s was successful!", tipAmount, userToTip.Username)
+				msgContent := prettyPrinter.Sprintf("Your tip of %d credits to %s was successful!", tipAmount, userToTip.Username)
 				if err != nil {
 					log.Error("Failed to get tippable sum for user", "err", err)
 				} else {
-					msgContent += fmt.Sprintf("\nYou have **%d credits** remaining to tip.", tipableRemaining)
+					msgContent += prettyPrinter.Sprintf("\nYou have **%d credits** remaining to tip.", tipableRemaining)
 				}
 				// User is already authenticated
 				responses.InitialInteractionResponse(s, i, &responses.InteractionResponseOptions{
@@ -143,7 +144,7 @@ func (c *DiscordInteractionWrapper) NewTipCommmand() *DiscordInteraction {
 				}
 
 				// Different flows if registered or not
-				prettyPrinter := message.NewPrinter(language.English)
+
 				if tippedToId != nil {
 					// Get total credits for user
 					remainingCredits, err := c.Repo.GetNonExpiredCreditTotalForUser(*tippedToId, nil)
