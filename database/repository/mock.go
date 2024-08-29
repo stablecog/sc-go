@@ -351,11 +351,3 @@ func (repo *Repository) CreateMockUpscaleForDeletion(ctx context.Context) (*ent.
 
 	return up, nil
 }
-
-func (repo *Repository) SetMockUsersUsernameNormalizedColumn(ctx context.Context, userID uuid.UUID, usernameNormalized string) error {
-	_, err := repo.DB.User.Update().Where(user.IDEQ(userID)).SetUsernameNormalized(usernameNormalized).Save(ctx)
-	if err != nil {
-		return err
-	}
-	return nil
-}

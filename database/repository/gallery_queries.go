@@ -203,7 +203,7 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 			placeholders[i] = fmt.Sprintf("$%d", argPos)
 			argPos++
 		}
-		baseQuery += fmt.Sprintf(" AND u.username_normalized IN (%s)", strings.Join(placeholders, ","))
+		baseQuery += fmt.Sprintf(" AND lower(u.username) IN (%s)", strings.Join(placeholders, ","))
 		for _, username := range filters.Username {
 			args = append(args, strings.ToLower(username))
 		}

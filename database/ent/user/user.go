@@ -41,8 +41,6 @@ const (
 	FieldUsername = "username"
 	// FieldUsernameChangedAt holds the string denoting the username_changed_at field in the database.
 	FieldUsernameChangedAt = "username_changed_at"
-	// FieldUsernameNormalized holds the string denoting the username_normalized field in the database.
-	FieldUsernameNormalized = "username_normalized"
 	// FieldStripeHighestProductID holds the string denoting the stripe_highest_product_id field in the database.
 	FieldStripeHighestProductID = "stripe_highest_product_id"
 	// FieldStripeHighestPriceID holds the string denoting the stripe_highest_price_id field in the database.
@@ -156,7 +154,6 @@ var Columns = []string{
 	FieldDiscordID,
 	FieldUsername,
 	FieldUsernameChangedAt,
-	FieldUsernameNormalized,
 	FieldStripeHighestProductID,
 	FieldStripeHighestPriceID,
 	FieldStripeCancelsAt,
@@ -266,11 +263,6 @@ func ByUsername(opts ...sql.OrderTermOption) OrderOption {
 // ByUsernameChangedAt orders the results by the username_changed_at field.
 func ByUsernameChangedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUsernameChangedAt, opts...).ToFunc()
-}
-
-// ByUsernameNormalized orders the results by the username_normalized field.
-func ByUsernameNormalized(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldUsernameNormalized, opts...).ToFunc()
 }
 
 // ByStripeHighestProductID orders the results by the stripe_highest_product_id field.
