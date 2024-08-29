@@ -1188,6 +1188,7 @@ ALTER TABLE public.tip_log ENABLE ROW LEVEL SECURITY;
 -- Usernames
 alter table public.users add column username text null unique;
 CREATE UNIQUE INDEX users_username_key ON public.users USING btree (username);
+CREATE UNIQUE INDEX idx_username_lower ON public.users (LOWER(username));
 
 -- Make usernames not null
 alter table public.users alter column username set not null;
