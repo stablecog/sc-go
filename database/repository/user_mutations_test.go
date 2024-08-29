@@ -94,12 +94,22 @@ func TestUpdateLastSeenAt(t *testing.T) {
 }
 
 func TestSetUsername(t *testing.T) {
+	adminUUID := uuid.MustParse(MOCK_ADMIN_UUID)
+	altUUID := uuid.MustParse(MOCK_ALT_UUID)
+
 	// Set username for mock admin
-	err := MockRepo.SetUsername(uuid.MustParse(MOCK_ADMIN_UUID), "hello123")
+	err := MockRepo.SetUsername(adminUUID, "hello123")
 	assert.Nil(t, err)
-	err = MockRepo.SetUsername(uuid.MustParse(MOCK_ALT_UUID), "hEllo123")
+
+	// Set username_normalized (this is a workaround since in prod this is done by the database)
+	err = MockRepo.SetMockUsersUsernameNormalizedColumn(MockRepo.Ctx, adminUUID, "hello123")
+	assert.Nil(t, err)
+
+	// Alt user shouldn't be able to set the same username
+	err = MockRepo.SetUsername(altUUID, "hEllo123")
 	assert.ErrorIs(t, UsernameExistsErr, err)
-	// Admin can cahnge their own though
-	err = MockRepo.SetUsername(uuid.MustParse(MOCK_ADMIN_UUID), "hEllo123")
+
+	// Admin can change their own though
+	err = MockRepo.SetUsername(adminUUID, "hEllo123")
 	assert.Nil(t, err)
 }
