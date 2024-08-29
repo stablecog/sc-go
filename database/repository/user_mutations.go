@@ -171,11 +171,10 @@ func (r *Repository) SetUsername(userId uuid.UUID, username string) error {
 		// See if username exists case insenstive
 		DB := tx.Client()
 
-		usernameNormalized := strings.ToLower(username)
-		c, err := DB.User.Query().Where(
-			user.UsernameNormalizedEQ(usernameNormalized),
-			user.IDNEQ(userId),
-		).Count(r.Ctx)
+		c, err := DB.User.Query().Where(func(s *sql.Selector) {
+			s.Where(sql.EQ(sql.Lower(user.FieldUsername), strings.ToLower(username)))
+			s.Where(sql.NEQ(user.FieldID, userId))
+		}).Count(r.Ctx)
 
 		if err != nil {
 			return err

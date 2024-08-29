@@ -101,10 +101,6 @@ func TestSetUsername(t *testing.T) {
 	err := MockRepo.SetUsername(adminUUID, "hello123")
 	assert.Nil(t, err)
 
-	// Set username_normalized (this is a workaround since in prod this is done by the database)
-	err = MockRepo.SetMockUsersUsernameNormalizedColumn(MockRepo.Ctx, adminUUID, "hello123")
-	assert.Nil(t, err)
-
 	// Alt user shouldn't be able to set the same username
 	err = MockRepo.SetUsername(altUUID, "hEllo123")
 	assert.ErrorIs(t, UsernameExistsErr, err)

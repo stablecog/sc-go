@@ -19911,7 +19911,6 @@ type UserMutation struct {
 	discord_id                     *string
 	username                       *string
 	username_changed_at            *time.Time
-	username_normalized            *string
 	stripe_highest_product_id      *string
 	stripe_highest_price_id        *string
 	stripe_cancels_at              *time.Time
@@ -20639,55 +20638,6 @@ func (m *UserMutation) UsernameChangedAtCleared() bool {
 func (m *UserMutation) ResetUsernameChangedAt() {
 	m.username_changed_at = nil
 	delete(m.clearedFields, user.FieldUsernameChangedAt)
-}
-
-// SetUsernameNormalized sets the "username_normalized" field.
-func (m *UserMutation) SetUsernameNormalized(s string) {
-	m.username_normalized = &s
-}
-
-// UsernameNormalized returns the value of the "username_normalized" field in the mutation.
-func (m *UserMutation) UsernameNormalized() (r string, exists bool) {
-	v := m.username_normalized
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUsernameNormalized returns the old "username_normalized" field's value of the User entity.
-// If the User object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldUsernameNormalized(ctx context.Context) (v *string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUsernameNormalized is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUsernameNormalized requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUsernameNormalized: %w", err)
-	}
-	return oldValue.UsernameNormalized, nil
-}
-
-// ClearUsernameNormalized clears the value of the "username_normalized" field.
-func (m *UserMutation) ClearUsernameNormalized() {
-	m.username_normalized = nil
-	m.clearedFields[user.FieldUsernameNormalized] = struct{}{}
-}
-
-// UsernameNormalizedCleared returns if the "username_normalized" field was cleared in this mutation.
-func (m *UserMutation) UsernameNormalizedCleared() bool {
-	_, ok := m.clearedFields[user.FieldUsernameNormalized]
-	return ok
-}
-
-// ResetUsernameNormalized resets all changes to the "username_normalized" field.
-func (m *UserMutation) ResetUsernameNormalized() {
-	m.username_normalized = nil
-	delete(m.clearedFields, user.FieldUsernameNormalized)
 }
 
 // SetStripeHighestProductID sets the "stripe_highest_product_id" field.
@@ -21527,7 +21477,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 21)
+	fields := make([]string, 0, 20)
 	if m.email != nil {
 		fields = append(fields, user.FieldEmail)
 	}
@@ -21566,9 +21516,6 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.username_changed_at != nil {
 		fields = append(fields, user.FieldUsernameChangedAt)
-	}
-	if m.username_normalized != nil {
-		fields = append(fields, user.FieldUsernameNormalized)
 	}
 	if m.stripe_highest_product_id != nil {
 		fields = append(fields, user.FieldStripeHighestProductID)
@@ -21625,8 +21572,6 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Username()
 	case user.FieldUsernameChangedAt:
 		return m.UsernameChangedAt()
-	case user.FieldUsernameNormalized:
-		return m.UsernameNormalized()
 	case user.FieldStripeHighestProductID:
 		return m.StripeHighestProductID()
 	case user.FieldStripeHighestPriceID:
@@ -21676,8 +21621,6 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldUsername(ctx)
 	case user.FieldUsernameChangedAt:
 		return m.OldUsernameChangedAt(ctx)
-	case user.FieldUsernameNormalized:
-		return m.OldUsernameNormalized(ctx)
 	case user.FieldStripeHighestProductID:
 		return m.OldStripeHighestProductID(ctx)
 	case user.FieldStripeHighestPriceID:
@@ -21792,13 +21735,6 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetUsernameChangedAt(v)
 		return nil
-	case user.FieldUsernameNormalized:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUsernameNormalized(v)
-		return nil
 	case user.FieldStripeHighestProductID:
 		v, ok := value.(string)
 		if !ok {
@@ -21905,9 +21841,6 @@ func (m *UserMutation) ClearedFields() []string {
 	if m.FieldCleared(user.FieldUsernameChangedAt) {
 		fields = append(fields, user.FieldUsernameChangedAt)
 	}
-	if m.FieldCleared(user.FieldUsernameNormalized) {
-		fields = append(fields, user.FieldUsernameNormalized)
-	}
 	if m.FieldCleared(user.FieldStripeHighestProductID) {
 		fields = append(fields, user.FieldStripeHighestProductID)
 	}
@@ -21963,9 +21896,6 @@ func (m *UserMutation) ClearField(name string) error {
 		return nil
 	case user.FieldUsernameChangedAt:
 		m.ClearUsernameChangedAt()
-		return nil
-	case user.FieldUsernameNormalized:
-		m.ClearUsernameNormalized()
 		return nil
 	case user.FieldStripeHighestProductID:
 		m.ClearStripeHighestProductID()
@@ -22028,9 +21958,6 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldUsernameChangedAt:
 		m.ResetUsernameChangedAt()
-		return nil
-	case user.FieldUsernameNormalized:
-		m.ResetUsernameNormalized()
 		return nil
 	case user.FieldStripeHighestProductID:
 		m.ResetStripeHighestProductID()
