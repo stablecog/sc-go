@@ -1257,6 +1257,41 @@ ALTER TABLE public.banned_words ENABLE ROW LEVEL SECURITY;
 
 ALTER TABLE ONLY public.banned_words ADD CONSTRAINT banned_words_pkey PRIMARY KEY (id);
 
+-- Banned prompts
+CREATE TABLE public.banned_prompts (
+    id uuid DEFAULT extensions.uuid_generate_v4() NOT NULL,
+    prompt text not null,
+    reason text not null,
+    embedding vector(1024) not null,
+    created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
+)
+
+CREATE trigger handle_updated_at before
+UPDATE
+    ON public.banned_prompts FOR each ROW EXECUTE PROCEDURE moddatetime (updated_at);
+
+ALTER TABLE public.banned_prompts ENABLE ROW LEVEL SECURITY;
+
+-- Function to check if a prompt is banned
+CREATE OR REPLACE FUNCTION public.match_banned_prompts_two(query_embedding vector, match_threshold double precision, match_count integer)
+ RETURNS TABLE(id uuid, prompt text, similarity double precision, should_ban_user boolean)
+ LANGUAGE plpgsql
+AS $function$
+BEGIN
+    RETURN QUERY 
+  SELECT
+    banned_prompts.id,
+    banned_prompts.prompt,
+    1 - (banned_prompts.embedding <=> query_embedding) AS similarity,
+    banned_prompts.should_ban_user
+  FROM banned_prompts
+  WHERE 1 - (banned_prompts.embedding <=> query_embedding) > match_threshold
+  ORDER BY similarity DESC
+  LIMIT match_count;
+END;
+$function$
+
 --
 -- Name: auth_clients; Type: TABLE; Schema: public; Owner: postgres
 --
