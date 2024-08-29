@@ -44,6 +44,8 @@ type User struct {
 	Username string `json:"username,omitempty"`
 	// UsernameChangedAt holds the value of the "username_changed_at" field.
 	UsernameChangedAt *time.Time `json:"username_changed_at,omitempty"`
+	// UsernameNormalized holds the value of the "username_normalized" field.
+	UsernameNormalized *string `json:"username_normalized,omitempty"`
 	// StripeHighestProductID holds the value of the "stripe_highest_product_id" field.
 	StripeHighestProductID *string `json:"stripe_highest_product_id,omitempty"`
 	// StripeHighestPriceID holds the value of the "stripe_highest_price_id" field.
@@ -177,7 +179,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case user.FieldWantsEmail:
 			values[i] = new(sql.NullBool)
-		case user.FieldEmail, user.FieldEmailNormalized, user.FieldStripeCustomerID, user.FieldActiveProductID, user.FieldDiscordID, user.FieldUsername, user.FieldStripeHighestProductID, user.FieldStripeHighestPriceID:
+		case user.FieldEmail, user.FieldEmailNormalized, user.FieldStripeCustomerID, user.FieldActiveProductID, user.FieldDiscordID, user.FieldUsername, user.FieldUsernameNormalized, user.FieldStripeHighestProductID, user.FieldStripeHighestPriceID:
 			values[i] = new(sql.NullString)
 		case user.FieldLastSignInAt, user.FieldLastSeenAt, user.FieldBannedAt, user.FieldScheduledForDeletionOn, user.FieldDataDeletedAt, user.FieldUsernameChangedAt, user.FieldStripeCancelsAt, user.FieldStripeSyncedAt, user.FieldStripeRenewsAt, user.FieldCreatedAt, user.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -290,6 +292,13 @@ func (u *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				u.UsernameChangedAt = new(time.Time)
 				*u.UsernameChangedAt = value.Time
+			}
+		case user.FieldUsernameNormalized:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field username_normalized", values[i])
+			} else if value.Valid {
+				u.UsernameNormalized = new(string)
+				*u.UsernameNormalized = value.String
 			}
 		case user.FieldStripeHighestProductID:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -474,6 +483,11 @@ func (u *User) String() string {
 	if v := u.UsernameChangedAt; v != nil {
 		builder.WriteString("username_changed_at=")
 		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	if v := u.UsernameNormalized; v != nil {
+		builder.WriteString("username_normalized=")
+		builder.WriteString(*v)
 	}
 	builder.WriteString(", ")
 	if v := u.StripeHighestProductID; v != nil {

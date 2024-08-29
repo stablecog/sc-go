@@ -366,9 +366,8 @@ func (r *Repository) GetUserByEmail(email string) (*ent.User, error) {
 
 // Get user by username
 func (r *Repository) GetUserByUsername(username string) (*ent.User, error) {
-	return r.DB.User.Query().Where(func(s *sql.Selector) {
-		s.Where(sql.EQ(sql.Lower(user.FieldUsername), strings.ToLower(username)))
-	}).First(r.Ctx)
+	usernameNormalized := strings.ToLower(username)
+	return r.DB.User.Query().Where(user.UsernameNormalizedEQ(usernameNormalized)).Only(r.Ctx)
 }
 
 // Check if email already exists V2

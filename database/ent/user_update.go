@@ -274,6 +274,26 @@ func (uu *UserUpdate) ClearUsernameChangedAt() *UserUpdate {
 	return uu
 }
 
+// SetUsernameNormalized sets the "username_normalized" field.
+func (uu *UserUpdate) SetUsernameNormalized(s string) *UserUpdate {
+	uu.mutation.SetUsernameNormalized(s)
+	return uu
+}
+
+// SetNillableUsernameNormalized sets the "username_normalized" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableUsernameNormalized(s *string) *UserUpdate {
+	if s != nil {
+		uu.SetUsernameNormalized(*s)
+	}
+	return uu
+}
+
+// ClearUsernameNormalized clears the value of the "username_normalized" field.
+func (uu *UserUpdate) ClearUsernameNormalized() *UserUpdate {
+	uu.mutation.ClearUsernameNormalized()
+	return uu
+}
+
 // SetStripeHighestProductID sets the "stripe_highest_product_id" field.
 func (uu *UserUpdate) SetStripeHighestProductID(s string) *UserUpdate {
 	uu.mutation.SetStripeHighestProductID(s)
@@ -825,6 +845,12 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if uu.mutation.UsernameChangedAtCleared() {
 		_spec.ClearField(user.FieldUsernameChangedAt, field.TypeTime)
+	}
+	if value, ok := uu.mutation.UsernameNormalized(); ok {
+		_spec.SetField(user.FieldUsernameNormalized, field.TypeString, value)
+	}
+	if uu.mutation.UsernameNormalizedCleared() {
+		_spec.ClearField(user.FieldUsernameNormalized, field.TypeString)
 	}
 	if value, ok := uu.mutation.StripeHighestProductID(); ok {
 		_spec.SetField(user.FieldStripeHighestProductID, field.TypeString, value)
@@ -1522,6 +1548,26 @@ func (uuo *UserUpdateOne) ClearUsernameChangedAt() *UserUpdateOne {
 	return uuo
 }
 
+// SetUsernameNormalized sets the "username_normalized" field.
+func (uuo *UserUpdateOne) SetUsernameNormalized(s string) *UserUpdateOne {
+	uuo.mutation.SetUsernameNormalized(s)
+	return uuo
+}
+
+// SetNillableUsernameNormalized sets the "username_normalized" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableUsernameNormalized(s *string) *UserUpdateOne {
+	if s != nil {
+		uuo.SetUsernameNormalized(*s)
+	}
+	return uuo
+}
+
+// ClearUsernameNormalized clears the value of the "username_normalized" field.
+func (uuo *UserUpdateOne) ClearUsernameNormalized() *UserUpdateOne {
+	uuo.mutation.ClearUsernameNormalized()
+	return uuo
+}
+
 // SetStripeHighestProductID sets the "stripe_highest_product_id" field.
 func (uuo *UserUpdateOne) SetStripeHighestProductID(s string) *UserUpdateOne {
 	uuo.mutation.SetStripeHighestProductID(s)
@@ -2103,6 +2149,12 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if uuo.mutation.UsernameChangedAtCleared() {
 		_spec.ClearField(user.FieldUsernameChangedAt, field.TypeTime)
+	}
+	if value, ok := uuo.mutation.UsernameNormalized(); ok {
+		_spec.SetField(user.FieldUsernameNormalized, field.TypeString, value)
+	}
+	if uuo.mutation.UsernameNormalizedCleared() {
+		_spec.ClearField(user.FieldUsernameNormalized, field.TypeString)
 	}
 	if value, ok := uuo.mutation.StripeHighestProductID(); ok {
 		_spec.SetField(user.FieldStripeHighestProductID, field.TypeString, value)

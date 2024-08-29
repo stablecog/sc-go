@@ -190,6 +190,20 @@ func (uc *UserCreate) SetNillableUsernameChangedAt(t *time.Time) *UserCreate {
 	return uc
 }
 
+// SetUsernameNormalized sets the "username_normalized" field.
+func (uc *UserCreate) SetUsernameNormalized(s string) *UserCreate {
+	uc.mutation.SetUsernameNormalized(s)
+	return uc
+}
+
+// SetNillableUsernameNormalized sets the "username_normalized" field if the given value is not nil.
+func (uc *UserCreate) SetNillableUsernameNormalized(s *string) *UserCreate {
+	if s != nil {
+		uc.SetUsernameNormalized(*s)
+	}
+	return uc
+}
+
 // SetStripeHighestProductID sets the "stripe_highest_product_id" field.
 func (uc *UserCreate) SetStripeHighestProductID(s string) *UserCreate {
 	uc.mutation.SetStripeHighestProductID(s)
@@ -597,6 +611,10 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.UsernameChangedAt(); ok {
 		_spec.SetField(user.FieldUsernameChangedAt, field.TypeTime, value)
 		_node.UsernameChangedAt = &value
+	}
+	if value, ok := uc.mutation.UsernameNormalized(); ok {
+		_spec.SetField(user.FieldUsernameNormalized, field.TypeString, value)
+		_node.UsernameNormalized = &value
 	}
 	if value, ok := uc.mutation.StripeHighestProductID(); ok {
 		_spec.SetField(user.FieldStripeHighestProductID, field.TypeString, value)
@@ -1032,6 +1050,24 @@ func (u *UserUpsert) ClearUsernameChangedAt() *UserUpsert {
 	return u
 }
 
+// SetUsernameNormalized sets the "username_normalized" field.
+func (u *UserUpsert) SetUsernameNormalized(v string) *UserUpsert {
+	u.Set(user.FieldUsernameNormalized, v)
+	return u
+}
+
+// UpdateUsernameNormalized sets the "username_normalized" field to the value that was provided on create.
+func (u *UserUpsert) UpdateUsernameNormalized() *UserUpsert {
+	u.SetExcluded(user.FieldUsernameNormalized)
+	return u
+}
+
+// ClearUsernameNormalized clears the value of the "username_normalized" field.
+func (u *UserUpsert) ClearUsernameNormalized() *UserUpsert {
+	u.SetNull(user.FieldUsernameNormalized)
+	return u
+}
+
 // SetStripeHighestProductID sets the "stripe_highest_product_id" field.
 func (u *UserUpsert) SetStripeHighestProductID(v string) *UserUpsert {
 	u.Set(user.FieldStripeHighestProductID, v)
@@ -1427,6 +1463,27 @@ func (u *UserUpsertOne) UpdateUsernameChangedAt() *UserUpsertOne {
 func (u *UserUpsertOne) ClearUsernameChangedAt() *UserUpsertOne {
 	return u.Update(func(s *UserUpsert) {
 		s.ClearUsernameChangedAt()
+	})
+}
+
+// SetUsernameNormalized sets the "username_normalized" field.
+func (u *UserUpsertOne) SetUsernameNormalized(v string) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetUsernameNormalized(v)
+	})
+}
+
+// UpdateUsernameNormalized sets the "username_normalized" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateUsernameNormalized() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateUsernameNormalized()
+	})
+}
+
+// ClearUsernameNormalized clears the value of the "username_normalized" field.
+func (u *UserUpsertOne) ClearUsernameNormalized() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearUsernameNormalized()
 	})
 }
 
@@ -2009,6 +2066,27 @@ func (u *UserUpsertBulk) UpdateUsernameChangedAt() *UserUpsertBulk {
 func (u *UserUpsertBulk) ClearUsernameChangedAt() *UserUpsertBulk {
 	return u.Update(func(s *UserUpsert) {
 		s.ClearUsernameChangedAt()
+	})
+}
+
+// SetUsernameNormalized sets the "username_normalized" field.
+func (u *UserUpsertBulk) SetUsernameNormalized(v string) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetUsernameNormalized(v)
+	})
+}
+
+// UpdateUsernameNormalized sets the "username_normalized" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateUsernameNormalized() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateUsernameNormalized()
+	})
+}
+
+// ClearUsernameNormalized clears the value of the "username_normalized" field.
+func (u *UserUpsertBulk) ClearUsernameNormalized() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearUsernameNormalized()
 	})
 }
 

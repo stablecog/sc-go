@@ -121,6 +121,11 @@ func UsernameChangedAt(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldUsernameChangedAt, v))
 }
 
+// UsernameNormalized applies equality check predicate on the "username_normalized" field. It's identical to UsernameNormalizedEQ.
+func UsernameNormalized(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldUsernameNormalized, v))
+}
+
 // StripeHighestProductID applies equality check predicate on the "stripe_highest_product_id" field. It's identical to StripeHighestProductIDEQ.
 func StripeHighestProductID(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldStripeHighestProductID, v))
@@ -884,6 +889,81 @@ func UsernameChangedAtIsNil() predicate.User {
 // UsernameChangedAtNotNil applies the NotNil predicate on the "username_changed_at" field.
 func UsernameChangedAtNotNil() predicate.User {
 	return predicate.User(sql.FieldNotNull(FieldUsernameChangedAt))
+}
+
+// UsernameNormalizedEQ applies the EQ predicate on the "username_normalized" field.
+func UsernameNormalizedEQ(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldUsernameNormalized, v))
+}
+
+// UsernameNormalizedNEQ applies the NEQ predicate on the "username_normalized" field.
+func UsernameNormalizedNEQ(v string) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldUsernameNormalized, v))
+}
+
+// UsernameNormalizedIn applies the In predicate on the "username_normalized" field.
+func UsernameNormalizedIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldIn(FieldUsernameNormalized, vs...))
+}
+
+// UsernameNormalizedNotIn applies the NotIn predicate on the "username_normalized" field.
+func UsernameNormalizedNotIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldUsernameNormalized, vs...))
+}
+
+// UsernameNormalizedGT applies the GT predicate on the "username_normalized" field.
+func UsernameNormalizedGT(v string) predicate.User {
+	return predicate.User(sql.FieldGT(FieldUsernameNormalized, v))
+}
+
+// UsernameNormalizedGTE applies the GTE predicate on the "username_normalized" field.
+func UsernameNormalizedGTE(v string) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldUsernameNormalized, v))
+}
+
+// UsernameNormalizedLT applies the LT predicate on the "username_normalized" field.
+func UsernameNormalizedLT(v string) predicate.User {
+	return predicate.User(sql.FieldLT(FieldUsernameNormalized, v))
+}
+
+// UsernameNormalizedLTE applies the LTE predicate on the "username_normalized" field.
+func UsernameNormalizedLTE(v string) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldUsernameNormalized, v))
+}
+
+// UsernameNormalizedContains applies the Contains predicate on the "username_normalized" field.
+func UsernameNormalizedContains(v string) predicate.User {
+	return predicate.User(sql.FieldContains(FieldUsernameNormalized, v))
+}
+
+// UsernameNormalizedHasPrefix applies the HasPrefix predicate on the "username_normalized" field.
+func UsernameNormalizedHasPrefix(v string) predicate.User {
+	return predicate.User(sql.FieldHasPrefix(FieldUsernameNormalized, v))
+}
+
+// UsernameNormalizedHasSuffix applies the HasSuffix predicate on the "username_normalized" field.
+func UsernameNormalizedHasSuffix(v string) predicate.User {
+	return predicate.User(sql.FieldHasSuffix(FieldUsernameNormalized, v))
+}
+
+// UsernameNormalizedIsNil applies the IsNil predicate on the "username_normalized" field.
+func UsernameNormalizedIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldUsernameNormalized))
+}
+
+// UsernameNormalizedNotNil applies the NotNil predicate on the "username_normalized" field.
+func UsernameNormalizedNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldUsernameNormalized))
+}
+
+// UsernameNormalizedEqualFold applies the EqualFold predicate on the "username_normalized" field.
+func UsernameNormalizedEqualFold(v string) predicate.User {
+	return predicate.User(sql.FieldEqualFold(FieldUsernameNormalized, v))
+}
+
+// UsernameNormalizedContainsFold applies the ContainsFold predicate on the "username_normalized" field.
+func UsernameNormalizedContainsFold(v string) predicate.User {
+	return predicate.User(sql.FieldContainsFold(FieldUsernameNormalized, v))
 }
 
 // StripeHighestProductIDEQ applies the EQ predicate on the "stripe_highest_product_id" field.
