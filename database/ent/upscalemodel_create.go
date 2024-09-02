@@ -73,6 +73,20 @@ func (umc *UpscaleModelCreate) SetNillableIsHidden(b *bool) *UpscaleModelCreate 
 	return umc
 }
 
+// SetRunpodEndpoint sets the "runpod_endpoint" field.
+func (umc *UpscaleModelCreate) SetRunpodEndpoint(s string) *UpscaleModelCreate {
+	umc.mutation.SetRunpodEndpoint(s)
+	return umc
+}
+
+// SetNillableRunpodEndpoint sets the "runpod_endpoint" field if the given value is not nil.
+func (umc *UpscaleModelCreate) SetNillableRunpodEndpoint(s *string) *UpscaleModelCreate {
+	if s != nil {
+		umc.SetRunpodEndpoint(*s)
+	}
+	return umc
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (umc *UpscaleModelCreate) SetCreatedAt(t time.Time) *UpscaleModelCreate {
 	umc.mutation.SetCreatedAt(t)
@@ -263,6 +277,10 @@ func (umc *UpscaleModelCreate) createSpec() (*UpscaleModel, *sqlgraph.CreateSpec
 		_spec.SetField(upscalemodel.FieldIsHidden, field.TypeBool, value)
 		_node.IsHidden = value
 	}
+	if value, ok := umc.mutation.RunpodEndpoint(); ok {
+		_spec.SetField(upscalemodel.FieldRunpodEndpoint, field.TypeString, value)
+		_node.RunpodEndpoint = &value
+	}
 	if value, ok := umc.mutation.CreatedAt(); ok {
 		_spec.SetField(upscalemodel.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -387,6 +405,24 @@ func (u *UpscaleModelUpsert) UpdateIsHidden() *UpscaleModelUpsert {
 	return u
 }
 
+// SetRunpodEndpoint sets the "runpod_endpoint" field.
+func (u *UpscaleModelUpsert) SetRunpodEndpoint(v string) *UpscaleModelUpsert {
+	u.Set(upscalemodel.FieldRunpodEndpoint, v)
+	return u
+}
+
+// UpdateRunpodEndpoint sets the "runpod_endpoint" field to the value that was provided on create.
+func (u *UpscaleModelUpsert) UpdateRunpodEndpoint() *UpscaleModelUpsert {
+	u.SetExcluded(upscalemodel.FieldRunpodEndpoint)
+	return u
+}
+
+// ClearRunpodEndpoint clears the value of the "runpod_endpoint" field.
+func (u *UpscaleModelUpsert) ClearRunpodEndpoint() *UpscaleModelUpsert {
+	u.SetNull(upscalemodel.FieldRunpodEndpoint)
+	return u
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (u *UpscaleModelUpsert) SetUpdatedAt(v time.Time) *UpscaleModelUpsert {
 	u.Set(upscalemodel.FieldUpdatedAt, v)
@@ -503,6 +539,27 @@ func (u *UpscaleModelUpsertOne) SetIsHidden(v bool) *UpscaleModelUpsertOne {
 func (u *UpscaleModelUpsertOne) UpdateIsHidden() *UpscaleModelUpsertOne {
 	return u.Update(func(s *UpscaleModelUpsert) {
 		s.UpdateIsHidden()
+	})
+}
+
+// SetRunpodEndpoint sets the "runpod_endpoint" field.
+func (u *UpscaleModelUpsertOne) SetRunpodEndpoint(v string) *UpscaleModelUpsertOne {
+	return u.Update(func(s *UpscaleModelUpsert) {
+		s.SetRunpodEndpoint(v)
+	})
+}
+
+// UpdateRunpodEndpoint sets the "runpod_endpoint" field to the value that was provided on create.
+func (u *UpscaleModelUpsertOne) UpdateRunpodEndpoint() *UpscaleModelUpsertOne {
+	return u.Update(func(s *UpscaleModelUpsert) {
+		s.UpdateRunpodEndpoint()
+	})
+}
+
+// ClearRunpodEndpoint clears the value of the "runpod_endpoint" field.
+func (u *UpscaleModelUpsertOne) ClearRunpodEndpoint() *UpscaleModelUpsertOne {
+	return u.Update(func(s *UpscaleModelUpsert) {
+		s.ClearRunpodEndpoint()
 	})
 }
 
@@ -791,6 +848,27 @@ func (u *UpscaleModelUpsertBulk) SetIsHidden(v bool) *UpscaleModelUpsertBulk {
 func (u *UpscaleModelUpsertBulk) UpdateIsHidden() *UpscaleModelUpsertBulk {
 	return u.Update(func(s *UpscaleModelUpsert) {
 		s.UpdateIsHidden()
+	})
+}
+
+// SetRunpodEndpoint sets the "runpod_endpoint" field.
+func (u *UpscaleModelUpsertBulk) SetRunpodEndpoint(v string) *UpscaleModelUpsertBulk {
+	return u.Update(func(s *UpscaleModelUpsert) {
+		s.SetRunpodEndpoint(v)
+	})
+}
+
+// UpdateRunpodEndpoint sets the "runpod_endpoint" field to the value that was provided on create.
+func (u *UpscaleModelUpsertBulk) UpdateRunpodEndpoint() *UpscaleModelUpsertBulk {
+	return u.Update(func(s *UpscaleModelUpsert) {
+		s.UpdateRunpodEndpoint()
+	})
+}
+
+// ClearRunpodEndpoint clears the value of the "runpod_endpoint" field.
+func (u *UpscaleModelUpsertBulk) ClearRunpodEndpoint() *UpscaleModelUpsertBulk {
+	return u.Update(func(s *UpscaleModelUpsert) {
+		s.ClearRunpodEndpoint()
 	})
 }
 

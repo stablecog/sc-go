@@ -184,3 +184,49 @@ const (
 	QUEUE_PRIORITY_9
 	QUEUE_PRIORITY_10
 )
+
+// Asynq queue priorities, map a queue name to a priority
+var ASYNQ_QUEUE_DEFINITIONS = map[string]int{
+	"priority_1":  int(QUEUE_PRIORITY_1),
+	"priority_2":  int(QUEUE_PRIORITY_2),
+	"priority_3":  int(QUEUE_PRIORITY_3),
+	"priority_4":  int(QUEUE_PRIORITY_4),
+	"priority_5":  int(QUEUE_PRIORITY_5),
+	"priority_6":  int(QUEUE_PRIORITY_6),
+	"priority_7":  int(QUEUE_PRIORITY_7),
+	"priority_8":  int(QUEUE_PRIORITY_8),
+	"priority_9":  int(QUEUE_PRIORITY_9),
+	"priority_10": int(QUEUE_PRIORITY_10),
+}
+
+func QueueByPriority(prio uint8) string {
+	switch prio {
+	case QUEUE_PRIORITY_1:
+		return "priority_1"
+	case QUEUE_PRIORITY_2:
+		return "priority_2"
+	case QUEUE_PRIORITY_3:
+		return "priority_3"
+	case QUEUE_PRIORITY_4:
+		return "priority_4"
+	case QUEUE_PRIORITY_5:
+		return "priority_5"
+	case QUEUE_PRIORITY_6:
+		return "priority_6"
+	case QUEUE_PRIORITY_7:
+		return "priority_7"
+	case QUEUE_PRIORITY_8:
+		return "priority_8"
+	case QUEUE_PRIORITY_9:
+		return "priority_9"
+	case QUEUE_PRIORITY_10:
+		return "priority_10"
+	default:
+		return "priority_2"
+	}
+}
+
+// Asynq task types
+const (
+	ASYNQ_TASK_GENERATE = "runpod:generate"
+)

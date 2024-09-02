@@ -181,6 +181,15 @@ func (f *Cache) GetVoiceoverSpeakersForModel(modelId uuid.UUID) []*ent.Voiceover
 	return speakers
 }
 
+func (f *Cache) GetGenerationModelFromID(id uuid.UUID) *ent.GenerationModel {
+	for _, model := range f.GenerationModels() {
+		if model.ID == id {
+			return model
+		}
+	}
+	return nil
+}
+
 func (f *Cache) GetGenerationModelNameFromID(id uuid.UUID) string {
 	for _, model := range f.GenerationModels() {
 		if model.ID == id {

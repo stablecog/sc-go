@@ -23,6 +23,8 @@ const (
 	FieldIsDefault = "is_default"
 	// FieldIsHidden holds the string denoting the is_hidden field in the database.
 	FieldIsHidden = "is_hidden"
+	// FieldRunpodEndpoint holds the string denoting the runpod_endpoint field in the database.
+	FieldRunpodEndpoint = "runpod_endpoint"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -47,6 +49,7 @@ var Columns = []string{
 	FieldIsActive,
 	FieldIsDefault,
 	FieldIsHidden,
+	FieldRunpodEndpoint,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -104,6 +107,11 @@ func ByIsDefault(opts ...sql.OrderTermOption) OrderOption {
 // ByIsHidden orders the results by the is_hidden field.
 func ByIsHidden(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsHidden, opts...).ToFunc()
+}
+
+// ByRunpodEndpoint orders the results by the runpod_endpoint field.
+func ByRunpodEndpoint(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRunpodEndpoint, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.

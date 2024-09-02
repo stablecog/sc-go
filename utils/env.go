@@ -10,9 +10,10 @@ import (
 )
 
 type SCEnv struct {
-	Production   bool   `env:"PRODUCTION" envDefault:"false"`
-	Port         int    `env:"PORT" envDefault:"8000"`
-	PublicApiUrl string `env:"PUBLIC_API_URL" envDefault:"http://localhost:8000"` // Used for thing such as, building the webhook URL for sc-worker to send results to
+	Production    bool   `env:"PRODUCTION" envDefault:"false"`
+	Port          int    `env:"PORT" envDefault:"8000"`
+	PublicApiUrl  string `env:"PUBLIC_API_URL" envDefault:"http://localhost:8000"` // Used for thing such as, building the webhook URL for sc-worker to send results to
+	PrivateApiUrl string `env:"PRIVATE_API_URL" envDefault:"http://localhost:13337"`
 	// Content moderation and translator
 	OpenAIApiKey        string `env:"OPENAI_API_KEY"`
 	PrivateLinguaAPIUrl string `env:"PRIVATE_LINGUA_API_URL"` // Corresponds to sc-go/language server
@@ -98,6 +99,8 @@ type SCEnv struct {
 	ScWorkerTesterApiKey string `env:"SC_WORKER_TESTER_API_KEY" envDefault:""` // SC Worker Tester API Key
 	ClipApiUrl           string `env:"CLIP_API_URL"`                           // Clip API URL
 	ClipApiAuthToken     string `env:"CLIP_API_AUTH_TOKEN"`                    // Clip API Auth Token
+	// Runpod Serverless
+	RunpodApiToken string `env:"RUNPOD_API_TOKEN"` // Runpod API Token
 }
 
 // The package-level instance and its initialization controls.

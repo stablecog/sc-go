@@ -293,6 +293,7 @@ var (
 		{Name: "is_active", Type: field.TypeBool, Default: true},
 		{Name: "is_default", Type: field.TypeBool, Default: false},
 		{Name: "is_hidden", Type: field.TypeBool, Default: false},
+		{Name: "runpod_endpoint", Type: field.TypeString, Nullable: true},
 		{Name: "display_weight", Type: field.TypeInt32, Default: 0},
 		{Name: "default_scheduler_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "default_width", Type: field.TypeInt32, Default: 512},
@@ -599,6 +600,7 @@ var (
 		{Name: "is_active", Type: field.TypeBool, Default: true},
 		{Name: "is_default", Type: field.TypeBool, Default: false},
 		{Name: "is_hidden", Type: field.TypeBool, Default: false},
+		{Name: "runpod_endpoint", Type: field.TypeString, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}

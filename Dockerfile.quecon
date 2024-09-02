@@ -1,0 +1,6 @@
+# Docker file for github actions CI build
+FROM stablecog/ubuntu:22.04
+
+COPY ./quecon/quecon /app/quecon
+
+CMD ["/app/quecon"]

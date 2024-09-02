@@ -2,6 +2,7 @@ package scworker
 
 import (
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/hibiken/asynq"
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/server/analytics"
@@ -21,4 +22,5 @@ type SCWorker struct {
 	S3Img          *s3.S3
 	S3             *s3.S3
 	MQClient       queue.MQClient
+	AsynqClient    *asynq.Client
 }

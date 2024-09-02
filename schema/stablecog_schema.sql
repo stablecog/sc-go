@@ -1416,3 +1416,7 @@ ALTER TYPE generation_output_gallery_status_enum
 RENAME VALUE 'waiting_to_approve' TO 'waiting_for_approval';
 
 create index generation_width_height_created_idx on generations(width, height, created_at);
+
+-- Add runpod_endpoint to generation and upscale models
+alter table public.generation_models add column runpod_endpoint text;
+alter table public.upscale_models add column runpod_endpoint text;

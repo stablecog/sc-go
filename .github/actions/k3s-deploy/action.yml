@@ -72,6 +72,14 @@ runs:
         kustomize edit set image replaceme=${{ inputs.image }}
         kustomize build . > ../ci-deployment.yaml
 
+    - name: Set image (QueCon)
+      if: ${{ inputs.env == 'quecon' }}
+      working-directory: ./k8s/quecon
+      shell: bash
+      run: |
+        kustomize edit set image replaceme=${{ inputs.image }}
+        kustomize build . > ../ci-deployment.yaml
+
     - name: Deploy image to k8s cluster
       uses: bbedward/kubectl@master
       env:

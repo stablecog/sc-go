@@ -80,6 +80,20 @@ func (gmc *GenerationModelCreate) SetNillableIsHidden(b *bool) *GenerationModelC
 	return gmc
 }
 
+// SetRunpodEndpoint sets the "runpod_endpoint" field.
+func (gmc *GenerationModelCreate) SetRunpodEndpoint(s string) *GenerationModelCreate {
+	gmc.mutation.SetRunpodEndpoint(s)
+	return gmc
+}
+
+// SetNillableRunpodEndpoint sets the "runpod_endpoint" field if the given value is not nil.
+func (gmc *GenerationModelCreate) SetNillableRunpodEndpoint(s *string) *GenerationModelCreate {
+	if s != nil {
+		gmc.SetRunpodEndpoint(*s)
+	}
+	return gmc
+}
+
 // SetDisplayWeight sets the "display_weight" field.
 func (gmc *GenerationModelCreate) SetDisplayWeight(i int32) *GenerationModelCreate {
 	gmc.mutation.SetDisplayWeight(i)
@@ -369,6 +383,10 @@ func (gmc *GenerationModelCreate) createSpec() (*GenerationModel, *sqlgraph.Crea
 		_spec.SetField(generationmodel.FieldIsHidden, field.TypeBool, value)
 		_node.IsHidden = value
 	}
+	if value, ok := gmc.mutation.RunpodEndpoint(); ok {
+		_spec.SetField(generationmodel.FieldRunpodEndpoint, field.TypeString, value)
+		_node.RunpodEndpoint = &value
+	}
 	if value, ok := gmc.mutation.DisplayWeight(); ok {
 		_spec.SetField(generationmodel.FieldDisplayWeight, field.TypeInt32, value)
 		_node.DisplayWeight = value
@@ -534,6 +552,24 @@ func (u *GenerationModelUpsert) SetIsHidden(v bool) *GenerationModelUpsert {
 // UpdateIsHidden sets the "is_hidden" field to the value that was provided on create.
 func (u *GenerationModelUpsert) UpdateIsHidden() *GenerationModelUpsert {
 	u.SetExcluded(generationmodel.FieldIsHidden)
+	return u
+}
+
+// SetRunpodEndpoint sets the "runpod_endpoint" field.
+func (u *GenerationModelUpsert) SetRunpodEndpoint(v string) *GenerationModelUpsert {
+	u.Set(generationmodel.FieldRunpodEndpoint, v)
+	return u
+}
+
+// UpdateRunpodEndpoint sets the "runpod_endpoint" field to the value that was provided on create.
+func (u *GenerationModelUpsert) UpdateRunpodEndpoint() *GenerationModelUpsert {
+	u.SetExcluded(generationmodel.FieldRunpodEndpoint)
+	return u
+}
+
+// ClearRunpodEndpoint clears the value of the "runpod_endpoint" field.
+func (u *GenerationModelUpsert) ClearRunpodEndpoint() *GenerationModelUpsert {
+	u.SetNull(generationmodel.FieldRunpodEndpoint)
 	return u
 }
 
@@ -739,6 +775,27 @@ func (u *GenerationModelUpsertOne) SetIsHidden(v bool) *GenerationModelUpsertOne
 func (u *GenerationModelUpsertOne) UpdateIsHidden() *GenerationModelUpsertOne {
 	return u.Update(func(s *GenerationModelUpsert) {
 		s.UpdateIsHidden()
+	})
+}
+
+// SetRunpodEndpoint sets the "runpod_endpoint" field.
+func (u *GenerationModelUpsertOne) SetRunpodEndpoint(v string) *GenerationModelUpsertOne {
+	return u.Update(func(s *GenerationModelUpsert) {
+		s.SetRunpodEndpoint(v)
+	})
+}
+
+// UpdateRunpodEndpoint sets the "runpod_endpoint" field to the value that was provided on create.
+func (u *GenerationModelUpsertOne) UpdateRunpodEndpoint() *GenerationModelUpsertOne {
+	return u.Update(func(s *GenerationModelUpsert) {
+		s.UpdateRunpodEndpoint()
+	})
+}
+
+// ClearRunpodEndpoint clears the value of the "runpod_endpoint" field.
+func (u *GenerationModelUpsertOne) ClearRunpodEndpoint() *GenerationModelUpsertOne {
+	return u.Update(func(s *GenerationModelUpsert) {
+		s.ClearRunpodEndpoint()
 	})
 }
 
@@ -1125,6 +1182,27 @@ func (u *GenerationModelUpsertBulk) SetIsHidden(v bool) *GenerationModelUpsertBu
 func (u *GenerationModelUpsertBulk) UpdateIsHidden() *GenerationModelUpsertBulk {
 	return u.Update(func(s *GenerationModelUpsert) {
 		s.UpdateIsHidden()
+	})
+}
+
+// SetRunpodEndpoint sets the "runpod_endpoint" field.
+func (u *GenerationModelUpsertBulk) SetRunpodEndpoint(v string) *GenerationModelUpsertBulk {
+	return u.Update(func(s *GenerationModelUpsert) {
+		s.SetRunpodEndpoint(v)
+	})
+}
+
+// UpdateRunpodEndpoint sets the "runpod_endpoint" field to the value that was provided on create.
+func (u *GenerationModelUpsertBulk) UpdateRunpodEndpoint() *GenerationModelUpsertBulk {
+	return u.Update(func(s *GenerationModelUpsert) {
+		s.UpdateRunpodEndpoint()
+	})
+}
+
+// ClearRunpodEndpoint clears the value of the "runpod_endpoint" field.
+func (u *GenerationModelUpsertBulk) ClearRunpodEndpoint() *GenerationModelUpsertBulk {
+	return u.Update(func(s *GenerationModelUpsert) {
+		s.ClearRunpodEndpoint()
 	})
 }
 

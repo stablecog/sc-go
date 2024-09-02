@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/google/uuid"
+	"github.com/hibiken/asynq"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/upscale"
 	"github.com/stablecog/sc-go/database/enttypes"
@@ -324,12 +325,14 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 		}
 	}
 	// Get model and scheduler name for cog
-	modelName := shared.GetCache().GetGenerationModelNameFromID(*generateReq.ModelId)
+	model := shared.GetCache().GetGenerationModelFromID(*generateReq.ModelId)
 	schedulerName := shared.GetCache().GetSchedulerNameFromID(*generateReq.SchedulerId)
-	if modelName == "" || schedulerName == "" {
-		log.Error("Error getting model or scheduler name: %s - %s", modelName, schedulerName)
+	if model == nil || schedulerName == "" {
+		log.Error("Error getting model or scheduler name: %s - %s", *generateReq.ModelId, schedulerName)
 		return nil, &initSettings, &WorkerError{http.StatusBadRequest, fmt.Errorf("invalid_model_or_scheduler"), ""}
 	}
+	modelName := model.NameInWorker
+	useRunpod := model.RunpodEndpoint != nil
 
 	// Format prompts
 	generateReq.Prompt = utils.FormatPrompt(generateReq.Prompt)
@@ -529,6 +532,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 			WebhookEventsFilter: []requests.CogEventFilter{requests.CogEventFilterStart, requests.CogEventFilterStart},
 			WebhookUrl:          fmt.Sprintf("%s/v1/worker/webhook", utils.GetEnv().PublicApiUrl),
 			Input: requests.BaseCogRequest{
+				WebhookPrivateUrl:      fmt.Sprintf("%s/v1/worker/webhook", utils.GetEnv().PrivateApiUrl),
 				SkipSafetyChecker:      true,
 				SkipTranslation:        true,
 				WasAutoSubmitted:       generateReq.WasAutoSubmitted,
@@ -561,6 +565,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 				InitImageUrl:           signedInitImageUrl,
 				MaskImageUrl:           signedMaskImageUrl,
 				PromptStrength:         generateReq.PromptStrength,
+				RunpodEndpoint:         model.RunpodEndpoint,
 			},
 		}
 
@@ -603,10 +608,40 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 			return err
 		}
 
-		err = w.MQClient.Publish(queueId, cogReqBody, queuePriority)
-		if err != nil {
-			log.Error("Failed to write request %s to exchange: %v", queueId, err)
-			return err
+		if !useRunpod {
+			err = w.MQClient.Publish(queueId, cogReqBody, queuePriority)
+			if err != nil {
+				log.Error("Failed to write request %s to exchange: %v", queueId, err)
+				return err
+			}
+		} else {
+			// use QueCon internal queue
+			queueName := shared.QueueByPriority(queuePriority)
+			// Enqueue task with priority
+			opts := []asynq.Option{
+				asynq.MaxRetry(3),
+				asynq.TaskID(requestId.String()), // Unique Task ID
+				asynq.Queue(queueName),           // Queue name
+			}
+
+			// Create payload
+			rpInput := requests.RunpodInput{
+				Input: cogReqBody.Input,
+			}
+			payload, err := json.Marshal(rpInput)
+			if err != nil {
+				log.Error("Error marshalling runpod payload", "err", err)
+				return err
+			}
+
+			_, err = w.AsynqClient.Enqueue(asynq.NewTask(
+				shared.ASYNQ_TASK_GENERATE,
+				payload,
+			), opts...)
+			if err != nil {
+				log.Error("Failed to enqueue task", "err", err)
+				return err
+			}
 		}
 
 		w.QueueThrottler.IncrementBy(1, fmt.Sprintf("g:%s", user.ID.String()))

@@ -102,6 +102,26 @@ func (gmu *GenerationModelUpdate) SetNillableIsHidden(b *bool) *GenerationModelU
 	return gmu
 }
 
+// SetRunpodEndpoint sets the "runpod_endpoint" field.
+func (gmu *GenerationModelUpdate) SetRunpodEndpoint(s string) *GenerationModelUpdate {
+	gmu.mutation.SetRunpodEndpoint(s)
+	return gmu
+}
+
+// SetNillableRunpodEndpoint sets the "runpod_endpoint" field if the given value is not nil.
+func (gmu *GenerationModelUpdate) SetNillableRunpodEndpoint(s *string) *GenerationModelUpdate {
+	if s != nil {
+		gmu.SetRunpodEndpoint(*s)
+	}
+	return gmu
+}
+
+// ClearRunpodEndpoint clears the value of the "runpod_endpoint" field.
+func (gmu *GenerationModelUpdate) ClearRunpodEndpoint() *GenerationModelUpdate {
+	gmu.mutation.ClearRunpodEndpoint()
+	return gmu
+}
+
 // SetDisplayWeight sets the "display_weight" field.
 func (gmu *GenerationModelUpdate) SetDisplayWeight(i int32) *GenerationModelUpdate {
 	gmu.mutation.ResetDisplayWeight()
@@ -334,6 +354,12 @@ func (gmu *GenerationModelUpdate) sqlSave(ctx context.Context) (n int, err error
 	if value, ok := gmu.mutation.IsHidden(); ok {
 		_spec.SetField(generationmodel.FieldIsHidden, field.TypeBool, value)
 	}
+	if value, ok := gmu.mutation.RunpodEndpoint(); ok {
+		_spec.SetField(generationmodel.FieldRunpodEndpoint, field.TypeString, value)
+	}
+	if gmu.mutation.RunpodEndpointCleared() {
+		_spec.ClearField(generationmodel.FieldRunpodEndpoint, field.TypeString)
+	}
 	if value, ok := gmu.mutation.DisplayWeight(); ok {
 		_spec.SetField(generationmodel.FieldDisplayWeight, field.TypeInt32, value)
 	}
@@ -540,6 +566,26 @@ func (gmuo *GenerationModelUpdateOne) SetNillableIsHidden(b *bool) *GenerationMo
 	if b != nil {
 		gmuo.SetIsHidden(*b)
 	}
+	return gmuo
+}
+
+// SetRunpodEndpoint sets the "runpod_endpoint" field.
+func (gmuo *GenerationModelUpdateOne) SetRunpodEndpoint(s string) *GenerationModelUpdateOne {
+	gmuo.mutation.SetRunpodEndpoint(s)
+	return gmuo
+}
+
+// SetNillableRunpodEndpoint sets the "runpod_endpoint" field if the given value is not nil.
+func (gmuo *GenerationModelUpdateOne) SetNillableRunpodEndpoint(s *string) *GenerationModelUpdateOne {
+	if s != nil {
+		gmuo.SetRunpodEndpoint(*s)
+	}
+	return gmuo
+}
+
+// ClearRunpodEndpoint clears the value of the "runpod_endpoint" field.
+func (gmuo *GenerationModelUpdateOne) ClearRunpodEndpoint() *GenerationModelUpdateOne {
+	gmuo.mutation.ClearRunpodEndpoint()
 	return gmuo
 }
 
@@ -804,6 +850,12 @@ func (gmuo *GenerationModelUpdateOne) sqlSave(ctx context.Context) (_node *Gener
 	}
 	if value, ok := gmuo.mutation.IsHidden(); ok {
 		_spec.SetField(generationmodel.FieldIsHidden, field.TypeBool, value)
+	}
+	if value, ok := gmuo.mutation.RunpodEndpoint(); ok {
+		_spec.SetField(generationmodel.FieldRunpodEndpoint, field.TypeString, value)
+	}
+	if gmuo.mutation.RunpodEndpointCleared() {
+		_spec.ClearField(generationmodel.FieldRunpodEndpoint, field.TypeString)
 	}
 	if value, ok := gmuo.mutation.DisplayWeight(); ok {
 		_spec.SetField(generationmodel.FieldDisplayWeight, field.TypeInt32, value)

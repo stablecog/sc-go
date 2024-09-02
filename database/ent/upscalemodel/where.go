@@ -76,6 +76,11 @@ func IsHidden(v bool) predicate.UpscaleModel {
 	return predicate.UpscaleModel(sql.FieldEQ(FieldIsHidden, v))
 }
 
+// RunpodEndpoint applies equality check predicate on the "runpod_endpoint" field. It's identical to RunpodEndpointEQ.
+func RunpodEndpoint(v string) predicate.UpscaleModel {
+	return predicate.UpscaleModel(sql.FieldEQ(FieldRunpodEndpoint, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.UpscaleModel {
 	return predicate.UpscaleModel(sql.FieldEQ(FieldCreatedAt, v))
@@ -179,6 +184,81 @@ func IsHiddenEQ(v bool) predicate.UpscaleModel {
 // IsHiddenNEQ applies the NEQ predicate on the "is_hidden" field.
 func IsHiddenNEQ(v bool) predicate.UpscaleModel {
 	return predicate.UpscaleModel(sql.FieldNEQ(FieldIsHidden, v))
+}
+
+// RunpodEndpointEQ applies the EQ predicate on the "runpod_endpoint" field.
+func RunpodEndpointEQ(v string) predicate.UpscaleModel {
+	return predicate.UpscaleModel(sql.FieldEQ(FieldRunpodEndpoint, v))
+}
+
+// RunpodEndpointNEQ applies the NEQ predicate on the "runpod_endpoint" field.
+func RunpodEndpointNEQ(v string) predicate.UpscaleModel {
+	return predicate.UpscaleModel(sql.FieldNEQ(FieldRunpodEndpoint, v))
+}
+
+// RunpodEndpointIn applies the In predicate on the "runpod_endpoint" field.
+func RunpodEndpointIn(vs ...string) predicate.UpscaleModel {
+	return predicate.UpscaleModel(sql.FieldIn(FieldRunpodEndpoint, vs...))
+}
+
+// RunpodEndpointNotIn applies the NotIn predicate on the "runpod_endpoint" field.
+func RunpodEndpointNotIn(vs ...string) predicate.UpscaleModel {
+	return predicate.UpscaleModel(sql.FieldNotIn(FieldRunpodEndpoint, vs...))
+}
+
+// RunpodEndpointGT applies the GT predicate on the "runpod_endpoint" field.
+func RunpodEndpointGT(v string) predicate.UpscaleModel {
+	return predicate.UpscaleModel(sql.FieldGT(FieldRunpodEndpoint, v))
+}
+
+// RunpodEndpointGTE applies the GTE predicate on the "runpod_endpoint" field.
+func RunpodEndpointGTE(v string) predicate.UpscaleModel {
+	return predicate.UpscaleModel(sql.FieldGTE(FieldRunpodEndpoint, v))
+}
+
+// RunpodEndpointLT applies the LT predicate on the "runpod_endpoint" field.
+func RunpodEndpointLT(v string) predicate.UpscaleModel {
+	return predicate.UpscaleModel(sql.FieldLT(FieldRunpodEndpoint, v))
+}
+
+// RunpodEndpointLTE applies the LTE predicate on the "runpod_endpoint" field.
+func RunpodEndpointLTE(v string) predicate.UpscaleModel {
+	return predicate.UpscaleModel(sql.FieldLTE(FieldRunpodEndpoint, v))
+}
+
+// RunpodEndpointContains applies the Contains predicate on the "runpod_endpoint" field.
+func RunpodEndpointContains(v string) predicate.UpscaleModel {
+	return predicate.UpscaleModel(sql.FieldContains(FieldRunpodEndpoint, v))
+}
+
+// RunpodEndpointHasPrefix applies the HasPrefix predicate on the "runpod_endpoint" field.
+func RunpodEndpointHasPrefix(v string) predicate.UpscaleModel {
+	return predicate.UpscaleModel(sql.FieldHasPrefix(FieldRunpodEndpoint, v))
+}
+
+// RunpodEndpointHasSuffix applies the HasSuffix predicate on the "runpod_endpoint" field.
+func RunpodEndpointHasSuffix(v string) predicate.UpscaleModel {
+	return predicate.UpscaleModel(sql.FieldHasSuffix(FieldRunpodEndpoint, v))
+}
+
+// RunpodEndpointIsNil applies the IsNil predicate on the "runpod_endpoint" field.
+func RunpodEndpointIsNil() predicate.UpscaleModel {
+	return predicate.UpscaleModel(sql.FieldIsNull(FieldRunpodEndpoint))
+}
+
+// RunpodEndpointNotNil applies the NotNil predicate on the "runpod_endpoint" field.
+func RunpodEndpointNotNil() predicate.UpscaleModel {
+	return predicate.UpscaleModel(sql.FieldNotNull(FieldRunpodEndpoint))
+}
+
+// RunpodEndpointEqualFold applies the EqualFold predicate on the "runpod_endpoint" field.
+func RunpodEndpointEqualFold(v string) predicate.UpscaleModel {
+	return predicate.UpscaleModel(sql.FieldEqualFold(FieldRunpodEndpoint, v))
+}
+
+// RunpodEndpointContainsFold applies the ContainsFold predicate on the "runpod_endpoint" field.
+func RunpodEndpointContainsFold(v string) predicate.UpscaleModel {
+	return predicate.UpscaleModel(sql.FieldContainsFold(FieldRunpodEndpoint, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

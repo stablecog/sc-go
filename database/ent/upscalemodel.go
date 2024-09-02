@@ -26,6 +26,8 @@ type UpscaleModel struct {
 	IsDefault bool `json:"is_default,omitempty"`
 	// IsHidden holds the value of the "is_hidden" field.
 	IsHidden bool `json:"is_hidden,omitempty"`
+	// RunpodEndpoint holds the value of the "runpod_endpoint" field.
+	RunpodEndpoint *string `json:"runpod_endpoint,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -61,7 +63,7 @@ func (*UpscaleModel) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case upscalemodel.FieldIsActive, upscalemodel.FieldIsDefault, upscalemodel.FieldIsHidden:
 			values[i] = new(sql.NullBool)
-		case upscalemodel.FieldNameInWorker:
+		case upscalemodel.FieldNameInWorker, upscalemodel.FieldRunpodEndpoint:
 			values[i] = new(sql.NullString)
 		case upscalemodel.FieldCreatedAt, upscalemodel.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -111,6 +113,13 @@ func (um *UpscaleModel) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field is_hidden", values[i])
 			} else if value.Valid {
 				um.IsHidden = value.Bool
+			}
+		case upscalemodel.FieldRunpodEndpoint:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field runpod_endpoint", values[i])
+			} else if value.Valid {
+				um.RunpodEndpoint = new(string)
+				*um.RunpodEndpoint = value.String
 			}
 		case upscalemodel.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -176,6 +185,11 @@ func (um *UpscaleModel) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_hidden=")
 	builder.WriteString(fmt.Sprintf("%v", um.IsHidden))
+	builder.WriteString(", ")
+	if v := um.RunpodEndpoint; v != nil {
+		builder.WriteString("runpod_endpoint=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(um.CreatedAt.Format(time.ANSIC))

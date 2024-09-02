@@ -1,0 +1,122 @@
+name: 💫 CI (QueCon)
+
+on:
+  push:
+    branches: [master]
+    paths: ["quecon/**", "k8s/quecon/**"]
+
+concurrency:
+  group: environment-quecon-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  setup_env:
+    name: ⚙️ Setup environment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add SHORT_SHA env property
+        run: echo "SHORT_SHA=`echo ${GITHUB_SHA::7}`" >> $GITHUB_ENV
+
+      - name: Put commit msg in environment
+        run: echo "COMMIT_MSG=${{ github.event.head_commit.message }}" >> $GITHUB_ENV
+
+      - name: Escape commit message
+        run: |
+          echo "COMMIT_MSG=$(echo $COMMIT_MSG | tr -d \'\\\")" >> $GITHUB_ENV
+
+      - name: Get branch name (merge)
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr / -)" >> $GITHUB_ENV
+
+      - name: Get branch name (pull request)
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: echo "BRANCH_NAME=$(echo ${GITHUB_HEAD_REF} | tr / -)" >> $GITHUB_ENV
+
+    outputs:
+      short_sha: ${{ env.SHORT_SHA }}
+      commit_msg: ${{ env.COMMIT_MSG }}
+      branch_name: ${{ env.BRANCH_NAME }}
+
+  build:
+    name: 🔨 Build Binaries and Docker Image
+    runs-on: ubuntu-latest
+    needs: setup_env
+
+    env:
+      GITHUB_RUN_ID: ${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set build start in env variable
+        run: echo "BUILD_START=$(date +%s)" >> $GITHUB_ENV
+
+      - name: Send Discord Webhook
+        uses: ./.github/actions/discord-webhook
+        with:
+          context: prod
+          prod-webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
+          qa-webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+          embed-color: 16776960
+          embed-title: "[sc-quecon] ${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
+          embed-description: "```Build Started```"
+
+      - name: Setup Go with cache
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: ./go.work
+          cache-dependency-path: |
+            **/go.sum
+
+      - name: Build GO quecon Binary
+        run: |
+          cd quecon && GOARCH=arm64 go build -ldflags "-s -w -X main.Version=${{ needs.setup_env.outputs.short_sha }}" -o quecon && cd ..
+
+      - name: Login to registry
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push image
+        if: success()
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          platforms: linux/arm64
+          push: true
+          file: ./Dockerfile.quecon
+          tags: stablecog/sc-quecon:${{ needs.setup_env.outputs.branch_name }}-${{ env.GITHUB_RUN_ID }}
+
+      - name: Send Discord Webhook
+        if: failure()
+        uses: ./.github/actions/discord-webhook
+        with:
+          context: prod
+          prod-webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
+          qa-webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+          embed-color: 15548997
+          embed-title: "[sc-quecon] ${{ needs.setup_env.outputs.commit_msg }}  •  ${{ needs.setup_env.outputs.short_sha }}"
+          embed-description: "```🚨 Build FAILED 🚨```"
+
+  deploy_prod:
+    name: 🚀 Deploy QueCon (PROD)
+    runs-on: ubuntu-latest
+    needs:
+      - setup_env
+      - build
+    env:
+      GITHUB_RUN_ID: ${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Deploy
+        uses: ./.github/actions/k3s-deploy
+        with:
+          image: stablecog/sc-quecon:${{ needs.setup_env.outputs.branch_name}}-${{ env.GITHUB_RUN_ID }}
+          embed-title: ""
+          prod-webhook-url: ${{ secrets.DISCORD_WEBHOOK_PROD }}
+          qa-webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+          kube_config: ${{ secrets.K3S_KUBE_CONFIG }}
+          env: quecon

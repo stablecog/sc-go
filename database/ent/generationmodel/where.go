@@ -81,6 +81,11 @@ func IsHidden(v bool) predicate.GenerationModel {
 	return predicate.GenerationModel(sql.FieldEQ(FieldIsHidden, v))
 }
 
+// RunpodEndpoint applies equality check predicate on the "runpod_endpoint" field. It's identical to RunpodEndpointEQ.
+func RunpodEndpoint(v string) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldEQ(FieldRunpodEndpoint, v))
+}
+
 // DisplayWeight applies equality check predicate on the "display_weight" field. It's identical to DisplayWeightEQ.
 func DisplayWeight(v int32) predicate.GenerationModel {
 	return predicate.GenerationModel(sql.FieldEQ(FieldDisplayWeight, v))
@@ -269,6 +274,81 @@ func IsHiddenEQ(v bool) predicate.GenerationModel {
 // IsHiddenNEQ applies the NEQ predicate on the "is_hidden" field.
 func IsHiddenNEQ(v bool) predicate.GenerationModel {
 	return predicate.GenerationModel(sql.FieldNEQ(FieldIsHidden, v))
+}
+
+// RunpodEndpointEQ applies the EQ predicate on the "runpod_endpoint" field.
+func RunpodEndpointEQ(v string) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldEQ(FieldRunpodEndpoint, v))
+}
+
+// RunpodEndpointNEQ applies the NEQ predicate on the "runpod_endpoint" field.
+func RunpodEndpointNEQ(v string) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldNEQ(FieldRunpodEndpoint, v))
+}
+
+// RunpodEndpointIn applies the In predicate on the "runpod_endpoint" field.
+func RunpodEndpointIn(vs ...string) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldIn(FieldRunpodEndpoint, vs...))
+}
+
+// RunpodEndpointNotIn applies the NotIn predicate on the "runpod_endpoint" field.
+func RunpodEndpointNotIn(vs ...string) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldNotIn(FieldRunpodEndpoint, vs...))
+}
+
+// RunpodEndpointGT applies the GT predicate on the "runpod_endpoint" field.
+func RunpodEndpointGT(v string) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldGT(FieldRunpodEndpoint, v))
+}
+
+// RunpodEndpointGTE applies the GTE predicate on the "runpod_endpoint" field.
+func RunpodEndpointGTE(v string) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldGTE(FieldRunpodEndpoint, v))
+}
+
+// RunpodEndpointLT applies the LT predicate on the "runpod_endpoint" field.
+func RunpodEndpointLT(v string) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldLT(FieldRunpodEndpoint, v))
+}
+
+// RunpodEndpointLTE applies the LTE predicate on the "runpod_endpoint" field.
+func RunpodEndpointLTE(v string) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldLTE(FieldRunpodEndpoint, v))
+}
+
+// RunpodEndpointContains applies the Contains predicate on the "runpod_endpoint" field.
+func RunpodEndpointContains(v string) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldContains(FieldRunpodEndpoint, v))
+}
+
+// RunpodEndpointHasPrefix applies the HasPrefix predicate on the "runpod_endpoint" field.
+func RunpodEndpointHasPrefix(v string) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldHasPrefix(FieldRunpodEndpoint, v))
+}
+
+// RunpodEndpointHasSuffix applies the HasSuffix predicate on the "runpod_endpoint" field.
+func RunpodEndpointHasSuffix(v string) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldHasSuffix(FieldRunpodEndpoint, v))
+}
+
+// RunpodEndpointIsNil applies the IsNil predicate on the "runpod_endpoint" field.
+func RunpodEndpointIsNil() predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldIsNull(FieldRunpodEndpoint))
+}
+
+// RunpodEndpointNotNil applies the NotNil predicate on the "runpod_endpoint" field.
+func RunpodEndpointNotNil() predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldNotNull(FieldRunpodEndpoint))
+}
+
+// RunpodEndpointEqualFold applies the EqualFold predicate on the "runpod_endpoint" field.
+func RunpodEndpointEqualFold(v string) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldEqualFold(FieldRunpodEndpoint, v))
+}
+
+// RunpodEndpointContainsFold applies the ContainsFold predicate on the "runpod_endpoint" field.
+func RunpodEndpointContainsFold(v string) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldContainsFold(FieldRunpodEndpoint, v))
 }
 
 // DisplayWeightEQ applies the EQ predicate on the "display_weight" field.

@@ -24,6 +24,7 @@ func (UpscaleModel) Fields() []ent.Field {
 		field.Bool("is_active").Default(true),
 		field.Bool("is_default").Default(false),
 		field.Bool("is_hidden").Default(false),
+		field.String("runpod_endpoint").Optional().Nillable(),
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}

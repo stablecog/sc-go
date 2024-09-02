@@ -8262,6 +8262,7 @@ type GenerationModelMutation struct {
 	is_active            *bool
 	is_default           *bool
 	is_hidden            *bool
+	runpod_endpoint      *string
 	display_weight       *int32
 	adddisplay_weight    *int32
 	default_scheduler_id *uuid.UUID
@@ -8565,6 +8566,55 @@ func (m *GenerationModelMutation) OldIsHidden(ctx context.Context) (v bool, err 
 // ResetIsHidden resets all changes to the "is_hidden" field.
 func (m *GenerationModelMutation) ResetIsHidden() {
 	m.is_hidden = nil
+}
+
+// SetRunpodEndpoint sets the "runpod_endpoint" field.
+func (m *GenerationModelMutation) SetRunpodEndpoint(s string) {
+	m.runpod_endpoint = &s
+}
+
+// RunpodEndpoint returns the value of the "runpod_endpoint" field in the mutation.
+func (m *GenerationModelMutation) RunpodEndpoint() (r string, exists bool) {
+	v := m.runpod_endpoint
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRunpodEndpoint returns the old "runpod_endpoint" field's value of the GenerationModel entity.
+// If the GenerationModel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationModelMutation) OldRunpodEndpoint(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRunpodEndpoint is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRunpodEndpoint requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRunpodEndpoint: %w", err)
+	}
+	return oldValue.RunpodEndpoint, nil
+}
+
+// ClearRunpodEndpoint clears the value of the "runpod_endpoint" field.
+func (m *GenerationModelMutation) ClearRunpodEndpoint() {
+	m.runpod_endpoint = nil
+	m.clearedFields[generationmodel.FieldRunpodEndpoint] = struct{}{}
+}
+
+// RunpodEndpointCleared returns if the "runpod_endpoint" field was cleared in this mutation.
+func (m *GenerationModelMutation) RunpodEndpointCleared() bool {
+	_, ok := m.clearedFields[generationmodel.FieldRunpodEndpoint]
+	return ok
+}
+
+// ResetRunpodEndpoint resets all changes to the "runpod_endpoint" field.
+func (m *GenerationModelMutation) ResetRunpodEndpoint() {
+	m.runpod_endpoint = nil
+	delete(m.clearedFields, generationmodel.FieldRunpodEndpoint)
 }
 
 // SetDisplayWeight sets the "display_weight" field.
@@ -8998,7 +9048,7 @@ func (m *GenerationModelMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GenerationModelMutation) Fields() []string {
-	fields := make([]string, 0, 11)
+	fields := make([]string, 0, 12)
 	if m.name_in_worker != nil {
 		fields = append(fields, generationmodel.FieldNameInWorker)
 	}
@@ -9013,6 +9063,9 @@ func (m *GenerationModelMutation) Fields() []string {
 	}
 	if m.is_hidden != nil {
 		fields = append(fields, generationmodel.FieldIsHidden)
+	}
+	if m.runpod_endpoint != nil {
+		fields = append(fields, generationmodel.FieldRunpodEndpoint)
 	}
 	if m.display_weight != nil {
 		fields = append(fields, generationmodel.FieldDisplayWeight)
@@ -9050,6 +9103,8 @@ func (m *GenerationModelMutation) Field(name string) (ent.Value, bool) {
 		return m.IsDefault()
 	case generationmodel.FieldIsHidden:
 		return m.IsHidden()
+	case generationmodel.FieldRunpodEndpoint:
+		return m.RunpodEndpoint()
 	case generationmodel.FieldDisplayWeight:
 		return m.DisplayWeight()
 	case generationmodel.FieldDefaultSchedulerID:
@@ -9081,6 +9136,8 @@ func (m *GenerationModelMutation) OldField(ctx context.Context, name string) (en
 		return m.OldIsDefault(ctx)
 	case generationmodel.FieldIsHidden:
 		return m.OldIsHidden(ctx)
+	case generationmodel.FieldRunpodEndpoint:
+		return m.OldRunpodEndpoint(ctx)
 	case generationmodel.FieldDisplayWeight:
 		return m.OldDisplayWeight(ctx)
 	case generationmodel.FieldDefaultSchedulerID:
@@ -9136,6 +9193,13 @@ func (m *GenerationModelMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIsHidden(v)
+		return nil
+	case generationmodel.FieldRunpodEndpoint:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRunpodEndpoint(v)
 		return nil
 	case generationmodel.FieldDisplayWeight:
 		v, ok := value.(int32)
@@ -9248,6 +9312,9 @@ func (m *GenerationModelMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *GenerationModelMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(generationmodel.FieldRunpodEndpoint) {
+		fields = append(fields, generationmodel.FieldRunpodEndpoint)
+	}
 	if m.FieldCleared(generationmodel.FieldDefaultSchedulerID) {
 		fields = append(fields, generationmodel.FieldDefaultSchedulerID)
 	}
@@ -9265,6 +9332,9 @@ func (m *GenerationModelMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *GenerationModelMutation) ClearField(name string) error {
 	switch name {
+	case generationmodel.FieldRunpodEndpoint:
+		m.ClearRunpodEndpoint()
+		return nil
 	case generationmodel.FieldDefaultSchedulerID:
 		m.ClearDefaultSchedulerID()
 		return nil
@@ -9290,6 +9360,9 @@ func (m *GenerationModelMutation) ResetField(name string) error {
 		return nil
 	case generationmodel.FieldIsHidden:
 		m.ResetIsHidden()
+		return nil
+	case generationmodel.FieldRunpodEndpoint:
+		m.ResetRunpodEndpoint()
 		return nil
 	case generationmodel.FieldDisplayWeight:
 		m.ResetDisplayWeight()
@@ -18378,6 +18451,7 @@ type UpscaleModelMutation struct {
 	is_active       *bool
 	is_default      *bool
 	is_hidden       *bool
+	runpod_endpoint *string
 	created_at      *time.Time
 	updated_at      *time.Time
 	clearedFields   map[string]struct{}
@@ -18637,6 +18711,55 @@ func (m *UpscaleModelMutation) ResetIsHidden() {
 	m.is_hidden = nil
 }
 
+// SetRunpodEndpoint sets the "runpod_endpoint" field.
+func (m *UpscaleModelMutation) SetRunpodEndpoint(s string) {
+	m.runpod_endpoint = &s
+}
+
+// RunpodEndpoint returns the value of the "runpod_endpoint" field in the mutation.
+func (m *UpscaleModelMutation) RunpodEndpoint() (r string, exists bool) {
+	v := m.runpod_endpoint
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRunpodEndpoint returns the old "runpod_endpoint" field's value of the UpscaleModel entity.
+// If the UpscaleModel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UpscaleModelMutation) OldRunpodEndpoint(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRunpodEndpoint is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRunpodEndpoint requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRunpodEndpoint: %w", err)
+	}
+	return oldValue.RunpodEndpoint, nil
+}
+
+// ClearRunpodEndpoint clears the value of the "runpod_endpoint" field.
+func (m *UpscaleModelMutation) ClearRunpodEndpoint() {
+	m.runpod_endpoint = nil
+	m.clearedFields[upscalemodel.FieldRunpodEndpoint] = struct{}{}
+}
+
+// RunpodEndpointCleared returns if the "runpod_endpoint" field was cleared in this mutation.
+func (m *UpscaleModelMutation) RunpodEndpointCleared() bool {
+	_, ok := m.clearedFields[upscalemodel.FieldRunpodEndpoint]
+	return ok
+}
+
+// ResetRunpodEndpoint resets all changes to the "runpod_endpoint" field.
+func (m *UpscaleModelMutation) ResetRunpodEndpoint() {
+	m.runpod_endpoint = nil
+	delete(m.clearedFields, upscalemodel.FieldRunpodEndpoint)
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *UpscaleModelMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -18797,7 +18920,7 @@ func (m *UpscaleModelMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UpscaleModelMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 7)
 	if m.name_in_worker != nil {
 		fields = append(fields, upscalemodel.FieldNameInWorker)
 	}
@@ -18809,6 +18932,9 @@ func (m *UpscaleModelMutation) Fields() []string {
 	}
 	if m.is_hidden != nil {
 		fields = append(fields, upscalemodel.FieldIsHidden)
+	}
+	if m.runpod_endpoint != nil {
+		fields = append(fields, upscalemodel.FieldRunpodEndpoint)
 	}
 	if m.created_at != nil {
 		fields = append(fields, upscalemodel.FieldCreatedAt)
@@ -18832,6 +18958,8 @@ func (m *UpscaleModelMutation) Field(name string) (ent.Value, bool) {
 		return m.IsDefault()
 	case upscalemodel.FieldIsHidden:
 		return m.IsHidden()
+	case upscalemodel.FieldRunpodEndpoint:
+		return m.RunpodEndpoint()
 	case upscalemodel.FieldCreatedAt:
 		return m.CreatedAt()
 	case upscalemodel.FieldUpdatedAt:
@@ -18853,6 +18981,8 @@ func (m *UpscaleModelMutation) OldField(ctx context.Context, name string) (ent.V
 		return m.OldIsDefault(ctx)
 	case upscalemodel.FieldIsHidden:
 		return m.OldIsHidden(ctx)
+	case upscalemodel.FieldRunpodEndpoint:
+		return m.OldRunpodEndpoint(ctx)
 	case upscalemodel.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case upscalemodel.FieldUpdatedAt:
@@ -18893,6 +19023,13 @@ func (m *UpscaleModelMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIsHidden(v)
+		return nil
+	case upscalemodel.FieldRunpodEndpoint:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRunpodEndpoint(v)
 		return nil
 	case upscalemodel.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -18937,7 +19074,11 @@ func (m *UpscaleModelMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *UpscaleModelMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(upscalemodel.FieldRunpodEndpoint) {
+		fields = append(fields, upscalemodel.FieldRunpodEndpoint)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -18950,6 +19091,11 @@ func (m *UpscaleModelMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *UpscaleModelMutation) ClearField(name string) error {
+	switch name {
+	case upscalemodel.FieldRunpodEndpoint:
+		m.ClearRunpodEndpoint()
+		return nil
+	}
 	return fmt.Errorf("unknown UpscaleModel nullable field %s", name)
 }
 
@@ -18968,6 +19114,9 @@ func (m *UpscaleModelMutation) ResetField(name string) error {
 		return nil
 	case upscalemodel.FieldIsHidden:
 		m.ResetIsHidden()
+		return nil
+	case upscalemodel.FieldRunpodEndpoint:
+		m.ResetRunpodEndpoint()
 		return nil
 	case upscalemodel.FieldCreatedAt:
 		m.ResetCreatedAt()

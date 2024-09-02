@@ -1,45 +1,48 @@
 kind: Deployment
 apiVersion: apps/v1
 metadata:
-  name: sc-discord-deployment
+  name: sc-queuecon-deployment
   namespace: prod-stablecog
   labels:
-    app: sc-discordbot
+    app: sc-queuecon
 spec:
-  strategy:
-    type: Recreate
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
-      app: sc-discordbot
+      app: sc-queuecon
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:
-        app: sc-discordbot
+        app: sc-queuecon
     spec:
       containers:
-        - name: sc-discordbot
+        - name: sc-queuecon
           image: replaceme
           resources:
             requests:
               cpu: 100m
               memory: 200Mi
             limits:
-              memory: 2Gi
+              cpu: 250m
+              memory: 512Mi
           command: ["/bin/sh", "-c"]
-          args: ["/app/discobot"]
+          args: ["/app/queuecon"]
           imagePullPolicy: "Always"
           envFrom:
             - secretRef:
                 name: sc-go
           env:
+            - name: PUBLIC_SUPABASE_REFERENCE_ID
+              value: jaqefzjqokaemzyvjcew
+            - name: PRODUCTION
+              value: "true"
             - name: PUBLIC_API_URL
               value: https://api.stablecog.com
             - name: PRIVATE_API_URL
               value: http://server-service.prod-stablecog
-            - name: PUBLIC_SUPABASE_REFERENCE_ID
-              value: jaqefzjqokaemzyvjcew
-            - name: PRIVATE_LINGUA_API_URL
-              value: http://lingua-service.prod-stablecog:13339/lingua
+            - name: BUCKET_BASE_URL
+              value: https://b.stablecog.com
             - name: LOKI_APPLICATION_LABEL
-              value: sc-discordbot
+              value: sc-quecon

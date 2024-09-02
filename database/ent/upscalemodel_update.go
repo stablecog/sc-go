@@ -87,6 +87,26 @@ func (umu *UpscaleModelUpdate) SetNillableIsHidden(b *bool) *UpscaleModelUpdate 
 	return umu
 }
 
+// SetRunpodEndpoint sets the "runpod_endpoint" field.
+func (umu *UpscaleModelUpdate) SetRunpodEndpoint(s string) *UpscaleModelUpdate {
+	umu.mutation.SetRunpodEndpoint(s)
+	return umu
+}
+
+// SetNillableRunpodEndpoint sets the "runpod_endpoint" field if the given value is not nil.
+func (umu *UpscaleModelUpdate) SetNillableRunpodEndpoint(s *string) *UpscaleModelUpdate {
+	if s != nil {
+		umu.SetRunpodEndpoint(*s)
+	}
+	return umu
+}
+
+// ClearRunpodEndpoint clears the value of the "runpod_endpoint" field.
+func (umu *UpscaleModelUpdate) ClearRunpodEndpoint() *UpscaleModelUpdate {
+	umu.mutation.ClearRunpodEndpoint()
+	return umu
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (umu *UpscaleModelUpdate) SetUpdatedAt(t time.Time) *UpscaleModelUpdate {
 	umu.mutation.SetUpdatedAt(t)
@@ -196,6 +216,12 @@ func (umu *UpscaleModelUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := umu.mutation.IsHidden(); ok {
 		_spec.SetField(upscalemodel.FieldIsHidden, field.TypeBool, value)
+	}
+	if value, ok := umu.mutation.RunpodEndpoint(); ok {
+		_spec.SetField(upscalemodel.FieldRunpodEndpoint, field.TypeString, value)
+	}
+	if umu.mutation.RunpodEndpointCleared() {
+		_spec.ClearField(upscalemodel.FieldRunpodEndpoint, field.TypeString)
 	}
 	if value, ok := umu.mutation.UpdatedAt(); ok {
 		_spec.SetField(upscalemodel.FieldUpdatedAt, field.TypeTime, value)
@@ -320,6 +346,26 @@ func (umuo *UpscaleModelUpdateOne) SetNillableIsHidden(b *bool) *UpscaleModelUpd
 	if b != nil {
 		umuo.SetIsHidden(*b)
 	}
+	return umuo
+}
+
+// SetRunpodEndpoint sets the "runpod_endpoint" field.
+func (umuo *UpscaleModelUpdateOne) SetRunpodEndpoint(s string) *UpscaleModelUpdateOne {
+	umuo.mutation.SetRunpodEndpoint(s)
+	return umuo
+}
+
+// SetNillableRunpodEndpoint sets the "runpod_endpoint" field if the given value is not nil.
+func (umuo *UpscaleModelUpdateOne) SetNillableRunpodEndpoint(s *string) *UpscaleModelUpdateOne {
+	if s != nil {
+		umuo.SetRunpodEndpoint(*s)
+	}
+	return umuo
+}
+
+// ClearRunpodEndpoint clears the value of the "runpod_endpoint" field.
+func (umuo *UpscaleModelUpdateOne) ClearRunpodEndpoint() *UpscaleModelUpdateOne {
+	umuo.mutation.ClearRunpodEndpoint()
 	return umuo
 }
 
@@ -462,6 +508,12 @@ func (umuo *UpscaleModelUpdateOne) sqlSave(ctx context.Context) (_node *UpscaleM
 	}
 	if value, ok := umuo.mutation.IsHidden(); ok {
 		_spec.SetField(upscalemodel.FieldIsHidden, field.TypeBool, value)
+	}
+	if value, ok := umuo.mutation.RunpodEndpoint(); ok {
+		_spec.SetField(upscalemodel.FieldRunpodEndpoint, field.TypeString, value)
+	}
+	if umuo.mutation.RunpodEndpointCleared() {
+		_spec.ClearField(upscalemodel.FieldRunpodEndpoint, field.TypeString)
 	}
 	if value, ok := umuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(upscalemodel.FieldUpdatedAt, field.TypeTime, value)

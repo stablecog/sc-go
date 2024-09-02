@@ -21,6 +21,7 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/go-co-op/gocron"
 	"github.com/google/uuid"
+	"github.com/hibiken/asynq"
 	"github.com/joho/godotenv"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	chiprometheus "github.com/stablecog/chi-prometheus"
@@ -1076,6 +1077,16 @@ func main() {
 	}
 	defer rabbitmqClient.Close()
 
+	// Setup asynq client
+	// Setup asynq server
+	options := redis.Client.Options()
+	redisOptions := asynq.RedisClientOpt{
+		Addr: options.Addr,
+		DB:   options.DB,
+	}
+	asynqClient := asynq.NewClient(redisOptions)
+	defer asynqClient.Close()
+
 	// Create controller
 	apiTokenSmap := shared.NewSyncMap[chan requests.CogWebhookMessage]()
 	safetyChecker := translator.NewTranslatorSafetyChecker(ctx, utils.GetEnv().OpenAIApiKey, false, redis)
@@ -1101,6 +1112,7 @@ func main() {
 			S3Img:          s3ClientImg,
 			S3:             s3Client,
 			MQClient:       rabbitmqClient,
+			AsynqClient:    asynqClient,
 		},
 	}
 
