@@ -70,8 +70,9 @@ func main() {
 	// Setup asynq server
 	options := redis.Client.Options()
 	redisOptions := asynq.RedisClientOpt{
-		Addr: options.Addr,
-		DB:   options.DB,
+		Addr:     options.Addr,
+		DB:       options.DB,
+		Password: options.Password,
 	}
 
 	// Setup handler wrapper
