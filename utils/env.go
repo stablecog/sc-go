@@ -188,8 +188,11 @@ func GetPathFromS3URL(s3UrlStr string) (string, error) {
 		return s3UrlStr, nil
 	}
 
-	// Remove leading slash from path
-	s3Url.Path = s3Url.Path[1:]
+	// Check if it's a short form (no bucket name)
+	if s3Url.Path == "" {
+		return s3Url.Host, nil
+	}
 
-	return s3Url.Path, nil
+	// For full URLs, remove leading slash from path
+	return s3Url.Path[1:], nil
 }

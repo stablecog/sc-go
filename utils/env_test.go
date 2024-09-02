@@ -170,3 +170,10 @@ func TestGetPathFromS3URL(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, "cc70edec-b6ff-42c5-8726-957bbd8fc212.jpeg", parsed)
 }
+
+func TestGetPathFromS3URLShortForm(t *testing.T) {
+	path := "s3://cc70edec-b6ff-42c5-8726-957bbd8fc212.jpeg"
+	parsed, err := GetPathFromS3URL(path)
+	assert.Nil(t, err)
+	assert.Equal(t, "cc70edec-b6ff-42c5-8726-957bbd8fc212.jpeg", parsed)
+}
