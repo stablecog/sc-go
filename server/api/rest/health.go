@@ -81,6 +81,11 @@ func (c *RestAPI) HandleRunpodWorkerHealth(w http.ResponseWriter, r *http.Reques
 		}
 	}
 
+	if len(runpodModels) == 0 {
+		responses.ErrNotFound(w, r, "Model not found")
+		return
+	}
+
 	// Query all runpod endpoints for health
 	healthResponses := make(map[string]bool)
 	for _, m := range runpodModels {
