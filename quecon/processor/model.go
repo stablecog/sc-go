@@ -100,11 +100,17 @@ func (p *QueueProcessor) HandleImageJob(ctx context.Context, t *asynq.Task) erro
 
 	// Send success to webhook
 	go func() {
+		// Convert shape of images array for compatibility
+		images := make([]requests.CogWebhookOutputImage, len(runpodResponse.Output.Output.Images))
+		for i, url := range runpodResponse.Output.Output.Images {
+			images[i] = requests.CogWebhookOutputImage{Image: url}
+		}
+
 		p.IssueSCWebhook(requests.CogWebhookMessage{
 			Status: requests.CogSucceeded,
 			Input:  payload.Input,
 			Output: requests.CogWebhookOutput{
-				Images: runpodResponse.Output.Output.Images,
+				Images: images,
 			},
 		}, 0)
 	}()

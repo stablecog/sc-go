@@ -11,7 +11,7 @@ const (
 
 // Runpod returns {"output": {"input": ..., "output": {"images": []}}} where "images" is a list of image URLs
 type RunpodOutputOutput struct {
-	Images []requests.CogWebhookOutputImage `json:"images"`
+	Images []string `json:"images"`
 }
 
 type RunpodBaseOutput struct {
