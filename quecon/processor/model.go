@@ -105,7 +105,16 @@ func (p *QueueProcessor) HandleImageJob(ctx context.Context, t *asynq.Task) erro
 			return fmt.Errorf("polling timed out after 60 seconds: %w", asynq.SkipRetry)
 		case <-ticker.C:
 			// Poll the status endpoint
-			statusResp, err := p.Client.Get(statusURL)
+			// Create a new request for polling the status
+			req, err := http.NewRequest("GET", statusURL, nil)
+			if err != nil {
+				log.Errorf("http.NewRequest failed: %v", err)
+				continue // Retry polling on error
+			}
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", utils.GetEnv().RunpodApiToken))
+
+			statusResp, err := p.Client.Do(req)
 			if err != nil {
 				log.Errorf("Error polling runpod status: %v", err)
 				continue // Retry polling on error
