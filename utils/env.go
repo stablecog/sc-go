@@ -178,6 +178,7 @@ func (e *SCEnv) GetCorsOrigins() []string {
 }
 
 func GetPathFromS3URL(s3UrlStr string) (string, error) {
+	log.Infof("Parsing S3 URL %s", s3UrlStr)
 	s3Url, err := url.Parse(s3UrlStr)
 	if err != nil {
 		return s3UrlStr, err
