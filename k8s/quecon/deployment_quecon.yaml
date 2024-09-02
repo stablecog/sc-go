@@ -11,7 +11,7 @@ spec:
     matchLabels:
       app: sc-queuecon
   strategy:
-    type: Recreate
+    type: RollingUpdate
   template:
     metadata:
       labels:

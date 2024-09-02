@@ -17,7 +17,7 @@ import (
 )
 
 // How frequently to poll runpod for current job status
-const POLL_INTERVAL = 100 * time.Millisecond
+const POLL_INTERVAL = 300 * time.Millisecond
 
 func (p *QueueProcessor) HandleImageJob(ctx context.Context, t *asynq.Task) error {
 	start := time.Now()
