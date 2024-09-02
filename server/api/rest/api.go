@@ -26,6 +26,7 @@ const DEFAULT_PER_PAGE = 50
 const MAX_PER_PAGE = 300
 
 type RestAPI struct {
+	Client         *http.Client
 	Repo           *repository.Repository
 	Redis          *database.RedisWrapper
 	Hub            *sse.Hub

@@ -4,6 +4,7 @@ package rest
 import (
 	"context"
 	"log"
+	"net/http"
 	"os"
 	"testing"
 	"time"
@@ -103,6 +104,7 @@ func testMainWrapper(m *testing.M) int {
 
 	// Setup controller
 	MockController = &RestAPI{
+		Client:         &http.Client{Timeout: 10 * time.Second},
 		Repo:           repo,
 		Redis:          redis,
 		Hub:            hub,

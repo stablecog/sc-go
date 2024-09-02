@@ -181,6 +181,12 @@ func (f *Cache) GetVoiceoverSpeakersForModel(modelId uuid.UUID) []*ent.Voiceover
 	return speakers
 }
 
+func (f *Cache) GetAllGenerationModels() []*ent.GenerationModel {
+	f.RLock()
+	defer f.RUnlock()
+	return f.GenerationModels()
+}
+
 func (f *Cache) GetGenerationModelFromID(id uuid.UUID) *ent.GenerationModel {
 	for _, model := range f.GenerationModels() {
 		if model.ID == id {

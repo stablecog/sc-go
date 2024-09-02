@@ -1092,6 +1092,7 @@ func main() {
 	apiTokenSmap := shared.NewSyncMap[chan requests.CogWebhookMessage]()
 	safetyChecker := translator.NewTranslatorSafetyChecker(ctx, utils.GetEnv().OpenAIApiKey, false, redis)
 	hc := rest.RestAPI{
+		Client:         &http.Client{Timeout: 10 * time.Second},
 		Repo:           repo,
 		Redis:          redis,
 		Hub:            sseHub,
@@ -1204,6 +1205,12 @@ func main() {
 	// app.Get("/clipq", hc.HandleClipQSearch)
 	app.Route("/v1", func(r chi.Router) {
 		r.Get("/health", hc.HandleHealth)
+
+		// Model health
+		r.Route("/model", func(r chi.Router) {
+			r.Use(mw.RateLimit(5, "srv", 1*time.Second))
+			r.Get("/health/{model}", hc.HandleRunpodWorkerHealth)
+		})
 
 		r.Route("/email", func(r chi.Router) {
 			r.Use(middleware.Logger)
