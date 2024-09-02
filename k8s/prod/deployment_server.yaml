@@ -67,7 +67,7 @@ spec:
             - name: PUBLIC_API_URL
               value: https://api.stablecog.com
             - name: PRIVATE_API_URL
-              value: http://server-service.prod-stablecog
+              value: http://server-service.prod-stablecog:13337
             - name: PRIVATE_LINGUA_API_URL
               value: http://lingua-service.prod-stablecog:13339/lingua
             - name: STRIPE_STARTER_PRODUCT_ID

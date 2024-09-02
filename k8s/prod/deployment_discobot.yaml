@@ -36,7 +36,7 @@ spec:
             - name: PUBLIC_API_URL
               value: https://api.stablecog.com
             - name: PRIVATE_API_URL
-              value: http://server-service.prod-stablecog
+              value: http://server-service.prod-stablecog:13337
             - name: PUBLIC_SUPABASE_REFERENCE_ID
               value: jaqefzjqokaemzyvjcew
             - name: PRIVATE_LINGUA_API_URL

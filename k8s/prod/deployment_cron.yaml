@@ -41,7 +41,7 @@ spec:
             - name: PUBLIC_API_URL
               value: https://api.stablecog.com
             - name: PRIVATE_API_URL
-              value: http://server-service.prod-stablecog
+              value: http://server-service.prod-stablecog:13337
             - name: BUCKET_BASE_URL
               value: https://b.stablecog.com
             - name: LOKI_APPLICATION_LABEL
