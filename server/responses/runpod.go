@@ -5,8 +5,10 @@ import "github.com/stablecog/sc-go/server/requests"
 type RunpodStatus string
 
 const (
-	RunpodStatusCompleted RunpodStatus = "COMPLETED"
-	RunpodStatusFailed    RunpodStatus = "FAILED"
+	RunpodStatusCompleted  RunpodStatus = "COMPLETED"
+	RunpodStatusFailed     RunpodStatus = "FAILED"
+	RunpodStatusInQueue    RunpodStatus = "IN_QUEUE"
+	RunpodStatusInProgress RunpodStatus = "IN_PROGRESS"
 )
 
 // Runpod returns {"output": {"input": ..., "output": {"images": []}}} where "images" is a list of image URLs
