@@ -183,6 +183,7 @@ func (p *QueueProcessor) HandleImageJob(ctx context.Context, t *asynq.Task) erro
 				end := time.Now()
 				//Log duration in seconds
 				log.Infof("Generated %d outputs of %s in %f seconds", len(runpodResponse.Output.Output.Images), payload.Input.Model, end.Sub(start).Seconds())
+				return nil
 			}
 		}
 	}
