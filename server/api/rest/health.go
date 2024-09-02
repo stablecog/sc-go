@@ -45,24 +45,36 @@ func (c *RestAPI) HandleSCWorkerHealth(w http.ResponseWriter, r *http.Request) {
 	render.Status(r, http.StatusServiceUnavailable)
 }
 
+type TJobs struct {
+	Completed  int `json:"completed"`
+	Failed     int `json:"failed"`
+	InProgress int `json:"inProgress"`
+	InQueue    int `json:"inQueue"`
+	Retried    int `json:"retried"`
+}
+
+type TWorkers struct {
+	Idle      int `json:"idle"`
+	Running   int `json:"running"`
+	Unhealthy int `json:"unhealthy"`
+}
+
+type TWorkersWithExtras struct {
+	Idle         int  `json:"idle"`
+	Running      int  `json:"running"`
+	Unhealthy    int  `json:"unhealthy"`
+	HasUnhealthy bool `json:"has_unhealthy"`
+}
+
 // Specific for runpod functions
 type RunpodHealthResponse struct {
-	Jobs struct {
-		Completed  int `json:"completed"`
-		Failed     int `json:"failed"`
-		InProgress int `json:"inProgress"`
-		InQueue    int `json:"inQueue"`
-		Retried    int `json:"retried"`
-	} `json:"jobs"`
-	Workers struct {
-		Idle      int `json:"idle"`
-		Running   int `json:"running"`
-		Unhealthy int `json:"unhealthy"`
-	} `json:"workers"`
+	Jobs    TJobs    `json:"jobs"`
+	Workers TWorkers `json:"workers"`
 }
 
 type WorkerHealthResponse struct {
-	HasUnhealthy bool `json:"has_unhealthy"`
+	Jobs    TJobs              `json:"jobs"`
+	Workers TWorkersWithExtras `json:"workers"`
 }
 
 type WorkerHealthResponseAll struct {
@@ -87,7 +99,7 @@ func (c *RestAPI) HandleRunpodWorkerHealth(w http.ResponseWriter, r *http.Reques
 	}
 
 	// Query all runpod endpoints for health
-	healthResponses := make(map[string]bool)
+	healthResponses := make(map[string]WorkerHealthResponse)
 	for _, m := range runpodModels {
 		// Get health from API GET request
 		req, err := http.NewRequest("GET", fmt.Sprintf("%s/health", *m.RunpodEndpoint), nil)
@@ -114,7 +126,15 @@ func (c *RestAPI) HandleRunpodWorkerHealth(w http.ResponseWriter, r *http.Reques
 			return
 		}
 
-		healthResponses[m.NameInWorker] = healthResponse.Workers.Unhealthy > 0
+		healthResponses[m.NameInWorker] = WorkerHealthResponse{
+			Jobs: healthResponse.Jobs,
+			Workers: TWorkersWithExtras{
+				Idle:         healthResponse.Workers.Idle,
+				Running:      healthResponse.Workers.Running,
+				Unhealthy:    healthResponse.Workers.Unhealthy,
+				HasUnhealthy: healthResponse.Workers.Unhealthy > 0,
+			},
+		}
 	}
 
 	// Return health responses
@@ -129,7 +149,12 @@ func (c *RestAPI) HandleRunpodWorkerHealth(w http.ResponseWriter, r *http.Reques
 				continue
 			}
 			workerHealthResponseAll.Models[m.NameInWorker] = WorkerHealthResponse{
-				HasUnhealthy: healthResponse,
+				Workers: TWorkersWithExtras{
+					Idle:         healthResponse.Workers.Idle,
+					Running:      healthResponse.Workers.Running,
+					Unhealthy:    healthResponse.Workers.Unhealthy,
+					HasUnhealthy: healthResponse.Workers.Unhealthy > 0,
+				},
 			}
 		}
 		if len(workerHealthResponseAll.Models) == 0 {
@@ -141,14 +166,19 @@ func (c *RestAPI) HandleRunpodWorkerHealth(w http.ResponseWriter, r *http.Reques
 	}
 
 	// Show WorkerHealthResponse
-	hasUnhealthy, ok := healthResponses[model]
+	health, ok := healthResponses[model]
 	if !ok {
 		responses.ErrNotFound(w, r, "Model not found")
 		return
 	}
 	workerHealthResponse := WorkerHealthResponse{
-		HasUnhealthy: hasUnhealthy,
+		Workers: TWorkersWithExtras{
+			Idle:         health.Workers.Idle,
+			Running:      health.Workers.Running,
+			Unhealthy:    health.Workers.Unhealthy,
+			HasUnhealthy: health.Workers.Unhealthy > 0,
+		},
+		Jobs: health.Jobs,
 	}
 	render.JSON(w, r, workerHealthResponse)
-
 }
