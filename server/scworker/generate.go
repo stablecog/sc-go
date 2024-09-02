@@ -585,6 +585,8 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 					return err
 				}
 
+				log.Infof("Signed URL: %s\n", urlStr)
+
 				cogReqBody.Input.SignedUrls[i] = urlStr
 			}
 		}
