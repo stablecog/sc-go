@@ -79,10 +79,12 @@ func (p *QueueProcessor) HandleImageJob(ctx context.Context, t *asynq.Task) erro
 		return fmt.Errorf("error_decoding_runpod_response: %w", asynq.SkipRetry)
 	}
 
-	if runpodResponse.Status != responses.RunpodStatusCompleted {
+	if runpodResponse.Status != responses.RunpodStatusCompleted || len(runpodResponse.Output.Output.Images) == 0 {
 		errorMsg := runpodResponse.Error
 		if errorMsg == "" {
 			errorMsg = "runpod_failed"
+		} else if len(runpodResponse.Output.Output.Images) == 0 {
+			errorMsg = "no_outputs"
 		}
 		log.Errorf("Runpod failed for task %s: %s", payload.Input.ID, errorMsg)
 		// Send error to webhook
