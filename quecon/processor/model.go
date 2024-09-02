@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/hibiken/asynq"
 	"github.com/stablecog/sc-go/log"
@@ -15,10 +16,15 @@ import (
 )
 
 func (p *QueueProcessor) HandleImageJob(ctx context.Context, t *asynq.Task) error {
+	start := time.Now()
+
 	var payload requests.RunpodInput
 	if err := json.Unmarshal(t.Payload(), &payload); err != nil {
 		return fmt.Errorf("json.Unmarshal failed: %v: %w", err, asynq.SkipRetry)
 	}
+
+	// Informative logging
+	log.Infof("Processing image job %s, model %s", payload.Input.ID.String(), payload.Input.Model)
 
 	if payload.Input.RunpodEndpoint == nil {
 		log.Errorf("Received job with no runpod endpoint %s", payload.Input.ID.String())
@@ -44,6 +50,7 @@ func (p *QueueProcessor) HandleImageJob(ctx context.Context, t *asynq.Task) erro
 	// Issue task to runpod
 	jsonData, err := json.Marshal(payload)
 	if err != nil {
+		log.Errorf("Error marshaling payload: %v", err)
 		return fmt.Errorf("json.Marshal failed: %v: %w", err, asynq.SkipRetry)
 	}
 
@@ -114,6 +121,10 @@ func (p *QueueProcessor) HandleImageJob(ctx context.Context, t *asynq.Task) erro
 			},
 		}, 0)
 	}()
+
+	end := time.Now()
+	//Log duration in seconds
+	log.Infof("Generated %d outputs of %s in %f seconds", len(runpodResponse.Output.Output.Images), payload.Input.Model, end.Sub(start).Seconds())
 
 	return nil
 }
