@@ -322,6 +322,10 @@ func (f *Cache) IsDisposableEmail(email string) bool {
 			if email == disposableDomain {
 				return true
 			}
+			// if it's a subdomain of a disposable domain, it's also disposable
+			if strings.HasSuffix(email, "."+disposableDomain) {
+				return true
+			}
 		}
 		return false
 	}
@@ -333,6 +337,10 @@ func (f *Cache) IsDisposableEmail(email string) bool {
 	domain := strings.ToLower(segs[1])
 	for _, disposableDomain := range disposableEmailDomains {
 		if domain == disposableDomain {
+			return true
+		}
+		// if it's a subdomain of a disposable domain, it's also disposable
+		if strings.HasSuffix(domain, "."+disposableDomain) {
 			return true
 		}
 	}
