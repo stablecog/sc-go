@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
+	"github.com/stablecog/sc-go/log"
 	"golang.org/x/exp/slices"
 )
 
@@ -322,10 +323,6 @@ func (f *Cache) IsDisposableEmail(email string) bool {
 			if email == disposableDomain {
 				return true
 			}
-			// if it's a subdomain of a disposable domain, it's also disposable
-			if strings.HasSuffix(email, "."+disposableDomain) {
-				return true
-			}
 		}
 		return false
 	}
@@ -337,10 +334,12 @@ func (f *Cache) IsDisposableEmail(email string) bool {
 	domain := strings.ToLower(segs[1])
 	for _, disposableDomain := range disposableEmailDomains {
 		if domain == disposableDomain {
+			log.Infof("🔴 📨 Disposable domain - Email: %s - Domain: %s, Disposable Domain: %s", email, domain, disposableDomain)
 			return true
 		}
 		// if it's a subdomain of a disposable domain, it's also disposable
 		if strings.HasSuffix(domain, "."+disposableDomain) {
+			log.Infof("🔴 📨 Disposable domain by suffix - Email: %s - Domain: %s, Disposable Domain: %s", email, domain, disposableDomain)
 			return true
 		}
 	}
