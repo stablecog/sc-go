@@ -16,7 +16,7 @@ func (r *Repository) GetAllGenerationModels() ([]*ent.GenerationModel, error) {
 }
 
 func (r *Repository) GetAllUpscaleModels() ([]*ent.UpscaleModel, error) {
-	models, err := r.DB.UpscaleModel.Query().Select(upscalemodel.FieldID, upscalemodel.FieldNameInWorker, upscalemodel.FieldIsActive, upscalemodel.FieldIsDefault, upscalemodel.FieldIsHidden).All(r.Ctx)
+	models, err := r.DB.UpscaleModel.Query().Select(upscalemodel.FieldID, upscalemodel.FieldNameInWorker, upscalemodel.FieldIsActive, upscalemodel.FieldIsDefault, upscalemodel.FieldIsHidden, upscalemodel.FieldRunpodActive, upscalemodel.FieldRunpodEndpoint).All(r.Ctx)
 	if err != nil {
 		return nil, err
 	}
