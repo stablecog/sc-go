@@ -321,6 +321,7 @@ func (f *Cache) IsDisposableEmail(email string) bool {
 	if !strings.Contains(email, "@") {
 		for _, disposableDomain := range disposableEmailDomains {
 			if email == disposableDomain {
+				log.Infof("🔴 📨 Disposable domain without @ symbol - Email: %s - Disposable Domain: %s", email, disposableDomain)
 				return true
 			}
 		}
@@ -334,12 +335,12 @@ func (f *Cache) IsDisposableEmail(email string) bool {
 	domain := strings.ToLower(segs[1])
 	for _, disposableDomain := range disposableEmailDomains {
 		if domain == disposableDomain {
-			log.Infof("🔴 📨 Disposable domain - Email: %s - Domain: %s, Disposable Domain: %s", email, domain, disposableDomain)
+			log.Infof("🔴 📨 Disposable domain - Email: %s - Domain: %s - Disposable Domain: %s", email, domain, disposableDomain)
 			return true
 		}
 		// if it's a subdomain of a disposable domain, it's also disposable
 		if strings.HasSuffix(domain, "."+disposableDomain) {
-			log.Infof("🔴 📨 Disposable domain by suffix - Email: %s - Domain: %s, Disposable Domain: %s", email, domain, disposableDomain)
+			log.Infof("🔴 📨 Disposable domain by suffix - Email: %s - Domain: %s - Disposable Domain: %s", email, domain, disposableDomain)
 			return true
 		}
 	}
