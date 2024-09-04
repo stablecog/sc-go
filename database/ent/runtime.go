@@ -215,24 +215,28 @@ func init() {
 	generationmodelDescIsHidden := generationmodelFields[5].Descriptor()
 	// generationmodel.DefaultIsHidden holds the default value on creation for the is_hidden field.
 	generationmodel.DefaultIsHidden = generationmodelDescIsHidden.Default.(bool)
+	// generationmodelDescRunpodActive is the schema descriptor for runpod_active field.
+	generationmodelDescRunpodActive := generationmodelFields[7].Descriptor()
+	// generationmodel.DefaultRunpodActive holds the default value on creation for the runpod_active field.
+	generationmodel.DefaultRunpodActive = generationmodelDescRunpodActive.Default.(bool)
 	// generationmodelDescDisplayWeight is the schema descriptor for display_weight field.
-	generationmodelDescDisplayWeight := generationmodelFields[7].Descriptor()
+	generationmodelDescDisplayWeight := generationmodelFields[8].Descriptor()
 	// generationmodel.DefaultDisplayWeight holds the default value on creation for the display_weight field.
 	generationmodel.DefaultDisplayWeight = generationmodelDescDisplayWeight.Default.(int32)
 	// generationmodelDescDefaultWidth is the schema descriptor for default_width field.
-	generationmodelDescDefaultWidth := generationmodelFields[9].Descriptor()
+	generationmodelDescDefaultWidth := generationmodelFields[10].Descriptor()
 	// generationmodel.DefaultDefaultWidth holds the default value on creation for the default_width field.
 	generationmodel.DefaultDefaultWidth = generationmodelDescDefaultWidth.Default.(int32)
 	// generationmodelDescDefaultHeight is the schema descriptor for default_height field.
-	generationmodelDescDefaultHeight := generationmodelFields[10].Descriptor()
+	generationmodelDescDefaultHeight := generationmodelFields[11].Descriptor()
 	// generationmodel.DefaultDefaultHeight holds the default value on creation for the default_height field.
 	generationmodel.DefaultDefaultHeight = generationmodelDescDefaultHeight.Default.(int32)
 	// generationmodelDescCreatedAt is the schema descriptor for created_at field.
-	generationmodelDescCreatedAt := generationmodelFields[11].Descriptor()
+	generationmodelDescCreatedAt := generationmodelFields[12].Descriptor()
 	// generationmodel.DefaultCreatedAt holds the default value on creation for the created_at field.
 	generationmodel.DefaultCreatedAt = generationmodelDescCreatedAt.Default.(func() time.Time)
 	// generationmodelDescUpdatedAt is the schema descriptor for updated_at field.
-	generationmodelDescUpdatedAt := generationmodelFields[12].Descriptor()
+	generationmodelDescUpdatedAt := generationmodelFields[13].Descriptor()
 	// generationmodel.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	generationmodel.DefaultUpdatedAt = generationmodelDescUpdatedAt.Default.(func() time.Time)
 	// generationmodel.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -497,12 +501,16 @@ func init() {
 	upscalemodelDescIsHidden := upscalemodelFields[4].Descriptor()
 	// upscalemodel.DefaultIsHidden holds the default value on creation for the is_hidden field.
 	upscalemodel.DefaultIsHidden = upscalemodelDescIsHidden.Default.(bool)
+	// upscalemodelDescRunpodActive is the schema descriptor for runpod_active field.
+	upscalemodelDescRunpodActive := upscalemodelFields[6].Descriptor()
+	// upscalemodel.DefaultRunpodActive holds the default value on creation for the runpod_active field.
+	upscalemodel.DefaultRunpodActive = upscalemodelDescRunpodActive.Default.(bool)
 	// upscalemodelDescCreatedAt is the schema descriptor for created_at field.
-	upscalemodelDescCreatedAt := upscalemodelFields[6].Descriptor()
+	upscalemodelDescCreatedAt := upscalemodelFields[7].Descriptor()
 	// upscalemodel.DefaultCreatedAt holds the default value on creation for the created_at field.
 	upscalemodel.DefaultCreatedAt = upscalemodelDescCreatedAt.Default.(func() time.Time)
 	// upscalemodelDescUpdatedAt is the schema descriptor for updated_at field.
-	upscalemodelDescUpdatedAt := upscalemodelFields[7].Descriptor()
+	upscalemodelDescUpdatedAt := upscalemodelFields[8].Descriptor()
 	// upscalemodel.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	upscalemodel.DefaultUpdatedAt = upscalemodelDescUpdatedAt.Default.(func() time.Time)
 	// upscalemodel.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

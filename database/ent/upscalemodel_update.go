@@ -107,6 +107,20 @@ func (umu *UpscaleModelUpdate) ClearRunpodEndpoint() *UpscaleModelUpdate {
 	return umu
 }
 
+// SetRunpodActive sets the "runpod_active" field.
+func (umu *UpscaleModelUpdate) SetRunpodActive(b bool) *UpscaleModelUpdate {
+	umu.mutation.SetRunpodActive(b)
+	return umu
+}
+
+// SetNillableRunpodActive sets the "runpod_active" field if the given value is not nil.
+func (umu *UpscaleModelUpdate) SetNillableRunpodActive(b *bool) *UpscaleModelUpdate {
+	if b != nil {
+		umu.SetRunpodActive(*b)
+	}
+	return umu
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (umu *UpscaleModelUpdate) SetUpdatedAt(t time.Time) *UpscaleModelUpdate {
 	umu.mutation.SetUpdatedAt(t)
@@ -222,6 +236,9 @@ func (umu *UpscaleModelUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if umu.mutation.RunpodEndpointCleared() {
 		_spec.ClearField(upscalemodel.FieldRunpodEndpoint, field.TypeString)
+	}
+	if value, ok := umu.mutation.RunpodActive(); ok {
+		_spec.SetField(upscalemodel.FieldRunpodActive, field.TypeBool, value)
 	}
 	if value, ok := umu.mutation.UpdatedAt(); ok {
 		_spec.SetField(upscalemodel.FieldUpdatedAt, field.TypeTime, value)
@@ -366,6 +383,20 @@ func (umuo *UpscaleModelUpdateOne) SetNillableRunpodEndpoint(s *string) *Upscale
 // ClearRunpodEndpoint clears the value of the "runpod_endpoint" field.
 func (umuo *UpscaleModelUpdateOne) ClearRunpodEndpoint() *UpscaleModelUpdateOne {
 	umuo.mutation.ClearRunpodEndpoint()
+	return umuo
+}
+
+// SetRunpodActive sets the "runpod_active" field.
+func (umuo *UpscaleModelUpdateOne) SetRunpodActive(b bool) *UpscaleModelUpdateOne {
+	umuo.mutation.SetRunpodActive(b)
+	return umuo
+}
+
+// SetNillableRunpodActive sets the "runpod_active" field if the given value is not nil.
+func (umuo *UpscaleModelUpdateOne) SetNillableRunpodActive(b *bool) *UpscaleModelUpdateOne {
+	if b != nil {
+		umuo.SetRunpodActive(*b)
+	}
 	return umuo
 }
 
@@ -514,6 +545,9 @@ func (umuo *UpscaleModelUpdateOne) sqlSave(ctx context.Context) (_node *UpscaleM
 	}
 	if umuo.mutation.RunpodEndpointCleared() {
 		_spec.ClearField(upscalemodel.FieldRunpodEndpoint, field.TypeString)
+	}
+	if value, ok := umuo.mutation.RunpodActive(); ok {
+		_spec.SetField(upscalemodel.FieldRunpodActive, field.TypeBool, value)
 	}
 	if value, ok := umuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(upscalemodel.FieldUpdatedAt, field.TypeTime, value)

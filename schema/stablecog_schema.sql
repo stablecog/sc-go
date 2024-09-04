@@ -1420,3 +1420,6 @@ create index generation_width_height_created_idx on generations(width, height, c
 -- Add runpod_endpoint to generation and upscale models
 alter table public.generation_models add column runpod_endpoint text;
 alter table public.upscale_models add column runpod_endpoint text;
+
+alter table public.generation_models add column runpod_active boolean default false not null;
+alter table public.upscale_models add column runpod_active boolean default false not null;

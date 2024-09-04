@@ -81,6 +81,11 @@ func RunpodEndpoint(v string) predicate.UpscaleModel {
 	return predicate.UpscaleModel(sql.FieldEQ(FieldRunpodEndpoint, v))
 }
 
+// RunpodActive applies equality check predicate on the "runpod_active" field. It's identical to RunpodActiveEQ.
+func RunpodActive(v bool) predicate.UpscaleModel {
+	return predicate.UpscaleModel(sql.FieldEQ(FieldRunpodActive, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.UpscaleModel {
 	return predicate.UpscaleModel(sql.FieldEQ(FieldCreatedAt, v))
@@ -259,6 +264,16 @@ func RunpodEndpointEqualFold(v string) predicate.UpscaleModel {
 // RunpodEndpointContainsFold applies the ContainsFold predicate on the "runpod_endpoint" field.
 func RunpodEndpointContainsFold(v string) predicate.UpscaleModel {
 	return predicate.UpscaleModel(sql.FieldContainsFold(FieldRunpodEndpoint, v))
+}
+
+// RunpodActiveEQ applies the EQ predicate on the "runpod_active" field.
+func RunpodActiveEQ(v bool) predicate.UpscaleModel {
+	return predicate.UpscaleModel(sql.FieldEQ(FieldRunpodActive, v))
+}
+
+// RunpodActiveNEQ applies the NEQ predicate on the "runpod_active" field.
+func RunpodActiveNEQ(v bool) predicate.UpscaleModel {
+	return predicate.UpscaleModel(sql.FieldNEQ(FieldRunpodActive, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

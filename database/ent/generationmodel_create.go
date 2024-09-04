@@ -94,6 +94,20 @@ func (gmc *GenerationModelCreate) SetNillableRunpodEndpoint(s *string) *Generati
 	return gmc
 }
 
+// SetRunpodActive sets the "runpod_active" field.
+func (gmc *GenerationModelCreate) SetRunpodActive(b bool) *GenerationModelCreate {
+	gmc.mutation.SetRunpodActive(b)
+	return gmc
+}
+
+// SetNillableRunpodActive sets the "runpod_active" field if the given value is not nil.
+func (gmc *GenerationModelCreate) SetNillableRunpodActive(b *bool) *GenerationModelCreate {
+	if b != nil {
+		gmc.SetRunpodActive(*b)
+	}
+	return gmc
+}
+
 // SetDisplayWeight sets the "display_weight" field.
 func (gmc *GenerationModelCreate) SetDisplayWeight(i int32) *GenerationModelCreate {
 	gmc.mutation.SetDisplayWeight(i)
@@ -269,6 +283,10 @@ func (gmc *GenerationModelCreate) defaults() {
 		v := generationmodel.DefaultIsHidden
 		gmc.mutation.SetIsHidden(v)
 	}
+	if _, ok := gmc.mutation.RunpodActive(); !ok {
+		v := generationmodel.DefaultRunpodActive
+		gmc.mutation.SetRunpodActive(v)
+	}
 	if _, ok := gmc.mutation.DisplayWeight(); !ok {
 		v := generationmodel.DefaultDisplayWeight
 		gmc.mutation.SetDisplayWeight(v)
@@ -311,6 +329,9 @@ func (gmc *GenerationModelCreate) check() error {
 	}
 	if _, ok := gmc.mutation.IsHidden(); !ok {
 		return &ValidationError{Name: "is_hidden", err: errors.New(`ent: missing required field "GenerationModel.is_hidden"`)}
+	}
+	if _, ok := gmc.mutation.RunpodActive(); !ok {
+		return &ValidationError{Name: "runpod_active", err: errors.New(`ent: missing required field "GenerationModel.runpod_active"`)}
 	}
 	if _, ok := gmc.mutation.DisplayWeight(); !ok {
 		return &ValidationError{Name: "display_weight", err: errors.New(`ent: missing required field "GenerationModel.display_weight"`)}
@@ -386,6 +407,10 @@ func (gmc *GenerationModelCreate) createSpec() (*GenerationModel, *sqlgraph.Crea
 	if value, ok := gmc.mutation.RunpodEndpoint(); ok {
 		_spec.SetField(generationmodel.FieldRunpodEndpoint, field.TypeString, value)
 		_node.RunpodEndpoint = &value
+	}
+	if value, ok := gmc.mutation.RunpodActive(); ok {
+		_spec.SetField(generationmodel.FieldRunpodActive, field.TypeBool, value)
+		_node.RunpodActive = value
 	}
 	if value, ok := gmc.mutation.DisplayWeight(); ok {
 		_spec.SetField(generationmodel.FieldDisplayWeight, field.TypeInt32, value)
@@ -570,6 +595,18 @@ func (u *GenerationModelUpsert) UpdateRunpodEndpoint() *GenerationModelUpsert {
 // ClearRunpodEndpoint clears the value of the "runpod_endpoint" field.
 func (u *GenerationModelUpsert) ClearRunpodEndpoint() *GenerationModelUpsert {
 	u.SetNull(generationmodel.FieldRunpodEndpoint)
+	return u
+}
+
+// SetRunpodActive sets the "runpod_active" field.
+func (u *GenerationModelUpsert) SetRunpodActive(v bool) *GenerationModelUpsert {
+	u.Set(generationmodel.FieldRunpodActive, v)
+	return u
+}
+
+// UpdateRunpodActive sets the "runpod_active" field to the value that was provided on create.
+func (u *GenerationModelUpsert) UpdateRunpodActive() *GenerationModelUpsert {
+	u.SetExcluded(generationmodel.FieldRunpodActive)
 	return u
 }
 
@@ -796,6 +833,20 @@ func (u *GenerationModelUpsertOne) UpdateRunpodEndpoint() *GenerationModelUpsert
 func (u *GenerationModelUpsertOne) ClearRunpodEndpoint() *GenerationModelUpsertOne {
 	return u.Update(func(s *GenerationModelUpsert) {
 		s.ClearRunpodEndpoint()
+	})
+}
+
+// SetRunpodActive sets the "runpod_active" field.
+func (u *GenerationModelUpsertOne) SetRunpodActive(v bool) *GenerationModelUpsertOne {
+	return u.Update(func(s *GenerationModelUpsert) {
+		s.SetRunpodActive(v)
+	})
+}
+
+// UpdateRunpodActive sets the "runpod_active" field to the value that was provided on create.
+func (u *GenerationModelUpsertOne) UpdateRunpodActive() *GenerationModelUpsertOne {
+	return u.Update(func(s *GenerationModelUpsert) {
+		s.UpdateRunpodActive()
 	})
 }
 
@@ -1203,6 +1254,20 @@ func (u *GenerationModelUpsertBulk) UpdateRunpodEndpoint() *GenerationModelUpser
 func (u *GenerationModelUpsertBulk) ClearRunpodEndpoint() *GenerationModelUpsertBulk {
 	return u.Update(func(s *GenerationModelUpsert) {
 		s.ClearRunpodEndpoint()
+	})
+}
+
+// SetRunpodActive sets the "runpod_active" field.
+func (u *GenerationModelUpsertBulk) SetRunpodActive(v bool) *GenerationModelUpsertBulk {
+	return u.Update(func(s *GenerationModelUpsert) {
+		s.SetRunpodActive(v)
+	})
+}
+
+// UpdateRunpodActive sets the "runpod_active" field to the value that was provided on create.
+func (u *GenerationModelUpsertBulk) UpdateRunpodActive() *GenerationModelUpsertBulk {
+	return u.Update(func(s *GenerationModelUpsert) {
+		s.UpdateRunpodActive()
 	})
 }
 

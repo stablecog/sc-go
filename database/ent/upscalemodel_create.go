@@ -87,6 +87,20 @@ func (umc *UpscaleModelCreate) SetNillableRunpodEndpoint(s *string) *UpscaleMode
 	return umc
 }
 
+// SetRunpodActive sets the "runpod_active" field.
+func (umc *UpscaleModelCreate) SetRunpodActive(b bool) *UpscaleModelCreate {
+	umc.mutation.SetRunpodActive(b)
+	return umc
+}
+
+// SetNillableRunpodActive sets the "runpod_active" field if the given value is not nil.
+func (umc *UpscaleModelCreate) SetNillableRunpodActive(b *bool) *UpscaleModelCreate {
+	if b != nil {
+		umc.SetRunpodActive(*b)
+	}
+	return umc
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (umc *UpscaleModelCreate) SetCreatedAt(t time.Time) *UpscaleModelCreate {
 	umc.mutation.SetCreatedAt(t)
@@ -191,6 +205,10 @@ func (umc *UpscaleModelCreate) defaults() {
 		v := upscalemodel.DefaultIsHidden
 		umc.mutation.SetIsHidden(v)
 	}
+	if _, ok := umc.mutation.RunpodActive(); !ok {
+		v := upscalemodel.DefaultRunpodActive
+		umc.mutation.SetRunpodActive(v)
+	}
 	if _, ok := umc.mutation.CreatedAt(); !ok {
 		v := upscalemodel.DefaultCreatedAt()
 		umc.mutation.SetCreatedAt(v)
@@ -218,6 +236,9 @@ func (umc *UpscaleModelCreate) check() error {
 	}
 	if _, ok := umc.mutation.IsHidden(); !ok {
 		return &ValidationError{Name: "is_hidden", err: errors.New(`ent: missing required field "UpscaleModel.is_hidden"`)}
+	}
+	if _, ok := umc.mutation.RunpodActive(); !ok {
+		return &ValidationError{Name: "runpod_active", err: errors.New(`ent: missing required field "UpscaleModel.runpod_active"`)}
 	}
 	if _, ok := umc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "UpscaleModel.created_at"`)}
@@ -280,6 +301,10 @@ func (umc *UpscaleModelCreate) createSpec() (*UpscaleModel, *sqlgraph.CreateSpec
 	if value, ok := umc.mutation.RunpodEndpoint(); ok {
 		_spec.SetField(upscalemodel.FieldRunpodEndpoint, field.TypeString, value)
 		_node.RunpodEndpoint = &value
+	}
+	if value, ok := umc.mutation.RunpodActive(); ok {
+		_spec.SetField(upscalemodel.FieldRunpodActive, field.TypeBool, value)
+		_node.RunpodActive = value
 	}
 	if value, ok := umc.mutation.CreatedAt(); ok {
 		_spec.SetField(upscalemodel.FieldCreatedAt, field.TypeTime, value)
@@ -423,6 +448,18 @@ func (u *UpscaleModelUpsert) ClearRunpodEndpoint() *UpscaleModelUpsert {
 	return u
 }
 
+// SetRunpodActive sets the "runpod_active" field.
+func (u *UpscaleModelUpsert) SetRunpodActive(v bool) *UpscaleModelUpsert {
+	u.Set(upscalemodel.FieldRunpodActive, v)
+	return u
+}
+
+// UpdateRunpodActive sets the "runpod_active" field to the value that was provided on create.
+func (u *UpscaleModelUpsert) UpdateRunpodActive() *UpscaleModelUpsert {
+	u.SetExcluded(upscalemodel.FieldRunpodActive)
+	return u
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (u *UpscaleModelUpsert) SetUpdatedAt(v time.Time) *UpscaleModelUpsert {
 	u.Set(upscalemodel.FieldUpdatedAt, v)
@@ -560,6 +597,20 @@ func (u *UpscaleModelUpsertOne) UpdateRunpodEndpoint() *UpscaleModelUpsertOne {
 func (u *UpscaleModelUpsertOne) ClearRunpodEndpoint() *UpscaleModelUpsertOne {
 	return u.Update(func(s *UpscaleModelUpsert) {
 		s.ClearRunpodEndpoint()
+	})
+}
+
+// SetRunpodActive sets the "runpod_active" field.
+func (u *UpscaleModelUpsertOne) SetRunpodActive(v bool) *UpscaleModelUpsertOne {
+	return u.Update(func(s *UpscaleModelUpsert) {
+		s.SetRunpodActive(v)
+	})
+}
+
+// UpdateRunpodActive sets the "runpod_active" field to the value that was provided on create.
+func (u *UpscaleModelUpsertOne) UpdateRunpodActive() *UpscaleModelUpsertOne {
+	return u.Update(func(s *UpscaleModelUpsert) {
+		s.UpdateRunpodActive()
 	})
 }
 
@@ -869,6 +920,20 @@ func (u *UpscaleModelUpsertBulk) UpdateRunpodEndpoint() *UpscaleModelUpsertBulk 
 func (u *UpscaleModelUpsertBulk) ClearRunpodEndpoint() *UpscaleModelUpsertBulk {
 	return u.Update(func(s *UpscaleModelUpsert) {
 		s.ClearRunpodEndpoint()
+	})
+}
+
+// SetRunpodActive sets the "runpod_active" field.
+func (u *UpscaleModelUpsertBulk) SetRunpodActive(v bool) *UpscaleModelUpsertBulk {
+	return u.Update(func(s *UpscaleModelUpsert) {
+		s.SetRunpodActive(v)
+	})
+}
+
+// UpdateRunpodActive sets the "runpod_active" field to the value that was provided on create.
+func (u *UpscaleModelUpsertBulk) UpdateRunpodActive() *UpscaleModelUpsertBulk {
+	return u.Update(func(s *UpscaleModelUpsert) {
+		s.UpdateRunpodActive()
 	})
 }
 

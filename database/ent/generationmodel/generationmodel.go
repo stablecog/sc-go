@@ -27,6 +27,8 @@ const (
 	FieldIsHidden = "is_hidden"
 	// FieldRunpodEndpoint holds the string denoting the runpod_endpoint field in the database.
 	FieldRunpodEndpoint = "runpod_endpoint"
+	// FieldRunpodActive holds the string denoting the runpod_active field in the database.
+	FieldRunpodActive = "runpod_active"
 	// FieldDisplayWeight holds the string denoting the display_weight field in the database.
 	FieldDisplayWeight = "display_weight"
 	// FieldDefaultSchedulerID holds the string denoting the default_scheduler_id field in the database.
@@ -68,6 +70,7 @@ var Columns = []string{
 	FieldIsDefault,
 	FieldIsHidden,
 	FieldRunpodEndpoint,
+	FieldRunpodActive,
 	FieldDisplayWeight,
 	FieldDefaultSchedulerID,
 	FieldDefaultWidth,
@@ -99,6 +102,8 @@ var (
 	DefaultIsDefault bool
 	// DefaultIsHidden holds the default value on creation for the "is_hidden" field.
 	DefaultIsHidden bool
+	// DefaultRunpodActive holds the default value on creation for the "runpod_active" field.
+	DefaultRunpodActive bool
 	// DefaultDisplayWeight holds the default value on creation for the "display_weight" field.
 	DefaultDisplayWeight int32
 	// DefaultDefaultWidth holds the default value on creation for the "default_width" field.
@@ -151,6 +156,11 @@ func ByIsHidden(opts ...sql.OrderTermOption) OrderOption {
 // ByRunpodEndpoint orders the results by the runpod_endpoint field.
 func ByRunpodEndpoint(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRunpodEndpoint, opts...).ToFunc()
+}
+
+// ByRunpodActive orders the results by the runpod_active field.
+func ByRunpodActive(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRunpodActive, opts...).ToFunc()
 }
 
 // ByDisplayWeight orders the results by the display_weight field.

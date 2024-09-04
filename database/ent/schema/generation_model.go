@@ -26,6 +26,7 @@ func (GenerationModel) Fields() []ent.Field {
 		field.Bool("is_default").Default(false),
 		field.Bool("is_hidden").Default(false),
 		field.String("runpod_endpoint").Optional().Nillable(),
+		field.Bool("runpod_active").Default(false),
 		field.Int32("display_weight").Default(0),
 		field.UUID("default_scheduler_id", uuid.UUID{}).Optional().Nillable(),
 		field.Int32("default_width").Default(512),

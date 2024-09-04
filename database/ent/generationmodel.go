@@ -30,6 +30,8 @@ type GenerationModel struct {
 	IsHidden bool `json:"is_hidden,omitempty"`
 	// RunpodEndpoint holds the value of the "runpod_endpoint" field.
 	RunpodEndpoint *string `json:"runpod_endpoint,omitempty"`
+	// RunpodActive holds the value of the "runpod_active" field.
+	RunpodActive bool `json:"runpod_active,omitempty"`
 	// DisplayWeight holds the value of the "display_weight" field.
 	DisplayWeight int32 `json:"display_weight,omitempty"`
 	// DefaultSchedulerID holds the value of the "default_scheduler_id" field.
@@ -84,7 +86,7 @@ func (*GenerationModel) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case generationmodel.FieldDefaultSchedulerID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case generationmodel.FieldIsActive, generationmodel.FieldIsDefault, generationmodel.FieldIsHidden:
+		case generationmodel.FieldIsActive, generationmodel.FieldIsDefault, generationmodel.FieldIsHidden, generationmodel.FieldRunpodActive:
 			values[i] = new(sql.NullBool)
 		case generationmodel.FieldDisplayWeight, generationmodel.FieldDefaultWidth, generationmodel.FieldDefaultHeight:
 			values[i] = new(sql.NullInt64)
@@ -151,6 +153,12 @@ func (gm *GenerationModel) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				gm.RunpodEndpoint = new(string)
 				*gm.RunpodEndpoint = value.String
+			}
+		case generationmodel.FieldRunpodActive:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field runpod_active", values[i])
+			} else if value.Valid {
+				gm.RunpodActive = value.Bool
 			}
 		case generationmodel.FieldDisplayWeight:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -254,6 +262,9 @@ func (gm *GenerationModel) String() string {
 		builder.WriteString("runpod_endpoint=")
 		builder.WriteString(*v)
 	}
+	builder.WriteString(", ")
+	builder.WriteString("runpod_active=")
+	builder.WriteString(fmt.Sprintf("%v", gm.RunpodActive))
 	builder.WriteString(", ")
 	builder.WriteString("display_weight=")
 	builder.WriteString(fmt.Sprintf("%v", gm.DisplayWeight))

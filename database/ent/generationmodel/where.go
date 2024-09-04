@@ -86,6 +86,11 @@ func RunpodEndpoint(v string) predicate.GenerationModel {
 	return predicate.GenerationModel(sql.FieldEQ(FieldRunpodEndpoint, v))
 }
 
+// RunpodActive applies equality check predicate on the "runpod_active" field. It's identical to RunpodActiveEQ.
+func RunpodActive(v bool) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldEQ(FieldRunpodActive, v))
+}
+
 // DisplayWeight applies equality check predicate on the "display_weight" field. It's identical to DisplayWeightEQ.
 func DisplayWeight(v int32) predicate.GenerationModel {
 	return predicate.GenerationModel(sql.FieldEQ(FieldDisplayWeight, v))
@@ -349,6 +354,16 @@ func RunpodEndpointEqualFold(v string) predicate.GenerationModel {
 // RunpodEndpointContainsFold applies the ContainsFold predicate on the "runpod_endpoint" field.
 func RunpodEndpointContainsFold(v string) predicate.GenerationModel {
 	return predicate.GenerationModel(sql.FieldContainsFold(FieldRunpodEndpoint, v))
+}
+
+// RunpodActiveEQ applies the EQ predicate on the "runpod_active" field.
+func RunpodActiveEQ(v bool) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldEQ(FieldRunpodActive, v))
+}
+
+// RunpodActiveNEQ applies the NEQ predicate on the "runpod_active" field.
+func RunpodActiveNEQ(v bool) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldNEQ(FieldRunpodActive, v))
 }
 
 // DisplayWeightEQ applies the EQ predicate on the "display_weight" field.

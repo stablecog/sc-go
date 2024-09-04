@@ -25,6 +25,8 @@ const (
 	FieldIsHidden = "is_hidden"
 	// FieldRunpodEndpoint holds the string denoting the runpod_endpoint field in the database.
 	FieldRunpodEndpoint = "runpod_endpoint"
+	// FieldRunpodActive holds the string denoting the runpod_active field in the database.
+	FieldRunpodActive = "runpod_active"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -50,6 +52,7 @@ var Columns = []string{
 	FieldIsDefault,
 	FieldIsHidden,
 	FieldRunpodEndpoint,
+	FieldRunpodActive,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -71,6 +74,8 @@ var (
 	DefaultIsDefault bool
 	// DefaultIsHidden holds the default value on creation for the "is_hidden" field.
 	DefaultIsHidden bool
+	// DefaultRunpodActive holds the default value on creation for the "runpod_active" field.
+	DefaultRunpodActive bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
@@ -112,6 +117,11 @@ func ByIsHidden(opts ...sql.OrderTermOption) OrderOption {
 // ByRunpodEndpoint orders the results by the runpod_endpoint field.
 func ByRunpodEndpoint(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRunpodEndpoint, opts...).ToFunc()
+}
+
+// ByRunpodActive orders the results by the runpod_active field.
+func ByRunpodActive(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRunpodActive, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.

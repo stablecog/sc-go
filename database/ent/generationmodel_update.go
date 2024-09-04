@@ -122,6 +122,20 @@ func (gmu *GenerationModelUpdate) ClearRunpodEndpoint() *GenerationModelUpdate {
 	return gmu
 }
 
+// SetRunpodActive sets the "runpod_active" field.
+func (gmu *GenerationModelUpdate) SetRunpodActive(b bool) *GenerationModelUpdate {
+	gmu.mutation.SetRunpodActive(b)
+	return gmu
+}
+
+// SetNillableRunpodActive sets the "runpod_active" field if the given value is not nil.
+func (gmu *GenerationModelUpdate) SetNillableRunpodActive(b *bool) *GenerationModelUpdate {
+	if b != nil {
+		gmu.SetRunpodActive(*b)
+	}
+	return gmu
+}
+
 // SetDisplayWeight sets the "display_weight" field.
 func (gmu *GenerationModelUpdate) SetDisplayWeight(i int32) *GenerationModelUpdate {
 	gmu.mutation.ResetDisplayWeight()
@@ -360,6 +374,9 @@ func (gmu *GenerationModelUpdate) sqlSave(ctx context.Context) (n int, err error
 	if gmu.mutation.RunpodEndpointCleared() {
 		_spec.ClearField(generationmodel.FieldRunpodEndpoint, field.TypeString)
 	}
+	if value, ok := gmu.mutation.RunpodActive(); ok {
+		_spec.SetField(generationmodel.FieldRunpodActive, field.TypeBool, value)
+	}
 	if value, ok := gmu.mutation.DisplayWeight(); ok {
 		_spec.SetField(generationmodel.FieldDisplayWeight, field.TypeInt32, value)
 	}
@@ -586,6 +603,20 @@ func (gmuo *GenerationModelUpdateOne) SetNillableRunpodEndpoint(s *string) *Gene
 // ClearRunpodEndpoint clears the value of the "runpod_endpoint" field.
 func (gmuo *GenerationModelUpdateOne) ClearRunpodEndpoint() *GenerationModelUpdateOne {
 	gmuo.mutation.ClearRunpodEndpoint()
+	return gmuo
+}
+
+// SetRunpodActive sets the "runpod_active" field.
+func (gmuo *GenerationModelUpdateOne) SetRunpodActive(b bool) *GenerationModelUpdateOne {
+	gmuo.mutation.SetRunpodActive(b)
+	return gmuo
+}
+
+// SetNillableRunpodActive sets the "runpod_active" field if the given value is not nil.
+func (gmuo *GenerationModelUpdateOne) SetNillableRunpodActive(b *bool) *GenerationModelUpdateOne {
+	if b != nil {
+		gmuo.SetRunpodActive(*b)
+	}
 	return gmuo
 }
 
@@ -856,6 +887,9 @@ func (gmuo *GenerationModelUpdateOne) sqlSave(ctx context.Context) (_node *Gener
 	}
 	if gmuo.mutation.RunpodEndpointCleared() {
 		_spec.ClearField(generationmodel.FieldRunpodEndpoint, field.TypeString)
+	}
+	if value, ok := gmuo.mutation.RunpodActive(); ok {
+		_spec.SetField(generationmodel.FieldRunpodActive, field.TypeBool, value)
 	}
 	if value, ok := gmuo.mutation.DisplayWeight(); ok {
 		_spec.SetField(generationmodel.FieldDisplayWeight, field.TypeInt32, value)
