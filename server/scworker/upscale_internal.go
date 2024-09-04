@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/favadi/osinfo"
 	"github.com/google/uuid"
+	"github.com/hibiken/asynq"
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/enttypes"
@@ -24,7 +25,7 @@ import (
 
 // Create an Upscale in sc-worker, wait for result
 // ! TODO - clean this up and merge with CreateUpscale method
-func CreateUpscaleInternal(S3 *s3.S3, Track *analytics.AnalyticsService, Repo *repository.Repository, Redis *database.RedisWrapper, MQClient queue.MQClient, sMap *shared.SyncMap[chan requests.CogWebhookMessage], generation *ent.Generation, output *ent.GenerationOutput) error {
+func CreateUpscaleInternal(AsynqClient *asynq.Client, S3 *s3.S3, Track *analytics.AnalyticsService, Repo *repository.Repository, Redis *database.RedisWrapper, MQClient queue.MQClient, sMap *shared.SyncMap[chan requests.CogWebhookMessage], generation *ent.Generation, output *ent.GenerationOutput) error {
 	if len(shared.GetCache().UpscaleModels()) == 0 {
 		log.Error("No upscale models available")
 		return fmt.Errorf("No upscale models available")
@@ -36,6 +37,7 @@ func CreateUpscaleInternal(S3 *s3.S3, Track *analytics.AnalyticsService, Repo *r
 		Input:   output.ID.String(),
 		ModelId: utils.ToPtr(upscaleModel.ID),
 	}
+	useRunpod := upscaleModel.RunpodEndpoint != nil && upscaleModel.RunpodActive
 
 	var upscale *ent.Upscale
 	var requestId uuid.UUID
@@ -99,6 +101,7 @@ func CreateUpscaleInternal(S3 *s3.S3, Track *analytics.AnalyticsService, Repo *r
 			WebhookEventsFilter: []requests.CogEventFilter{requests.CogEventFilterStart, requests.CogEventFilterStart},
 			WebhookUrl:          fmt.Sprintf("%s/v1/worker/webhook", utils.GetEnv().PublicApiUrl),
 			Input: requests.BaseCogRequest{
+				WebhookPrivateUrl:    fmt.Sprintf("%s/v1/worker/webhook", utils.GetEnv().PrivateApiUrl),
 				Internal:             true,
 				ID:                   requestId,
 				UIId:                 upscaleReq.UIId,
@@ -116,7 +119,11 @@ func CreateUpscaleInternal(S3 *s3.S3, Track *analytics.AnalyticsService, Repo *r
 				OutputImageExtension: string(shared.DEFAULT_UPSCALE_OUTPUT_EXTENSION),
 				OutputImageQuality:   utils.ToPtr(shared.DEFAULT_UPSCALE_OUTPUT_QUALITY),
 				Type:                 *upscaleReq.Type,
+				RunpodEndpoint:       upscaleModel.RunpodEndpoint,
 			},
+		}
+		if useRunpod {
+			cogReqBody.Input.Images = []string{utils.GetEnv().GetURLFromImagePath(output.ImagePath)}
 		}
 
 		cogReqBody.Input.SignedUrls = make([]string, 1)
@@ -141,10 +148,40 @@ func CreateUpscaleInternal(S3 *s3.S3, Track *analytics.AnalyticsService, Repo *r
 			return err
 		}
 
-		err = MQClient.Publish(queueId, cogReqBody, shared.QUEUE_PRIORITY_1)
-		if err != nil {
-			log.Error("Failed to write request to queue", "id", queueId, "err", err)
-			return err
+		if !useRunpod {
+			err = MQClient.Publish(queueId, cogReqBody, shared.QUEUE_PRIORITY_1)
+			if err != nil {
+				log.Error("Failed to write request to queue", "id", queueId, "err", err)
+				return err
+			}
+		} else {
+			// use QueCon internal queue
+			queueName := shared.QueueByPriority(shared.QUEUE_PRIORITY_1)
+			// Enqueue task with priority
+			opts := []asynq.Option{
+				asynq.MaxRetry(3),
+				asynq.TaskID(requestId.String()), // Unique Task ID
+				asynq.Queue(queueName),           // Queue name
+			}
+
+			// Create payload
+			rpInput := requests.RunpodInput{
+				Input: cogReqBody.Input,
+			}
+			payload, err := json.Marshal(rpInput)
+			if err != nil {
+				log.Error("Error marshalling runpod payload", "err", err)
+				return err
+			}
+
+			_, err = AsynqClient.Enqueue(asynq.NewTask(
+				shared.ASYNQ_TASK_GENERATE,
+				payload,
+			), opts...)
+			if err != nil {
+				log.Error("Failed to enqueue task", "err", err)
+				return err
+			}
 		}
 
 		// Analytics

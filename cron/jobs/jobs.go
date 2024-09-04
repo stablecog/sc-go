@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/hibiken/asynq"
 	"github.com/stablecog/sc-go/cron/discord"
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/qdrant"
@@ -17,17 +18,18 @@ import (
 )
 
 type JobRunner struct {
-	Repo      *repository.Repository
-	Redis     *database.RedisWrapper
-	Ctx       context.Context
-	Discord   *discord.DiscordHealthTracker
-	Track     *analytics.AnalyticsService
-	Stripe    *stripe.API
-	S3        *s3.S3
-	S3Img2Img *s3.S3
-	Qdrant    *qdrant.QdrantClient
-	MQClient  queue.MQClient
-	CLIP      *clip.ClipService
+	Repo        *repository.Repository
+	Redis       *database.RedisWrapper
+	Ctx         context.Context
+	Discord     *discord.DiscordHealthTracker
+	Track       *analytics.AnalyticsService
+	Stripe      *stripe.API
+	S3          *s3.S3
+	S3Img2Img   *s3.S3
+	Qdrant      *qdrant.QdrantClient
+	MQClient    queue.MQClient
+	CLIP        *clip.ClipService
+	AsynqClient *asynq.Client
 }
 
 // Just wrap logger so we can include the job name without repeating it

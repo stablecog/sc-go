@@ -206,6 +206,15 @@ func (f *Cache) GetGenerationModelNameFromID(id uuid.UUID) string {
 	return ""
 }
 
+func (f *Cache) GetUpscaleModelFromID(id uuid.UUID) *ent.UpscaleModel {
+	for _, model := range f.UpscaleModels() {
+		if model.ID == id {
+			return model
+		}
+	}
+	return nil
+}
+
 func (f *Cache) GetUpscaleModelNameFromID(id uuid.UUID) string {
 	for _, model := range f.UpscaleModels() {
 		if model.ID == id {

@@ -67,6 +67,7 @@ type BaseCogRequest struct {
 	WebhookToken           uuid.UUID          `json:"webhook_token"`
 	// Upscale specific
 	Image        string             `json:"image_to_upscale,omitempty"`
+	Images       []string           `json:"images,omitempty"`
 	Type         UpscaleRequestType `json:"type,omitempty"`
 	UpscaleModel string             `json:"upscale_model,omitempty"`
 	// Voiceover specific

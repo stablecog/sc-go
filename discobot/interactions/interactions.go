@@ -6,6 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/bwmarrin/discordgo"
+	"github.com/hibiken/asynq"
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/discobot/domain"
@@ -58,6 +59,17 @@ func NewDiscordInteractionWrapper(
 
 	newSession := session.New(s3Config)
 	s3Client := s3.New(newSession)
+
+	// Setup asynq client
+	options := redis.Client.Options()
+	redisOptions := asynq.RedisClientOpt{
+		Addr:     options.Addr,
+		DB:       options.DB,
+		Password: options.Password,
+	}
+	asynqClient := asynq.NewClient(redisOptions)
+	defer asynqClient.Close()
+
 	// Create wrapper
 	wrapper := &DiscordInteractionWrapper{
 		Disco:               &domain.DiscoDomain{Repo: repo, Redis: redis, SupabaseAuth: supabase},
@@ -73,6 +85,7 @@ func NewDiscordInteractionWrapper(
 			MQClient:       MQClient,
 			S3Img:          s3ClientImg,
 			S3:             s3Client,
+			AsynqClient:    asynqClient,
 		},
 		Clip: clip.NewClipService(redis, safetyChecker),
 		Repo: repo,

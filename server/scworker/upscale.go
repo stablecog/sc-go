@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/google/uuid"
+	"github.com/hibiken/asynq"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/upscale"
 	"github.com/stablecog/sc-go/database/enttypes"
@@ -207,11 +208,14 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 	}
 
 	// Get model name for cog
-	modelName := shared.GetCache().GetUpscaleModelNameFromID(*upscaleReq.ModelId)
-	if modelName == "" {
+	var modelName string
+	model := shared.GetCache().GetUpscaleModelFromID(*upscaleReq.ModelId)
+	if model == nil {
 		log.Error("Error getting model name", "model_name", modelName)
 		return nil, nil, WorkerInternalServerError()
 	}
+	modelName = model.NameInWorker
+	useRunpod := model.RunpodEndpoint != nil && model.RunpodActive
 
 	// Initiate upscale
 	// We need to get width/height, from our database if output otherwise from the external image
@@ -412,6 +416,7 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 			WebhookEventsFilter: []requests.CogEventFilter{requests.CogEventFilterStart, requests.CogEventFilterStart},
 			WebhookUrl:          fmt.Sprintf("%s/v1/worker/webhook", utils.GetEnv().PublicApiUrl),
 			Input: requests.BaseCogRequest{
+				WebhookPrivateUrl:    fmt.Sprintf("%s/v1/worker/webhook", utils.GetEnv().PrivateApiUrl),
 				APIRequest:           source != enttypes.SourceTypeWebUI,
 				ID:                   requestId,
 				IP:                   ipAddress,
@@ -432,7 +437,11 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 				OutputImageExtension: string(shared.DEFAULT_UPSCALE_OUTPUT_EXTENSION),
 				OutputImageQuality:   utils.ToPtr(shared.DEFAULT_UPSCALE_OUTPUT_QUALITY),
 				Type:                 *upscaleReq.Type,
+				RunpodEndpoint:       model.RunpodEndpoint,
 			},
+		}
+		if useRunpod {
+			cogReqBody.Input.Images = []string{imageUrl}
 		}
 
 		cogReqBody.Input.SignedUrls = make([]string, 1)
@@ -462,10 +471,40 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 			return err
 		}
 
-		err = w.MQClient.Publish(queueId, cogReqBody, queuePriority)
-		if err != nil {
-			log.Error("Failed to write request %s to queue: %v", queueId, err)
-			return err
+		if !useRunpod {
+			err = w.MQClient.Publish(queueId, cogReqBody, queuePriority)
+			if err != nil {
+				log.Error("Failed to write request %s to queue: %v", queueId, err)
+				return err
+			}
+		} else {
+			// use QueCon internal queue
+			queueName := shared.QueueByPriority(queuePriority)
+			// Enqueue task with priority
+			opts := []asynq.Option{
+				asynq.MaxRetry(3),
+				asynq.TaskID(requestId.String()), // Unique Task ID
+				asynq.Queue(queueName),           // Queue name
+			}
+
+			// Create payload
+			rpInput := requests.RunpodInput{
+				Input: cogReqBody.Input,
+			}
+			payload, err := json.Marshal(rpInput)
+			if err != nil {
+				log.Error("Error marshalling runpod payload", "err", err)
+				return err
+			}
+
+			_, err = w.AsynqClient.Enqueue(asynq.NewTask(
+				shared.ASYNQ_TASK_GENERATE,
+				payload,
+			), opts...)
+			if err != nil {
+				log.Error("Failed to enqueue task", "err", err)
+				return err
+			}
 		}
 
 		w.QueueThrottler.IncrementBy(1, fmt.Sprintf("u:%s", user.ID.String()))

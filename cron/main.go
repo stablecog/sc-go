@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/go-co-op/gocron"
+	"github.com/hibiken/asynq"
 	"github.com/joho/godotenv"
 	"github.com/stablecog/sc-go/cron/discord"
 	"github.com/stablecog/sc-go/cron/jobs"
@@ -146,19 +147,30 @@ func main() {
 	}
 	defer rabbitmqClient.Close()
 
+	// Setup asynq client
+	options := redis.Client.Options()
+	redisOptions := asynq.RedisClientOpt{
+		Addr:     options.Addr,
+		DB:       options.DB,
+		Password: options.Password,
+	}
+	asynqClient := asynq.NewClient(redisOptions)
+	defer asynqClient.Close()
+
 	// Create a job runner
 	jobRunner := jobs.JobRunner{
-		Repo:      repo,
-		Redis:     redis,
-		Ctx:       ctx,
-		Discord:   discord.NewDiscordHealthTracker(ctx),
-		Track:     analyticsService,
-		Stripe:    stripeClient,
-		S3:        s3Client,
-		S3Img2Img: s3Img2ImgClient,
-		Qdrant:    qdrantClient,
-		MQClient:  rabbitmqClient,
-		CLIP:      clip.NewClipService(redis, safetyChecker),
+		Repo:        repo,
+		Redis:       redis,
+		Ctx:         ctx,
+		Discord:     discord.NewDiscordHealthTracker(ctx),
+		Track:       analyticsService,
+		Stripe:      stripeClient,
+		S3:          s3Client,
+		S3Img2Img:   s3Img2ImgClient,
+		Qdrant:      qdrantClient,
+		MQClient:    rabbitmqClient,
+		CLIP:        clip.NewClipService(redis, safetyChecker),
+		AsynqClient: asynqClient,
 	}
 
 	if *healthCheck {

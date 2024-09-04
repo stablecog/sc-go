@@ -1078,7 +1078,6 @@ func main() {
 	defer rabbitmqClient.Close()
 
 	// Setup asynq client
-	// Setup asynq server
 	options := redis.Client.Options()
 	redisOptions := asynq.RedisClientOpt{
 		Addr:     options.Addr,
