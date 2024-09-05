@@ -113,6 +113,7 @@ func CreateUpscaleInternal(AsynqClient *asynq.Client, S3 *s3.S3, Track *analytic
 				ProcessType:          shared.UPSCALE,
 				Width:                utils.ToPtr(generation.Width),
 				Height:               utils.ToPtr(generation.Height),
+				Model:                upscaleModel.NameInWorker,
 				UpscaleModel:         upscaleModel.NameInWorker,
 				ModelId:              *upscaleReq.ModelId,
 				WebhookToken:         upscale.WebhookToken,

@@ -432,6 +432,7 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 				Width:                utils.ToPtr(width),
 				Height:               utils.ToPtr(height),
 				UpscaleModel:         modelName,
+				Model:                modelName,
 				ModelId:              *upscaleReq.ModelId,
 				WebhookToken:         upscale.WebhookToken,
 				OutputImageExtension: string(shared.DEFAULT_UPSCALE_OUTPUT_EXTENSION),
@@ -491,8 +492,6 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 			rpInput := requests.RunpodInput{
 				Input: cogReqBody.Input,
 			}
-			rInputStr, err := json.MarshalIndent(rpInput, "", "  ")
-			log.Infof("🚁 Runpod input:\n%s", string(rInputStr))
 
 			payload, err := json.Marshal(rpInput)
 			if err != nil {
