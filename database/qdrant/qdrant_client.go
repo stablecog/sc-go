@@ -19,6 +19,8 @@ import (
 	"golang.org/x/exp/slices"
 )
 
+const QDRANT_TIMEOUT_S = 30
+
 type qdrantIndexField struct {
 	Name   string            `json:"name"`
 	Type   PayloadSchemaType `json:"type"`
@@ -82,6 +84,11 @@ var fieldsToIndex = []qdrantIndexField{
 		Type:   PayloadSchemaTypeFloat,
 		OnDisk: true,
 	},
+	{
+		Name:   "nsfw_score",
+		Type:   PayloadSchemaTypeFloat,
+		OnDisk: true,
+	},
 }
 
 type QdrantClient struct {
@@ -124,7 +131,7 @@ func NewQdrantClient(ctx context.Context) (*QdrantClient, error) {
 	}
 
 	c, doer, err := NewClientWithResponses(qClient.ActiveUrl, WithHTTPClient(&http.Client{
-		Timeout:   30 * time.Second,
+		Timeout:   QDRANT_TIMEOUT_S * time.Second,
 		Transport: transport,
 	}))
 	if err != nil {
