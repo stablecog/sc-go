@@ -491,6 +491,8 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 			rpInput := requests.RunpodInput{
 				Input: cogReqBody.Input,
 			}
+			log.Info("🚁 Runpod input")
+			log.Info(rpInput)
 			payload, err := json.Marshal(rpInput)
 			if err != nil {
 				log.Error("Error marshalling runpod payload", "err", err)
