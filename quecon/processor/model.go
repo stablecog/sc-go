@@ -51,13 +51,6 @@ func (p *QueueProcessor) HandleImageJob(ctx context.Context, t *asynq.Task) erro
 		return fmt.Errorf("json.Marshal failed: %v: %w", err, asynq.SkipRetry)
 	}
 
-	// Debugging
-	if payload.Input.ProcessType == shared.UPSCALE {
-		rInputStr, _ := json.MarshalIndent(payload, "", "  ")
-		log.Infof("🚁 Runpod endpoint:\n%s", fmt.Sprintf("%s/run", *payload.Input.RunpodEndpoint))
-		log.Infof("🚁 Runpod input:\n%s", string(rInputStr))
-	}
-
 	// Create a new request
 	req, err := http.NewRequest("POST", fmt.Sprintf("%s/run", *payload.Input.RunpodEndpoint), bytes.NewBuffer(jsonData))
 	if err != nil {
