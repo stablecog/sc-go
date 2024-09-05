@@ -444,6 +444,10 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 			cogReqBody.Input.Images = []string{imageUrl}
 		}
 
+		cogReqBody.Input.Images = []string{imageUrl}
+		log.Info(cogReqBody.Input)
+		cogReqBody.Input.Images = nil
+
 		cogReqBody.Input.SignedUrls = make([]string, 1)
 		imgId := fmt.Sprintf("%s.%s", uuid.NewString(), cogReqBody.Input.OutputImageExtension)
 		// Sign the URL and append to array
