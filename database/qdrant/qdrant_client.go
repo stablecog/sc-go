@@ -20,8 +20,9 @@ import (
 )
 
 type qdrantIndexField struct {
-	Name string            `json:"name"`
-	Type PayloadSchemaType `json:"type"`
+	Name   string            `json:"name"`
+	Type   PayloadSchemaType `json:"type"`
+	OnDisk bool              `json:"on_disk,omitempty"`
 }
 
 // The fields we create indexes for on app startup
@@ -32,7 +33,7 @@ var fieldsToIndex = []qdrantIndexField{
 	},
 	{
 		Name: "user_id",
-		Type: PayloadSchemaTypeKeyword,
+		Type: PayloadSchemaTypeUUID,
 	},
 	{
 		Name: "width",
@@ -55,8 +56,9 @@ var fieldsToIndex = []qdrantIndexField{
 		Type: PayloadSchemaTypeKeyword,
 	},
 	{
-		Name: "scheduler",
-		Type: PayloadSchemaTypeKeyword,
+		Name:   "scheduler",
+		Type:   PayloadSchemaTypeKeyword,
+		OnDisk: true,
 	},
 	{
 		Name: "is_favorited",
@@ -71,12 +73,14 @@ var fieldsToIndex = []qdrantIndexField{
 		Type: PayloadSchemaTypeBool,
 	},
 	{
-		Name: "aesthetic_rating_score",
-		Type: PayloadSchemaTypeFloat,
+		Name:   "aesthetic_rating_score",
+		Type:   PayloadSchemaTypeFloat,
+		OnDisk: true,
 	},
 	{
-		Name: "aesthetic_artifact_score",
-		Type: PayloadSchemaTypeFloat,
+		Name:   "aesthetic_artifact_score",
+		Type:   PayloadSchemaTypeFloat,
+		OnDisk: true,
 	},
 }
 
@@ -167,11 +171,11 @@ func (q *QdrantClient) DeleteIndex(fieldName string, noRetry bool) error {
 	return nil
 }
 
-func (q *QdrantClient) CreateIndex(fieldName string, schemaType PayloadSchemaType, noRetry bool) error {
-	schema := &CreateFieldIndex_FieldSchema{}
-	plSchema := PayloadFieldSchema{}
-	plSchema.FromPayloadSchemaType(schemaType)
-	schema.FromPayloadFieldSchema(plSchema)
+func (q *QdrantClient) CreateIndex(fieldName string, schemaType PayloadSchemaType, onDisk bool, noRetry bool) error {
+	schema := &CreateFieldIndex_FieldSchema{
+		Type:   schemaType,
+		OnDisk: onDisk,
+	}
 	// Create indexes
 	res, err := q.Client.CreateFieldIndexWithResponse(q.Ctx, q.CollectionName, &CreateFieldIndexParams{}, CreateFieldIndex{
 		FieldName:   fieldName,
@@ -179,7 +183,7 @@ func (q *QdrantClient) CreateIndex(fieldName string, schemaType PayloadSchemaTyp
 	})
 	if err != nil {
 		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
-			return q.CreateIndex(fieldName, schemaType, true)
+			return q.CreateIndex(fieldName, schemaType, onDisk, true)
 		}
 		log.Errorf("Error creating index %v", err)
 		return err
@@ -751,7 +755,7 @@ func (q *QdrantClient) CreateAllIndexes() error {
 	var mErr *multierror.Error
 	for _, field := range fieldsToIndex {
 		if !slices.Contains(indexFields, field.Name) {
-			mErr = multierror.Append(q.CreateIndex(field.Name, field.Type, false))
+			mErr = multierror.Append(q.CreateIndex(field.Name, field.Type, field.OnDisk, false))
 		}
 	}
 	return mErr.ErrorOrNil()

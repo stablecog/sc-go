@@ -47,6 +47,7 @@ const (
 	PayloadSchemaTypeKeyword PayloadSchemaType = "keyword"
 	PayloadSchemaTypeText    PayloadSchemaType = "text"
 	PayloadSchemaTypeBool 	PayloadSchemaType = "bool"
+	PayloadSchemaTypeUUID 	PayloadSchemaType = "uuid"
 )
 
 // Defines values for ReadConsistencyType.
@@ -591,7 +592,8 @@ type CreateFieldIndexFieldSchema1 = interface{}
 
 // CreateFieldIndex_FieldSchema defines model for CreateFieldIndex.FieldSchema.
 type CreateFieldIndex_FieldSchema struct {
-	union json.RawMessage
+	Type PayloadSchemaType `json:"type"`
+	OnDisk bool           `json:"on_disk,omitempty"`
 }
 
 // DeleteAlias Delete alias if exists
@@ -3736,68 +3738,6 @@ func (t CreateCollection_WalConfig) MarshalJSON() ([]byte, error) {
 }
 
 func (t *CreateCollection_WalConfig) UnmarshalJSON(b []byte) error {
-	err := t.union.UnmarshalJSON(b)
-	return err
-}
-
-// AsPayloadFieldSchema returns the union data inside the CreateFieldIndex_FieldSchema as a PayloadFieldSchema
-func (t CreateFieldIndex_FieldSchema) AsPayloadFieldSchema() (PayloadFieldSchema, error) {
-	var body PayloadFieldSchema
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromPayloadFieldSchema overwrites any union data inside the CreateFieldIndex_FieldSchema as the provided PayloadFieldSchema
-func (t *CreateFieldIndex_FieldSchema) FromPayloadFieldSchema(v PayloadFieldSchema) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergePayloadFieldSchema performs a merge with any union data inside the CreateFieldIndex_FieldSchema, using the provided PayloadFieldSchema
-func (t *CreateFieldIndex_FieldSchema) MergePayloadFieldSchema(v PayloadFieldSchema) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JsonMerge(b, t.union)
-	t.union = merged
-	return err
-}
-
-// AsCreateFieldIndexFieldSchema1 returns the union data inside the CreateFieldIndex_FieldSchema as a CreateFieldIndexFieldSchema1
-func (t CreateFieldIndex_FieldSchema) AsCreateFieldIndexFieldSchema1() (CreateFieldIndexFieldSchema1, error) {
-	var body CreateFieldIndexFieldSchema1
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromCreateFieldIndexFieldSchema1 overwrites any union data inside the CreateFieldIndex_FieldSchema as the provided CreateFieldIndexFieldSchema1
-func (t *CreateFieldIndex_FieldSchema) FromCreateFieldIndexFieldSchema1(v CreateFieldIndexFieldSchema1) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeCreateFieldIndexFieldSchema1 performs a merge with any union data inside the CreateFieldIndex_FieldSchema, using the provided CreateFieldIndexFieldSchema1
-func (t *CreateFieldIndex_FieldSchema) MergeCreateFieldIndexFieldSchema1(v CreateFieldIndexFieldSchema1) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JsonMerge(b, t.union)
-	t.union = merged
-	return err
-}
-
-func (t CreateFieldIndex_FieldSchema) MarshalJSON() ([]byte, error) {
-	b, err := t.union.MarshalJSON()
-	return b, err
-}
-
-func (t *CreateFieldIndex_FieldSchema) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }
