@@ -30,7 +30,17 @@ func CreateUpscaleInternal(AsynqClient *asynq.Client, S3 *s3.S3, Track *analytic
 		log.Error("No upscale models available")
 		return fmt.Errorf("No upscale models available")
 	}
-	upscaleModel := shared.GetCache().UpscaleModels()[0]
+	var upscaleModel *ent.UpscaleModel
+	for _, model := range shared.GetCache().UpscaleModels() {
+		if model.IsActive && model.IsDefault {
+			upscaleModel = model
+			break
+		}
+	}
+	if upscaleModel == nil {
+		log.Error("No active upscale models available")
+		return fmt.Errorf("no active upscale model configured")
+	}
 	// Create req
 	upscaleReq := requests.CreateUpscaleRequest{
 		Type:    utils.ToPtr(requests.UpscaleRequestTypeOutput),
