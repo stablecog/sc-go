@@ -164,6 +164,20 @@ func (gmc *GenerationModelCreate) SetNillableDefaultHeight(i *int32) *Generation
 	return gmc
 }
 
+// SetDefaultInferenceSteps sets the "default_inference_steps" field.
+func (gmc *GenerationModelCreate) SetDefaultInferenceSteps(i int32) *GenerationModelCreate {
+	gmc.mutation.SetDefaultInferenceSteps(i)
+	return gmc
+}
+
+// SetNillableDefaultInferenceSteps sets the "default_inference_steps" field if the given value is not nil.
+func (gmc *GenerationModelCreate) SetNillableDefaultInferenceSteps(i *int32) *GenerationModelCreate {
+	if i != nil {
+		gmc.SetDefaultInferenceSteps(*i)
+	}
+	return gmc
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (gmc *GenerationModelCreate) SetCreatedAt(t time.Time) *GenerationModelCreate {
 	gmc.mutation.SetCreatedAt(t)
@@ -299,6 +313,10 @@ func (gmc *GenerationModelCreate) defaults() {
 		v := generationmodel.DefaultDefaultHeight
 		gmc.mutation.SetDefaultHeight(v)
 	}
+	if _, ok := gmc.mutation.DefaultInferenceSteps(); !ok {
+		v := generationmodel.DefaultDefaultInferenceSteps
+		gmc.mutation.SetDefaultInferenceSteps(v)
+	}
 	if _, ok := gmc.mutation.CreatedAt(); !ok {
 		v := generationmodel.DefaultCreatedAt()
 		gmc.mutation.SetCreatedAt(v)
@@ -341,6 +359,9 @@ func (gmc *GenerationModelCreate) check() error {
 	}
 	if _, ok := gmc.mutation.DefaultHeight(); !ok {
 		return &ValidationError{Name: "default_height", err: errors.New(`ent: missing required field "GenerationModel.default_height"`)}
+	}
+	if _, ok := gmc.mutation.DefaultInferenceSteps(); !ok {
+		return &ValidationError{Name: "default_inference_steps", err: errors.New(`ent: missing required field "GenerationModel.default_inference_steps"`)}
 	}
 	if _, ok := gmc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "GenerationModel.created_at"`)}
@@ -427,6 +448,10 @@ func (gmc *GenerationModelCreate) createSpec() (*GenerationModel, *sqlgraph.Crea
 	if value, ok := gmc.mutation.DefaultHeight(); ok {
 		_spec.SetField(generationmodel.FieldDefaultHeight, field.TypeInt32, value)
 		_node.DefaultHeight = value
+	}
+	if value, ok := gmc.mutation.DefaultInferenceSteps(); ok {
+		_spec.SetField(generationmodel.FieldDefaultInferenceSteps, field.TypeInt32, value)
+		_node.DefaultInferenceSteps = value
 	}
 	if value, ok := gmc.mutation.CreatedAt(); ok {
 		_spec.SetField(generationmodel.FieldCreatedAt, field.TypeTime, value)
@@ -682,6 +707,24 @@ func (u *GenerationModelUpsert) AddDefaultHeight(v int32) *GenerationModelUpsert
 	return u
 }
 
+// SetDefaultInferenceSteps sets the "default_inference_steps" field.
+func (u *GenerationModelUpsert) SetDefaultInferenceSteps(v int32) *GenerationModelUpsert {
+	u.Set(generationmodel.FieldDefaultInferenceSteps, v)
+	return u
+}
+
+// UpdateDefaultInferenceSteps sets the "default_inference_steps" field to the value that was provided on create.
+func (u *GenerationModelUpsert) UpdateDefaultInferenceSteps() *GenerationModelUpsert {
+	u.SetExcluded(generationmodel.FieldDefaultInferenceSteps)
+	return u
+}
+
+// AddDefaultInferenceSteps adds v to the "default_inference_steps" field.
+func (u *GenerationModelUpsert) AddDefaultInferenceSteps(v int32) *GenerationModelUpsert {
+	u.Add(generationmodel.FieldDefaultInferenceSteps, v)
+	return u
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (u *GenerationModelUpsert) SetUpdatedAt(v time.Time) *GenerationModelUpsert {
 	u.Set(generationmodel.FieldUpdatedAt, v)
@@ -931,6 +974,27 @@ func (u *GenerationModelUpsertOne) AddDefaultHeight(v int32) *GenerationModelUps
 func (u *GenerationModelUpsertOne) UpdateDefaultHeight() *GenerationModelUpsertOne {
 	return u.Update(func(s *GenerationModelUpsert) {
 		s.UpdateDefaultHeight()
+	})
+}
+
+// SetDefaultInferenceSteps sets the "default_inference_steps" field.
+func (u *GenerationModelUpsertOne) SetDefaultInferenceSteps(v int32) *GenerationModelUpsertOne {
+	return u.Update(func(s *GenerationModelUpsert) {
+		s.SetDefaultInferenceSteps(v)
+	})
+}
+
+// AddDefaultInferenceSteps adds v to the "default_inference_steps" field.
+func (u *GenerationModelUpsertOne) AddDefaultInferenceSteps(v int32) *GenerationModelUpsertOne {
+	return u.Update(func(s *GenerationModelUpsert) {
+		s.AddDefaultInferenceSteps(v)
+	})
+}
+
+// UpdateDefaultInferenceSteps sets the "default_inference_steps" field to the value that was provided on create.
+func (u *GenerationModelUpsertOne) UpdateDefaultInferenceSteps() *GenerationModelUpsertOne {
+	return u.Update(func(s *GenerationModelUpsert) {
+		s.UpdateDefaultInferenceSteps()
 	})
 }
 
@@ -1352,6 +1416,27 @@ func (u *GenerationModelUpsertBulk) AddDefaultHeight(v int32) *GenerationModelUp
 func (u *GenerationModelUpsertBulk) UpdateDefaultHeight() *GenerationModelUpsertBulk {
 	return u.Update(func(s *GenerationModelUpsert) {
 		s.UpdateDefaultHeight()
+	})
+}
+
+// SetDefaultInferenceSteps sets the "default_inference_steps" field.
+func (u *GenerationModelUpsertBulk) SetDefaultInferenceSteps(v int32) *GenerationModelUpsertBulk {
+	return u.Update(func(s *GenerationModelUpsert) {
+		s.SetDefaultInferenceSteps(v)
+	})
+}
+
+// AddDefaultInferenceSteps adds v to the "default_inference_steps" field.
+func (u *GenerationModelUpsertBulk) AddDefaultInferenceSteps(v int32) *GenerationModelUpsertBulk {
+	return u.Update(func(s *GenerationModelUpsert) {
+		s.AddDefaultInferenceSteps(v)
+	})
+}
+
+// UpdateDefaultInferenceSteps sets the "default_inference_steps" field to the value that was provided on create.
+func (u *GenerationModelUpsertBulk) UpdateDefaultInferenceSteps() *GenerationModelUpsertBulk {
+	return u.Update(func(s *GenerationModelUpsert) {
+		s.UpdateDefaultInferenceSteps()
 	})
 }
 

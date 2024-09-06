@@ -31,6 +31,7 @@ func (GenerationModel) Fields() []ent.Field {
 		field.UUID("default_scheduler_id", uuid.UUID{}).Optional().Nillable(),
 		field.Int32("default_width").Default(512),
 		field.Int32("default_height").Default(512),
+		field.Int32("default_inference_steps").Default(25),
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}

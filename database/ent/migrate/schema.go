@@ -299,6 +299,7 @@ var (
 		{Name: "default_scheduler_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "default_width", Type: field.TypeInt32, Default: 512},
 		{Name: "default_height", Type: field.TypeInt32, Default: 512},
+		{Name: "default_inference_steps", Type: field.TypeInt32, Default: 25},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}

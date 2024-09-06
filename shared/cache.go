@@ -2,6 +2,7 @@ package shared
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
 	"sync"
@@ -134,6 +135,15 @@ func (f *Cache) IsValidGenerationModelID(id uuid.UUID) bool {
 		}
 	}
 	return false
+}
+
+func (f *Cache) GetDefaultInferenceStepsForModel(id uuid.UUID) (int32, error) {
+	for _, model := range f.GenerationModels() {
+		if model.ID == id {
+			return model.DefaultInferenceSteps, nil
+		}
+	}
+	return 0, fmt.Errorf("Couldn't find default inference steps for the model")
 }
 
 func (f *Cache) IsValidUpscaleModelID(id uuid.UUID) bool {

@@ -219,6 +219,27 @@ func (gmu *GenerationModelUpdate) AddDefaultHeight(i int32) *GenerationModelUpda
 	return gmu
 }
 
+// SetDefaultInferenceSteps sets the "default_inference_steps" field.
+func (gmu *GenerationModelUpdate) SetDefaultInferenceSteps(i int32) *GenerationModelUpdate {
+	gmu.mutation.ResetDefaultInferenceSteps()
+	gmu.mutation.SetDefaultInferenceSteps(i)
+	return gmu
+}
+
+// SetNillableDefaultInferenceSteps sets the "default_inference_steps" field if the given value is not nil.
+func (gmu *GenerationModelUpdate) SetNillableDefaultInferenceSteps(i *int32) *GenerationModelUpdate {
+	if i != nil {
+		gmu.SetDefaultInferenceSteps(*i)
+	}
+	return gmu
+}
+
+// AddDefaultInferenceSteps adds i to the "default_inference_steps" field.
+func (gmu *GenerationModelUpdate) AddDefaultInferenceSteps(i int32) *GenerationModelUpdate {
+	gmu.mutation.AddDefaultInferenceSteps(i)
+	return gmu
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (gmu *GenerationModelUpdate) SetUpdatedAt(t time.Time) *GenerationModelUpdate {
 	gmu.mutation.SetUpdatedAt(t)
@@ -400,6 +421,12 @@ func (gmu *GenerationModelUpdate) sqlSave(ctx context.Context) (n int, err error
 	}
 	if value, ok := gmu.mutation.AddedDefaultHeight(); ok {
 		_spec.AddField(generationmodel.FieldDefaultHeight, field.TypeInt32, value)
+	}
+	if value, ok := gmu.mutation.DefaultInferenceSteps(); ok {
+		_spec.SetField(generationmodel.FieldDefaultInferenceSteps, field.TypeInt32, value)
+	}
+	if value, ok := gmu.mutation.AddedDefaultInferenceSteps(); ok {
+		_spec.AddField(generationmodel.FieldDefaultInferenceSteps, field.TypeInt32, value)
 	}
 	if value, ok := gmu.mutation.UpdatedAt(); ok {
 		_spec.SetField(generationmodel.FieldUpdatedAt, field.TypeTime, value)
@@ -703,6 +730,27 @@ func (gmuo *GenerationModelUpdateOne) AddDefaultHeight(i int32) *GenerationModel
 	return gmuo
 }
 
+// SetDefaultInferenceSteps sets the "default_inference_steps" field.
+func (gmuo *GenerationModelUpdateOne) SetDefaultInferenceSteps(i int32) *GenerationModelUpdateOne {
+	gmuo.mutation.ResetDefaultInferenceSteps()
+	gmuo.mutation.SetDefaultInferenceSteps(i)
+	return gmuo
+}
+
+// SetNillableDefaultInferenceSteps sets the "default_inference_steps" field if the given value is not nil.
+func (gmuo *GenerationModelUpdateOne) SetNillableDefaultInferenceSteps(i *int32) *GenerationModelUpdateOne {
+	if i != nil {
+		gmuo.SetDefaultInferenceSteps(*i)
+	}
+	return gmuo
+}
+
+// AddDefaultInferenceSteps adds i to the "default_inference_steps" field.
+func (gmuo *GenerationModelUpdateOne) AddDefaultInferenceSteps(i int32) *GenerationModelUpdateOne {
+	gmuo.mutation.AddDefaultInferenceSteps(i)
+	return gmuo
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (gmuo *GenerationModelUpdateOne) SetUpdatedAt(t time.Time) *GenerationModelUpdateOne {
 	gmuo.mutation.SetUpdatedAt(t)
@@ -914,6 +962,12 @@ func (gmuo *GenerationModelUpdateOne) sqlSave(ctx context.Context) (_node *Gener
 	}
 	if value, ok := gmuo.mutation.AddedDefaultHeight(); ok {
 		_spec.AddField(generationmodel.FieldDefaultHeight, field.TypeInt32, value)
+	}
+	if value, ok := gmuo.mutation.DefaultInferenceSteps(); ok {
+		_spec.SetField(generationmodel.FieldDefaultInferenceSteps, field.TypeInt32, value)
+	}
+	if value, ok := gmuo.mutation.AddedDefaultInferenceSteps(); ok {
+		_spec.AddField(generationmodel.FieldDefaultInferenceSteps, field.TypeInt32, value)
 	}
 	if value, ok := gmuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(generationmodel.FieldUpdatedAt, field.TypeTime, value)

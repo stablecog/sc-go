@@ -37,6 +37,8 @@ const (
 	FieldDefaultWidth = "default_width"
 	// FieldDefaultHeight holds the string denoting the default_height field in the database.
 	FieldDefaultHeight = "default_height"
+	// FieldDefaultInferenceSteps holds the string denoting the default_inference_steps field in the database.
+	FieldDefaultInferenceSteps = "default_inference_steps"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -75,6 +77,7 @@ var Columns = []string{
 	FieldDefaultSchedulerID,
 	FieldDefaultWidth,
 	FieldDefaultHeight,
+	FieldDefaultInferenceSteps,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -110,6 +113,8 @@ var (
 	DefaultDefaultWidth int32
 	// DefaultDefaultHeight holds the default value on creation for the "default_height" field.
 	DefaultDefaultHeight int32
+	// DefaultDefaultInferenceSteps holds the default value on creation for the "default_inference_steps" field.
+	DefaultDefaultInferenceSteps int32
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
@@ -181,6 +186,11 @@ func ByDefaultWidth(opts ...sql.OrderTermOption) OrderOption {
 // ByDefaultHeight orders the results by the default_height field.
 func ByDefaultHeight(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDefaultHeight, opts...).ToFunc()
+}
+
+// ByDefaultInferenceSteps orders the results by the default_inference_steps field.
+func ByDefaultInferenceSteps(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDefaultInferenceSteps, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.

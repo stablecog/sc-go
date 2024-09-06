@@ -978,6 +978,7 @@ ALTER TABLE public.generation_model_compatible_schedulers ENABLE ROW LEVEL SECUR
 ALTER TABLE public.generation_models add column default_scheduler_id UUID REFERENCES public.schedulers(id) ON DELETE SET NULL;
 ALTER TABLE public.generation_models add column default_width INTEGER NOT NULL DEFAULT 512;
 ALTER TABLE public.generation_models add column default_height INTEGER NOT NULL DEFAULT 512;
+ALTER TABLE public.generation_models add column default_inference_steps INTEGER NOT NULL DEFAULT 25;
 
 -- Create "roles" table
 CREATE TABLE "public"."roles"

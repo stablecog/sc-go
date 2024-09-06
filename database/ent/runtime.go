@@ -231,12 +231,16 @@ func init() {
 	generationmodelDescDefaultHeight := generationmodelFields[11].Descriptor()
 	// generationmodel.DefaultDefaultHeight holds the default value on creation for the default_height field.
 	generationmodel.DefaultDefaultHeight = generationmodelDescDefaultHeight.Default.(int32)
+	// generationmodelDescDefaultInferenceSteps is the schema descriptor for default_inference_steps field.
+	generationmodelDescDefaultInferenceSteps := generationmodelFields[12].Descriptor()
+	// generationmodel.DefaultDefaultInferenceSteps holds the default value on creation for the default_inference_steps field.
+	generationmodel.DefaultDefaultInferenceSteps = generationmodelDescDefaultInferenceSteps.Default.(int32)
 	// generationmodelDescCreatedAt is the schema descriptor for created_at field.
-	generationmodelDescCreatedAt := generationmodelFields[12].Descriptor()
+	generationmodelDescCreatedAt := generationmodelFields[13].Descriptor()
 	// generationmodel.DefaultCreatedAt holds the default value on creation for the created_at field.
 	generationmodel.DefaultCreatedAt = generationmodelDescCreatedAt.Default.(func() time.Time)
 	// generationmodelDescUpdatedAt is the schema descriptor for updated_at field.
-	generationmodelDescUpdatedAt := generationmodelFields[13].Descriptor()
+	generationmodelDescUpdatedAt := generationmodelFields[14].Descriptor()
 	// generationmodel.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	generationmodel.DefaultUpdatedAt = generationmodelDescUpdatedAt.Default.(func() time.Time)
 	// generationmodel.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

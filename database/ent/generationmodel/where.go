@@ -111,6 +111,11 @@ func DefaultHeight(v int32) predicate.GenerationModel {
 	return predicate.GenerationModel(sql.FieldEQ(FieldDefaultHeight, v))
 }
 
+// DefaultInferenceSteps applies equality check predicate on the "default_inference_steps" field. It's identical to DefaultInferenceStepsEQ.
+func DefaultInferenceSteps(v int32) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldEQ(FieldDefaultInferenceSteps, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.GenerationModel {
 	return predicate.GenerationModel(sql.FieldEQ(FieldCreatedAt, v))
@@ -534,6 +539,46 @@ func DefaultHeightLT(v int32) predicate.GenerationModel {
 // DefaultHeightLTE applies the LTE predicate on the "default_height" field.
 func DefaultHeightLTE(v int32) predicate.GenerationModel {
 	return predicate.GenerationModel(sql.FieldLTE(FieldDefaultHeight, v))
+}
+
+// DefaultInferenceStepsEQ applies the EQ predicate on the "default_inference_steps" field.
+func DefaultInferenceStepsEQ(v int32) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldEQ(FieldDefaultInferenceSteps, v))
+}
+
+// DefaultInferenceStepsNEQ applies the NEQ predicate on the "default_inference_steps" field.
+func DefaultInferenceStepsNEQ(v int32) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldNEQ(FieldDefaultInferenceSteps, v))
+}
+
+// DefaultInferenceStepsIn applies the In predicate on the "default_inference_steps" field.
+func DefaultInferenceStepsIn(vs ...int32) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldIn(FieldDefaultInferenceSteps, vs...))
+}
+
+// DefaultInferenceStepsNotIn applies the NotIn predicate on the "default_inference_steps" field.
+func DefaultInferenceStepsNotIn(vs ...int32) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldNotIn(FieldDefaultInferenceSteps, vs...))
+}
+
+// DefaultInferenceStepsGT applies the GT predicate on the "default_inference_steps" field.
+func DefaultInferenceStepsGT(v int32) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldGT(FieldDefaultInferenceSteps, v))
+}
+
+// DefaultInferenceStepsGTE applies the GTE predicate on the "default_inference_steps" field.
+func DefaultInferenceStepsGTE(v int32) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldGTE(FieldDefaultInferenceSteps, v))
+}
+
+// DefaultInferenceStepsLT applies the LT predicate on the "default_inference_steps" field.
+func DefaultInferenceStepsLT(v int32) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldLT(FieldDefaultInferenceSteps, v))
+}
+
+// DefaultInferenceStepsLTE applies the LTE predicate on the "default_inference_steps" field.
+func DefaultInferenceStepsLTE(v int32) predicate.GenerationModel {
+	return predicate.GenerationModel(sql.FieldLTE(FieldDefaultInferenceSteps, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

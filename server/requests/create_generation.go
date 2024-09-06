@@ -144,6 +144,12 @@ func (t *CreateGenerationRequest) Validate(api bool) error {
 		return err
 	}
 
+	// Override inference steps always
+	defaultInferenceSteps, err := shared.GetCache().GetDefaultInferenceStepsForModel(*t.ModelId)
+	if err == nil {
+		t.InferenceSteps = &defaultInferenceSteps
+	}
+
 	if *t.NumOutputs < 0 {
 		t.NumOutputs = utils.ToPtr(shared.DEFAULT_GENERATE_NUM_OUTPUTS)
 	}

@@ -8254,35 +8254,37 @@ func (m *GenerationMutation) ResetEdge(name string) error {
 // GenerationModelMutation represents an operation that mutates the GenerationModel nodes in the graph.
 type GenerationModelMutation struct {
 	config
-	op                   Op
-	typ                  string
-	id                   *uuid.UUID
-	name_in_worker       *string
-	short_name           *string
-	is_active            *bool
-	is_default           *bool
-	is_hidden            *bool
-	runpod_endpoint      *string
-	runpod_active        *bool
-	display_weight       *int32
-	adddisplay_weight    *int32
-	default_scheduler_id *uuid.UUID
-	default_width        *int32
-	adddefault_width     *int32
-	default_height       *int32
-	adddefault_height    *int32
-	created_at           *time.Time
-	updated_at           *time.Time
-	clearedFields        map[string]struct{}
-	generations          map[uuid.UUID]struct{}
-	removedgenerations   map[uuid.UUID]struct{}
-	clearedgenerations   bool
-	schedulers           map[uuid.UUID]struct{}
-	removedschedulers    map[uuid.UUID]struct{}
-	clearedschedulers    bool
-	done                 bool
-	oldValue             func(context.Context) (*GenerationModel, error)
-	predicates           []predicate.GenerationModel
+	op                         Op
+	typ                        string
+	id                         *uuid.UUID
+	name_in_worker             *string
+	short_name                 *string
+	is_active                  *bool
+	is_default                 *bool
+	is_hidden                  *bool
+	runpod_endpoint            *string
+	runpod_active              *bool
+	display_weight             *int32
+	adddisplay_weight          *int32
+	default_scheduler_id       *uuid.UUID
+	default_width              *int32
+	adddefault_width           *int32
+	default_height             *int32
+	adddefault_height          *int32
+	default_inference_steps    *int32
+	adddefault_inference_steps *int32
+	created_at                 *time.Time
+	updated_at                 *time.Time
+	clearedFields              map[string]struct{}
+	generations                map[uuid.UUID]struct{}
+	removedgenerations         map[uuid.UUID]struct{}
+	clearedgenerations         bool
+	schedulers                 map[uuid.UUID]struct{}
+	removedschedulers          map[uuid.UUID]struct{}
+	clearedschedulers          bool
+	done                       bool
+	oldValue                   func(context.Context) (*GenerationModel, error)
+	predicates                 []predicate.GenerationModel
 }
 
 var _ ent.Mutation = (*GenerationModelMutation)(nil)
@@ -8871,6 +8873,62 @@ func (m *GenerationModelMutation) ResetDefaultHeight() {
 	m.adddefault_height = nil
 }
 
+// SetDefaultInferenceSteps sets the "default_inference_steps" field.
+func (m *GenerationModelMutation) SetDefaultInferenceSteps(i int32) {
+	m.default_inference_steps = &i
+	m.adddefault_inference_steps = nil
+}
+
+// DefaultInferenceSteps returns the value of the "default_inference_steps" field in the mutation.
+func (m *GenerationModelMutation) DefaultInferenceSteps() (r int32, exists bool) {
+	v := m.default_inference_steps
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDefaultInferenceSteps returns the old "default_inference_steps" field's value of the GenerationModel entity.
+// If the GenerationModel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *GenerationModelMutation) OldDefaultInferenceSteps(ctx context.Context) (v int32, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDefaultInferenceSteps is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDefaultInferenceSteps requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDefaultInferenceSteps: %w", err)
+	}
+	return oldValue.DefaultInferenceSteps, nil
+}
+
+// AddDefaultInferenceSteps adds i to the "default_inference_steps" field.
+func (m *GenerationModelMutation) AddDefaultInferenceSteps(i int32) {
+	if m.adddefault_inference_steps != nil {
+		*m.adddefault_inference_steps += i
+	} else {
+		m.adddefault_inference_steps = &i
+	}
+}
+
+// AddedDefaultInferenceSteps returns the value that was added to the "default_inference_steps" field in this mutation.
+func (m *GenerationModelMutation) AddedDefaultInferenceSteps() (r int32, exists bool) {
+	v := m.adddefault_inference_steps
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetDefaultInferenceSteps resets all changes to the "default_inference_steps" field.
+func (m *GenerationModelMutation) ResetDefaultInferenceSteps() {
+	m.default_inference_steps = nil
+	m.adddefault_inference_steps = nil
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *GenerationModelMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -9085,7 +9143,7 @@ func (m *GenerationModelMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *GenerationModelMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 14)
 	if m.name_in_worker != nil {
 		fields = append(fields, generationmodel.FieldNameInWorker)
 	}
@@ -9118,6 +9176,9 @@ func (m *GenerationModelMutation) Fields() []string {
 	}
 	if m.default_height != nil {
 		fields = append(fields, generationmodel.FieldDefaultHeight)
+	}
+	if m.default_inference_steps != nil {
+		fields = append(fields, generationmodel.FieldDefaultInferenceSteps)
 	}
 	if m.created_at != nil {
 		fields = append(fields, generationmodel.FieldCreatedAt)
@@ -9155,6 +9216,8 @@ func (m *GenerationModelMutation) Field(name string) (ent.Value, bool) {
 		return m.DefaultWidth()
 	case generationmodel.FieldDefaultHeight:
 		return m.DefaultHeight()
+	case generationmodel.FieldDefaultInferenceSteps:
+		return m.DefaultInferenceSteps()
 	case generationmodel.FieldCreatedAt:
 		return m.CreatedAt()
 	case generationmodel.FieldUpdatedAt:
@@ -9190,6 +9253,8 @@ func (m *GenerationModelMutation) OldField(ctx context.Context, name string) (en
 		return m.OldDefaultWidth(ctx)
 	case generationmodel.FieldDefaultHeight:
 		return m.OldDefaultHeight(ctx)
+	case generationmodel.FieldDefaultInferenceSteps:
+		return m.OldDefaultInferenceSteps(ctx)
 	case generationmodel.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case generationmodel.FieldUpdatedAt:
@@ -9280,6 +9345,13 @@ func (m *GenerationModelMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetDefaultHeight(v)
 		return nil
+	case generationmodel.FieldDefaultInferenceSteps:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDefaultInferenceSteps(v)
+		return nil
 	case generationmodel.FieldCreatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -9311,6 +9383,9 @@ func (m *GenerationModelMutation) AddedFields() []string {
 	if m.adddefault_height != nil {
 		fields = append(fields, generationmodel.FieldDefaultHeight)
 	}
+	if m.adddefault_inference_steps != nil {
+		fields = append(fields, generationmodel.FieldDefaultInferenceSteps)
+	}
 	return fields
 }
 
@@ -9325,6 +9400,8 @@ func (m *GenerationModelMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedDefaultWidth()
 	case generationmodel.FieldDefaultHeight:
 		return m.AddedDefaultHeight()
+	case generationmodel.FieldDefaultInferenceSteps:
+		return m.AddedDefaultInferenceSteps()
 	}
 	return nil, false
 }
@@ -9354,6 +9431,13 @@ func (m *GenerationModelMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddDefaultHeight(v)
+		return nil
+	case generationmodel.FieldDefaultInferenceSteps:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDefaultInferenceSteps(v)
 		return nil
 	}
 	return fmt.Errorf("unknown GenerationModel numeric field %s", name)
@@ -9429,6 +9513,9 @@ func (m *GenerationModelMutation) ResetField(name string) error {
 		return nil
 	case generationmodel.FieldDefaultHeight:
 		m.ResetDefaultHeight()
+		return nil
+	case generationmodel.FieldDefaultInferenceSteps:
+		m.ResetDefaultInferenceSteps()
 		return nil
 	case generationmodel.FieldCreatedAt:
 		m.ResetCreatedAt()

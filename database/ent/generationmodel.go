@@ -40,6 +40,8 @@ type GenerationModel struct {
 	DefaultWidth int32 `json:"default_width,omitempty"`
 	// DefaultHeight holds the value of the "default_height" field.
 	DefaultHeight int32 `json:"default_height,omitempty"`
+	// DefaultInferenceSteps holds the value of the "default_inference_steps" field.
+	DefaultInferenceSteps int32 `json:"default_inference_steps,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -88,7 +90,7 @@ func (*GenerationModel) scanValues(columns []string) ([]any, error) {
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case generationmodel.FieldIsActive, generationmodel.FieldIsDefault, generationmodel.FieldIsHidden, generationmodel.FieldRunpodActive:
 			values[i] = new(sql.NullBool)
-		case generationmodel.FieldDisplayWeight, generationmodel.FieldDefaultWidth, generationmodel.FieldDefaultHeight:
+		case generationmodel.FieldDisplayWeight, generationmodel.FieldDefaultWidth, generationmodel.FieldDefaultHeight, generationmodel.FieldDefaultInferenceSteps:
 			values[i] = new(sql.NullInt64)
 		case generationmodel.FieldNameInWorker, generationmodel.FieldShortName, generationmodel.FieldRunpodEndpoint:
 			values[i] = new(sql.NullString)
@@ -185,6 +187,12 @@ func (gm *GenerationModel) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				gm.DefaultHeight = int32(value.Int64)
 			}
+		case generationmodel.FieldDefaultInferenceSteps:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field default_inference_steps", values[i])
+			} else if value.Valid {
+				gm.DefaultInferenceSteps = int32(value.Int64)
+			}
 		case generationmodel.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
@@ -279,6 +287,9 @@ func (gm *GenerationModel) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("default_height=")
 	builder.WriteString(fmt.Sprintf("%v", gm.DefaultHeight))
+	builder.WriteString(", ")
+	builder.WriteString("default_inference_steps=")
+	builder.WriteString(fmt.Sprintf("%v", gm.DefaultInferenceSteps))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(gm.CreatedAt.Format(time.ANSIC))
