@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/credit"
+	"github.com/stablecog/sc-go/database/ent/predicate"
 	"github.com/stablecog/sc-go/database/ent/role"
 	"github.com/stablecog/sc-go/database/ent/user"
 	"github.com/stablecog/sc-go/log"
@@ -161,7 +162,7 @@ type UserCreditGroupByType struct {
 // per_page is how many rows to return
 // cursor is created_at on users, will return items with created_at less than cursor
 func (r *Repository) QueryUsers(
-	emailSearch string,
+	search string,
 	per_page int,
 	cursor *time.Time,
 	productIds []string,
@@ -211,8 +212,14 @@ func (r *Repository) QueryUsers(
 		}
 	}
 
-	if emailSearch != "" {
-		query = query.Where(user.Or(user.EmailContains(emailSearch), user.UsernameContains(emailSearch)))
+	if search != "" {
+		orQueries := []predicate.User{user.EmailContains(search), user.UsernameContains(search)}
+		searchAsUUID, uuidErr := uuid.Parse(search)
+		if uuidErr == nil {
+			orQueries = append(orQueries, user.IDEQ(searchAsUUID))
+		}
+
+		query = query.Where(user.Or(orQueries...))
 	}
 
 	// Include user roles
@@ -237,7 +244,7 @@ func (r *Repository) QueryUsers(
 		Users: make([]UserQueryResult, len(res)),
 	}
 	if cursor == nil {
-		total, totalByProduct, err := r.QueryUsersCount(emailSearch)
+		total, totalByProduct, err := r.QueryUsersCount(search)
 		if err != nil {
 			log.Error("Error querying users count", "err", err)
 			return nil, err
