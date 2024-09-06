@@ -213,7 +213,7 @@ func (r *Repository) QueryUsers(
 	}
 
 	if search != "" {
-		orQueries := []predicate.User{user.EmailContains(search), user.UsernameContains(search)}
+		orQueries := []predicate.User{user.EmailContains(search), user.UsernameContains(search), user.StripeCustomerIDContains(search)}
 		searchAsUUID, uuidErr := uuid.Parse(search)
 		if uuidErr == nil {
 			orQueries = append(orQueries, user.IDEQ(searchAsUUID))
