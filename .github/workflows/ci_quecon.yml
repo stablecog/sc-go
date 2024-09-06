@@ -3,7 +3,14 @@ name: 💫 CI (QueCon)
 on:
   push:
     branches: [master]
-    paths: ["quecon/**", "k8s/quecon/**"]
+    paths:
+      [
+        "quecon/**",
+        "k8s/quecon/**",
+        "server/requests/cog.go",
+        "server/requests/runpod.go",
+        "server/responses/runpod.go",
+      ]
 
 concurrency:
   group: environment-quecon-${{ github.ref }}

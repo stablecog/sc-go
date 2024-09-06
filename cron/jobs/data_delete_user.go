@@ -167,16 +167,38 @@ func (j *JobRunner) DeleteUserData(log Logger, dryRun bool) error {
 			outputIds[i] = output.ID
 		}
 
-		generations, err := j.Repo.GetGenerationsByIDList(generationIds)
-		if err != nil {
-			log.Errorf("Error getting generations for user %s: %v", u.ID, err)
-			return err
+		var grandTotalGenerations int
+		var totalGenerations []*ent.Generation
+
+		const batchSize = 50000
+
+		for len(generationIds) > 0 {
+			// Get the next batch of up to 50k generation IDs
+			end := batchSize
+			if len(generationIds) < batchSize {
+				end = len(generationIds)
+			}
+
+			currentBatch := generationIds[:end]
+
+			// Fetch generations for the current batch
+			generations, err := j.Repo.GetGenerationsByIDList(currentBatch)
+			if err != nil {
+				log.Errorf("Error getting generations for user %s: %v", u.ID, err)
+				return err
+			}
+			totalGenerations = append(totalGenerations, generations...)
+
+			// Update the grand total with the number of generations in this batch
+			grandTotalGenerations += len(generations)
+
+			// Move to the next batch by slicing the array
+			generationIds = generationIds[end:]
 		}
-		grandTotalGenerations += len(generations)
 
 		var promptIds []uuid.UUID
 		var negativePromptIds []uuid.UUID
-		for _, g := range generations {
+		for _, g := range totalGenerations {
 			if g.PromptID != nil {
 				promptIds = append(promptIds, *g.PromptID)
 			}
