@@ -224,19 +224,53 @@ func (j *JobRunner) DeleteUserData(log Logger, dryRun bool) error {
 		if !dryRun {
 			if err := j.Repo.WithTx(func(tx *ent.Tx) error {
 				// Delete generation outputs
-				if _, err := tx.GenerationOutput.Delete().Where(
-					generationoutput.IDIn(outputIds...),
-				).Exec(j.Ctx); err != nil {
-					log.Errorf("Error deleting generation outputs for user %s: %v", u.ID, err)
-					return err
+				if len(outputIds) > batchSize {
+					// Delete in batches
+					for start := 0; start < len(outputIds); start += batchSize {
+						end := start + batchSize
+						if end > len(outputIds) {
+							end = len(outputIds)
+						}
+						// Delete the current batch
+						if _, err := tx.GenerationOutput.Delete().Where(
+							generationoutput.IDIn(outputIds[start:end]...),
+						).Exec(j.Ctx); err != nil {
+							log.Errorf("Error deleting generation output batch for user %s: %v", u.ID, err)
+							return err
+						}
+					}
+				} else {
+					if _, err := tx.GenerationOutput.Delete().Where(
+						generationoutput.IDIn(outputIds...),
+					).Exec(j.Ctx); err != nil {
+						log.Errorf("Error deleting generation outputs for user %s: %v", u.ID, err)
+						return err
+					}
 				}
 
 				// Delete generations
-				if _, err := tx.Generation.Delete().Where(
-					generation.IDIn(generationIds...),
-				).Exec(j.Ctx); err != nil {
-					log.Errorf("Error deleting generations for user %s: %v", u.ID, err)
-					return err
+				if len(generationIds) > batchSize {
+					// Delete in batches
+					for start := 0; start < len(generationIds); start += batchSize {
+						end := start + batchSize
+						if end > len(generationIds) {
+							end = len(generationIds)
+						}
+						// Delete the current batch
+						if _, err := tx.Generation.Delete().Where(
+							generation.IDIn(generationIds[start:end]...),
+						).Exec(j.Ctx); err != nil {
+							log.Errorf("Error deleting generation batch for user %s: %v", u.ID, err)
+							return err
+						}
+					}
+				} else {
+					if _, err := tx.Generation.Delete().Where(
+						generation.IDIn(generationIds...),
+					).Exec(j.Ctx); err != nil {
+						log.Errorf("Error deleting generations for user %s: %v", u.ID, err)
+						return err
+					}
 				}
 
 				// Delete failed generations
