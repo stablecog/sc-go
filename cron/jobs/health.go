@@ -11,6 +11,7 @@ import (
 
 	"github.com/stablecog/sc-go/cron/discord"
 	"github.com/stablecog/sc-go/database/ent/generation"
+	"github.com/stablecog/sc-go/database/ent/generationmodel"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 )
@@ -95,6 +96,12 @@ func (j *JobRunner) CheckSCWorkerHealth(log Logger) error {
 		log.Infof("Wrote SC Worker health status to Redis: %d", workerHealthStatus)
 	}
 
+	/* if workerHealthStatus == discord.HEALTHY {
+		j.DeactivateRunPodServerless(log)
+	} else {
+		j.ActivateRunPodServerless(log)
+	} */
+
 	return j.Discord.SendDiscordNotificationIfNeeded(
 		workerHealthStatus,
 		generations,
@@ -175,5 +182,39 @@ func CreateTestGeneration(log Logger, apiKey string) error {
 
 	log.Infof("SC Worker test generation url: %s", responseBody.Outputs[0].ImageURL)
 
+	return nil
+}
+
+func (j *JobRunner) ActivateRunPodServerless(log Logger) error {
+	log.Infof("🏃‍♂️‍➡️📦 🟡 Activating RunPod serverless...")
+	err := j.Repo.DB.
+		GenerationModel.Update().
+		Where(
+			generationmodel.RunpodEndpointNotNil(),
+			generationmodel.RunpodActive(false),
+		).
+		SetRunpodActive(true).Exec(j.Ctx)
+	if err != nil {
+		log.Errorf("🏃‍♂️‍➡️📦 🔴 Couldn't activate RunPod serverless endpoints")
+		return err
+	}
+	log.Infof("🏃‍♂️‍➡️📦 🟢 Activated RunPod serverless endpoints")
+	return nil
+}
+
+func (j *JobRunner) DeactivateRunPodServerless(log Logger) error {
+	log.Infof("🏃‍♂️‍➡️📦 🟡 Deactivating RunPod serverless...")
+	err := j.Repo.DB.
+		GenerationModel.Update().
+		Where(
+			generationmodel.RunpodEndpointNotNil(),
+			generationmodel.RunpodActive(true),
+		).
+		SetRunpodActive(false).Exec(j.Ctx)
+	if err != nil {
+		log.Errorf("🏃‍♂️‍➡️📦 🔴 Couldn't deactivate RunPod serverless endpoints")
+		return err
+	}
+	log.Infof("🏃‍♂️‍➡️📦 🟢 Deactivated RunPod serverless endpoints")
 	return nil
 }
