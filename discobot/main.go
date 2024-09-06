@@ -14,6 +14,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/go-co-op/gocron"
 	"github.com/google/uuid"
+	"github.com/hibiken/asynq"
 	"github.com/joho/godotenv"
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/qdrant"
@@ -156,8 +157,18 @@ func main() {
 	}
 	defer rabbitmqClient.Close()
 
+	// Setup asynq client
+	options := redis.Client.Options()
+	redisOptions := asynq.RedisClientOpt{
+		Addr:     options.Addr,
+		DB:       options.DB,
+		Password: options.Password,
+	}
+	asynqClient := asynq.NewClient(redisOptions)
+	defer asynqClient.Close()
+
 	// Setup interactions
-	cmdWrapper := interactions.NewDiscordInteractionWrapper(repo, redis, database.NewSupabaseAuth(), sMap, qThrottler, safetyChecker, analyticsService, loginInteractionMap, rabbitmqClient)
+	cmdWrapper := interactions.NewDiscordInteractionWrapper(repo, redis, database.NewSupabaseAuth(), sMap, qThrottler, safetyChecker, analyticsService, loginInteractionMap, rabbitmqClient, asynqClient)
 
 	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		log.Infof("Logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator)
