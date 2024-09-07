@@ -48,12 +48,6 @@ func (t *CreateGenerationRequest) ApplyDefaults() {
 	if t.InferenceSteps == nil {
 		t.InferenceSteps = utils.ToPtr(shared.DEFAULT_GENERATE_INFERENCE_STEPS)
 	}
-	// Override inference steps always
-	defaultInferenceSteps, err := shared.GetCache().GetDefaultInferenceStepsForModel(*t.ModelId)
-	if err == nil {
-		t.InferenceSteps = &defaultInferenceSteps
-	}
-	//////////////////////////////////
 	if t.GuidanceScale == nil {
 		t.GuidanceScale = utils.ToPtr(shared.DEFAULT_GENERATE_GUIDANCE_SCALE)
 	}

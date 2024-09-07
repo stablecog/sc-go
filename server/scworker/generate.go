@@ -140,6 +140,13 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 		generateReq.ApplyDefaults()
 	}
 
+	// Override inference steps always
+	defaultInferenceSteps, modelErr := shared.GetCache().GetDefaultInferenceStepsForModel(*generateReq.ModelId)
+	if modelErr == nil {
+		generateReq.InferenceSteps = &defaultInferenceSteps
+	}
+	//////////////////////////////////
+
 	// Set settings resp
 	initSettings := responses.ImageGenerationSettingsResponse{
 		ModelId:        *generateReq.ModelId,
