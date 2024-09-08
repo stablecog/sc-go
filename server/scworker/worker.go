@@ -6,6 +6,7 @@ import (
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/repository"
+	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/analytics"
 	"github.com/stablecog/sc-go/server/requests"
 	"github.com/stablecog/sc-go/server/translator"
@@ -32,6 +33,7 @@ func ShouldUseRunpodGenerate(model *ent.GenerationModel, redis *database.RedisWr
 	}
 
 	if model.RunpodActive {
+		log.Info("🏃‍♂️‍➡️ 📦 Using Runpod for generate")
 		return true
 	}
 
@@ -40,6 +42,9 @@ func ShouldUseRunpodGenerate(model *ent.GenerationModel, redis *database.RedisWr
 		return false
 	}
 
+	if health != shared.HEALTHY {
+		log.Info("🏃‍♂️‍➡️ 📦 Using Runpod for generate")
+	}
 	return health != shared.HEALTHY
 }
 
@@ -49,12 +54,17 @@ func ShouldUseRunpodUpscale(model *ent.UpscaleModel, redis *database.RedisWrappe
 	}
 
 	if model.RunpodActive {
+		log.Info("🏃‍♂️‍➡️ 📦 Using Runpod for upscale")
 		return true
 	}
 
 	health, err := redis.GetWorkerHealth()
 	if err != nil {
 		return false
+	}
+
+	if health != shared.HEALTHY {
+		log.Info("🏃‍♂️‍➡️ 📦 Using Runpod for upscale")
 	}
 
 	return health != shared.HEALTHY
