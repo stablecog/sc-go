@@ -4,6 +4,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/hibiken/asynq"
 	"github.com/stablecog/sc-go/database"
+	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/repository"
 	"github.com/stablecog/sc-go/server/analytics"
 	"github.com/stablecog/sc-go/server/requests"
@@ -23,4 +24,32 @@ type SCWorker struct {
 	S3             *s3.S3
 	MQClient       queue.MQClient
 	AsynqClient    *asynq.Client
+}
+
+const USE_RUNPOD_FALLBACK = true
+
+func ShouldUseRunpodGenerate(model *ent.GenerationModel, redis *database.RedisWrapper) bool {
+	if USE_RUNPOD_FALLBACK == false {
+		return model.RunpodEndpoint != nil && model.RunpodActive
+	}
+
+	health, err := redis.GetWorkerHealth()
+	if err != nil {
+		return model.RunpodEndpoint != nil && model.RunpodActive
+	}
+
+	return model.RunpodEndpoint != nil && health != shared.HEALTHY
+}
+
+func ShouldUseRunpodUpscale(model *ent.UpscaleModel, redis *database.RedisWrapper) bool {
+	if USE_RUNPOD_FALLBACK == false {
+		return model.RunpodEndpoint != nil && model.RunpodActive
+	}
+
+	health, err := redis.GetWorkerHealth()
+	if err != nil {
+		return model.RunpodEndpoint != nil && model.RunpodActive
+	}
+
+	return model.RunpodEndpoint != nil && health != shared.HEALTHY
 }

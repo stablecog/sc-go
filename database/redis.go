@@ -294,6 +294,7 @@ func (r *RedisWrapper) GetWorkerHealth() (shared.HEALTH_STATUS, error) {
 		log.Errorf("🔴 Couldn't parse SC Worker health status from Redis: %v", parseErr)
 		return retrievedStatus, parseErr
 	}
+
 	retrievedStatus = shared.HEALTH_STATUS(healthStatusInt)
 	return retrievedStatus, nil
 }
