@@ -66,6 +66,5 @@ func ShouldUseRunpodUpscale(model *ent.UpscaleModel, redis *database.RedisWrappe
 	if health != shared.HEALTHY {
 		log.Info("🏃‍♂️‍➡️ 📦 Using Runpod for upscale")
 	}
-
 	return health != shared.HEALTHY
 }
