@@ -29,27 +29,35 @@ type SCWorker struct {
 const USE_RUNPOD_FALLBACK = true
 
 func ShouldUseRunpodGenerate(model *ent.GenerationModel, redis *database.RedisWrapper) bool {
+	if model.RunpodEndpoint == nil {
+		return false
+	}
+
 	if USE_RUNPOD_FALLBACK == false {
-		return model.RunpodEndpoint != nil && model.RunpodActive
+		return model.RunpodActive
 	}
 
 	health, err := redis.GetWorkerHealth()
 	if err != nil {
-		return model.RunpodEndpoint != nil && model.RunpodActive
+		return model.RunpodActive
 	}
 
-	return model.RunpodEndpoint != nil && health != shared.HEALTHY
+	return health != shared.HEALTHY
 }
 
 func ShouldUseRunpodUpscale(model *ent.UpscaleModel, redis *database.RedisWrapper) bool {
+	if model.RunpodEndpoint == nil {
+		return false
+	}
+
 	if USE_RUNPOD_FALLBACK == false {
-		return model.RunpodEndpoint != nil && model.RunpodActive
+		return model.RunpodActive
 	}
 
 	health, err := redis.GetWorkerHealth()
 	if err != nil {
-		return model.RunpodEndpoint != nil && model.RunpodActive
+		return model.RunpodActive
 	}
 
-	return model.RunpodEndpoint != nil && health != shared.HEALTHY
+	return health != shared.HEALTHY
 }
