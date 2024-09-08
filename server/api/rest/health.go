@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/go-chi/chi/v5"
@@ -29,14 +28,10 @@ func (c *RestAPI) HandleHealth(w http.ResponseWriter, r *http.Request) {
 
 func (c *RestAPI) HandleSCWorkerHealth(w http.ResponseWriter, r *http.Request) {
 	status := "ok"
-	healthStatusStr, _ := c.Redis.Client.Get(c.Redis.Ctx, shared.REDIS_SC_WORKER_HEALTH_KEY).Result()
+	healthStatus, _ := c.Redis.GetWorkerHealth()
 
-	if healthStatusStr != "" {
-		healthStatusInt, _ := strconv.Atoi(healthStatusStr)
-		retrievedStatus := discord.HEALTH_STATUS(healthStatusInt)
-		if retrievedStatus != discord.HEALTHY {
-			status = "unhealthy"
-		}
+	if healthStatus != shared.HEALTHY {
+		status = "unhealthy"
 	}
 
 	render.JSON(w, r, map[string]string{

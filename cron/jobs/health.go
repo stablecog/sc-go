@@ -9,7 +9,6 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/stablecog/sc-go/cron/discord"
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
@@ -30,7 +29,7 @@ func (j *JobRunner) CheckSCWorkerHealth(log Logger) error {
 	log.Infof("Checking health...")
 	apiKey := utils.GetEnv().ScWorkerTesterApiKey
 
-	workerHealthStatus := discord.HEALTHY
+	workerHealthStatus := shared.HEALTHY
 
 	generations, err := j.Repo.GetGenerations(generationCountToCheck)
 	if err != nil || len(generations) == 0 {
@@ -66,7 +65,7 @@ func (j *JobRunner) CheckSCWorkerHealth(log Logger) error {
 
 	// Fail rate is too high, fail
 	if failRate > maxGenerationFailWithoutNSFWRate {
-		workerHealthStatus = discord.UNHEALTHY
+		workerHealthStatus = shared.UNHEALTHY
 	}
 
 	// Last successful generation is too old, do a test generation
@@ -75,12 +74,12 @@ func (j *JobRunner) CheckSCWorkerHealth(log Logger) error {
 		log.Infof(fmt.Sprintf("%f minutes since last successful generation", durationMinutes))
 		if apiKey == "" {
 			log.Infof("SC Worker tester API key not found -> Assuming unhealthy")
-			workerHealthStatus = discord.UNHEALTHY
+			workerHealthStatus = shared.UNHEALTHY
 		} else {
 			err := CreateTestGeneration(log, apiKey)
 			if err != nil {
 				log.Infof("SC Worker test generation failed -> Assuming unhealthy")
-				workerHealthStatus = discord.UNHEALTHY
+				workerHealthStatus = shared.UNHEALTHY
 			}
 		}
 	}
@@ -88,11 +87,12 @@ func (j *JobRunner) CheckSCWorkerHealth(log Logger) error {
 	log.Infof("Done checking health in %dms", time.Now().Sub(start).Milliseconds())
 
 	// Write health status to redis
-	errRedis := j.Redis.Client.Set(j.Redis.Ctx, shared.REDIS_SC_WORKER_HEALTH_KEY, int(workerHealthStatus), 0).Err()
+	errRedis := j.Redis.SetWorkerHealth(workerHealthStatus)
+
 	if errRedis != nil {
-		log.Infof("Couldn't write SC Worker health status to Redis: %v", errRedis)
+		log.Infof("🔴 Couldn't write SC Worker health status to Redis: %v", errRedis)
 	} else {
-		log.Infof("Wrote SC Worker health status to Redis: %d", workerHealthStatus)
+		log.Infof("🔴 Wrote SC Worker health status to Redis: %d", workerHealthStatus)
 	}
 
 	return j.Discord.SendDiscordNotificationIfNeeded(

@@ -230,3 +230,11 @@ func QueueByPriority(prio uint8) string {
 const (
 	ASYNQ_TASK_GENERATE = "runpod:generate"
 )
+
+type HEALTH_STATUS int
+
+const (
+	HEALTHY HEALTH_STATUS = iota
+	UNHEALTHY
+	UNKNOWN
+)

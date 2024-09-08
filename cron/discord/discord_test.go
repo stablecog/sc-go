@@ -14,6 +14,7 @@ import (
 	"github.com/stablecog/sc-go/cron/models"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/generation"
+	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 	"github.com/stretchr/testify/assert"
 )
@@ -80,8 +81,8 @@ func TestSendDiscordNotificationIfNeeded(t *testing.T) {
 	})
 
 	// ! Test notification not needed
-	MockDiscordHealthTracker.lastStatus = UNKNOWN
-	err := MockDiscordHealthTracker.SendDiscordNotificationIfNeeded(HEALTHY, generations, time.Now())
+	MockDiscordHealthTracker.lastStatus = shared.UNKNOWN
+	err := MockDiscordHealthTracker.SendDiscordNotificationIfNeeded(shared.HEALTHY, generations, time.Now())
 	assert.Nil(t, err)
 	assert.Equal(t, "Skipping Discord notification, not needed", logs[0])
 
@@ -89,8 +90,8 @@ func TestSendDiscordNotificationIfNeeded(t *testing.T) {
 	MockDiscordHealthTracker.lastHealthyNotificationTime = time.Now()
 	MockDiscordHealthTracker.lastUnhealthyNotificationTime = time.Now()
 
-	MockDiscordHealthTracker.lastStatus = UNHEALTHY
-	err = MockDiscordHealthTracker.SendDiscordNotificationIfNeeded(UNHEALTHY, generations, time.Now())
+	MockDiscordHealthTracker.lastStatus = shared.UNHEALTHY
+	err = MockDiscordHealthTracker.SendDiscordNotificationIfNeeded(shared.UNHEALTHY, generations, time.Now())
 	assert.Nil(t, err)
 	assert.Equal(t, "Skipping Discord notification, not needed", logs[1])
 
@@ -121,7 +122,7 @@ func TestSendDiscordNotificationIfNeeded(t *testing.T) {
 		},
 	)
 
-	MockDiscordHealthTracker.lastStatus = UNHEALTHY
-	err = MockDiscordHealthTracker.SendDiscordNotificationIfNeeded(HEALTHY, generations, time.Now())
+	MockDiscordHealthTracker.lastStatus = shared.UNHEALTHY
+	err = MockDiscordHealthTracker.SendDiscordNotificationIfNeeded(shared.HEALTHY, generations, time.Now())
 	assert.Nil(t, err)
 }

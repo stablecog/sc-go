@@ -338,7 +338,9 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 		log.Error("Error getting model or scheduler name: %s - %s", *generateReq.ModelId, schedulerName)
 		return nil, &initSettings, &WorkerError{http.StatusBadRequest, fmt.Errorf("invalid_model_or_scheduler"), ""}
 	}
+
 	modelName := model.NameInWorker
+
 	useRunpod := model.RunpodEndpoint != nil && model.RunpodActive
 
 	// Format prompts

@@ -22,18 +22,10 @@ const unhealthyNotificationInterval = 5 * time.Minute
 const healthyNotificationInterval = 30 * time.Minute
 const rTTL = 2 * time.Hour
 
-type HEALTH_STATUS int
-
-const (
-	HEALTHY HEALTH_STATUS = iota
-	UNHEALTHY
-	UNKNOWN
-)
-
-func (h HEALTH_STATUS) StatusString() string {
-	if h == HEALTHY {
+func StatusString(h shared.HEALTH_STATUS) string {
+	if h == shared.HEALTHY {
 		return "🟢👌🟢"
-	} else if h == UNHEALTHY {
+	} else if h == shared.UNHEALTHY {
 		return "🔴💀🔴"
 	}
 	return "🟡🤷🟡"
@@ -45,7 +37,7 @@ var logInfo = log.Info
 type DiscordHealthTracker struct {
 	ctx                           context.Context
 	webhookUrl                    string
-	lastStatus                    HEALTH_STATUS
+	lastStatus                    shared.HEALTH_STATUS
 	lastNotificationTime          time.Time
 	lastUnhealthyNotificationTime time.Time
 	lastHealthyNotificationTime   time.Time
@@ -57,13 +49,13 @@ func NewDiscordHealthTracker(ctx context.Context) *DiscordHealthTracker {
 		ctx:        ctx,
 		webhookUrl: utils.GetEnv().DiscordWebhookUrl,
 		// Init last status as UNKNOWN
-		lastStatus: UNKNOWN,
+		lastStatus: shared.UNKNOWN,
 	}
 }
 
 // Sends a discord notification on either the healthy/unhealthy interval depending on status
 func (d *DiscordHealthTracker) SendDiscordNotificationIfNeeded(
-	status HEALTH_STATUS,
+	status shared.HEALTH_STATUS,
 	generations []*ent.Generation,
 	lastGenerationTime time.Time,
 ) error {
@@ -74,17 +66,17 @@ func (d *DiscordHealthTracker) SendDiscordNotificationIfNeeded(
 	statusUnchanged := status == d.lastStatus
 
 	// The first time we run we skip notification
-	if d.lastStatus == UNKNOWN {
+	if d.lastStatus == shared.UNKNOWN {
 		shouldSkip = true
 	}
 
 	// If status didn't change and healthy notification interval hasn't passed, skip
-	if statusUnchanged && status == HEALTHY && sinceHealthyNotification < healthyNotificationInterval {
+	if statusUnchanged && status == shared.HEALTHY && sinceHealthyNotification < healthyNotificationInterval {
 		shouldSkip = true
 	}
 
 	// If status didn't change and unhealthy notification interval hasn't passed, skip
-	if statusUnchanged && status == UNHEALTHY && sinceUnhealthyNotification < unhealthyNotificationInterval {
+	if statusUnchanged && status == shared.UNHEALTHY && sinceUnhealthyNotification < unhealthyNotificationInterval {
 		shouldSkip = true
 	}
 
@@ -114,7 +106,7 @@ func (d *DiscordHealthTracker) SendDiscordNotificationIfNeeded(
 
 	// Update last notification times
 	d.lastNotificationTime = time.Now()
-	if status == HEALTHY {
+	if status == shared.HEALTHY {
 		d.lastHealthyNotificationTime = d.lastNotificationTime
 	} else {
 		d.lastUnhealthyNotificationTime = d.lastNotificationTime
@@ -126,7 +118,7 @@ func (d *DiscordHealthTracker) SendDiscordNotificationIfNeeded(
 }
 
 func getDiscordWebhookBody(
-	status HEALTH_STATUS,
+	status shared.HEALTH_STATUS,
 	generations []*ent.Generation,
 	lastGenerationTime time.Time,
 ) models.DiscordWebhookBody {
@@ -151,7 +143,7 @@ func getDiscordWebhookBody(
 	generationsStr = strings.Join(generationsStrArr, "")
 
 	var content *string
-	if status != HEALTHY && len(discordUserIds) > 0 {
+	if status != shared.HEALTHY && len(discordUserIds) > 0 {
 		mentionStr := ""
 		for _, userId := range discordUserIds {
 			mentionStr += fmt.Sprintf("<@%s> ", userId)
@@ -167,7 +159,7 @@ func getDiscordWebhookBody(
 				Fields: []models.DiscordWebhookField{
 					{
 						Name:  "Status",
-						Value: fmt.Sprintf("```%s```", status.StatusString()),
+						Value: fmt.Sprintf("```%s```", StatusString(status)),
 					},
 					{
 						Name:  "Generations",

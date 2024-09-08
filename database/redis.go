@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/alicebob/miniredis/v2"
@@ -278,4 +279,31 @@ func (r *RedisWrapper) GetDiscordTokenFromID(discordId string) (string, error) {
 // Delete token
 func (r *RedisWrapper) DeleteDiscordToken(discordId string) error {
 	return r.Client.Del(r.Ctx, fmt.Sprintf("disco_verify:%s", discordId)).Err()
+}
+
+func (r *RedisWrapper) GetWorkerHealth() (shared.HEALTH_STATUS, error) {
+	var retrievedStatus shared.HEALTH_STATUS = shared.HEALTHY
+	healthStatusStr, redisErr := r.Client.Get(r.Ctx, shared.REDIS_SC_WORKER_HEALTH_KEY).Result()
+	if redisErr != nil {
+		log.Errorf("🔴 Couldn't get SC Worker health status from Redis: %v", redisErr)
+		return retrievedStatus, redisErr
+	}
+
+	healthStatusInt, parseErr := strconv.Atoi(healthStatusStr)
+	if parseErr != nil {
+		log.Errorf("🔴 Couldn't parse SC Worker health status from Redis: %v", parseErr)
+		return retrievedStatus, parseErr
+	}
+	retrievedStatus = shared.HEALTH_STATUS(healthStatusInt)
+	return retrievedStatus, nil
+}
+
+func (r *RedisWrapper) SetWorkerHealth(status shared.HEALTH_STATUS) error {
+	errRedis := r.Client.Set(r.Ctx, shared.REDIS_SC_WORKER_HEALTH_KEY, int(status), 0).Err()
+	if errRedis != nil {
+		log.Errorf("🔴 Couldn't write SC Worker health status to Redis: %v", errRedis)
+	} else {
+		log.Infof("🟢 Wrote SC Worker health status to Redis: %d", status)
+	}
+	return errRedis
 }
