@@ -26,20 +26,18 @@ type SCWorker struct {
 	AsynqClient    *asynq.Client
 }
 
-const USE_RUNPOD_FALLBACK = false
-
 func ShouldUseRunpodGenerate(model *ent.GenerationModel, redis *database.RedisWrapper) bool {
 	if model.RunpodEndpoint == nil {
 		return false
 	}
 
-	if USE_RUNPOD_FALLBACK == false {
-		return model.RunpodActive
+	if model.RunpodActive {
+		return true
 	}
 
 	health, err := redis.GetWorkerHealth()
 	if err != nil {
-		return model.RunpodActive
+		return false
 	}
 
 	return health != shared.HEALTHY
@@ -50,13 +48,13 @@ func ShouldUseRunpodUpscale(model *ent.UpscaleModel, redis *database.RedisWrappe
 		return false
 	}
 
-	if USE_RUNPOD_FALLBACK == false {
-		return model.RunpodActive
+	if model.RunpodActive {
+		return true
 	}
 
 	health, err := redis.GetWorkerHealth()
 	if err != nil {
-		return model.RunpodActive
+		return false
 	}
 
 	return health != shared.HEALTHY
