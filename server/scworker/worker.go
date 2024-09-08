@@ -26,7 +26,7 @@ type SCWorker struct {
 	AsynqClient    *asynq.Client
 }
 
-const USE_RUNPOD_FALLBACK = true
+const USE_RUNPOD_FALLBACK = false
 
 func ShouldUseRunpodGenerate(model *ent.GenerationModel, redis *database.RedisWrapper) bool {
 	if model.RunpodEndpoint == nil {
