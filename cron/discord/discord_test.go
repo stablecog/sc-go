@@ -82,7 +82,7 @@ func TestSendDiscordNotificationIfNeeded(t *testing.T) {
 
 	// ! Test notification not needed
 	MockDiscordHealthTracker.lastStatus = shared.UNKNOWN
-	err := MockDiscordHealthTracker.SendDiscordNotificationIfNeeded(shared.HEALTHY, generations, time.Now())
+	err := MockDiscordHealthTracker.SendDiscordNotificationIfNeeded(shared.HEALTHY, generations, time.Now(), false, false)
 	assert.Nil(t, err)
 	assert.Equal(t, "Skipping Discord notification, not needed", logs[0])
 
@@ -91,7 +91,7 @@ func TestSendDiscordNotificationIfNeeded(t *testing.T) {
 	MockDiscordHealthTracker.lastUnhealthyNotificationTime = time.Now()
 
 	MockDiscordHealthTracker.lastStatus = shared.UNHEALTHY
-	err = MockDiscordHealthTracker.SendDiscordNotificationIfNeeded(shared.UNHEALTHY, generations, time.Now())
+	err = MockDiscordHealthTracker.SendDiscordNotificationIfNeeded(shared.UNHEALTHY, generations, time.Now(), false, false)
 	assert.Nil(t, err)
 	assert.Equal(t, "Skipping Discord notification, not needed", logs[1])
 
@@ -123,6 +123,6 @@ func TestSendDiscordNotificationIfNeeded(t *testing.T) {
 	)
 
 	MockDiscordHealthTracker.lastStatus = shared.UNHEALTHY
-	err = MockDiscordHealthTracker.SendDiscordNotificationIfNeeded(shared.HEALTHY, generations, time.Now())
+	err = MockDiscordHealthTracker.SendDiscordNotificationIfNeeded(shared.HEALTHY, generations, time.Now(), false, false)
 	assert.Nil(t, err)
 }

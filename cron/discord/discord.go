@@ -58,6 +58,8 @@ func (d *DiscordHealthTracker) SendDiscordNotificationIfNeeded(
 	status shared.HEALTH_STATUS,
 	generations []*ent.Generation,
 	lastGenerationTime time.Time,
+	shouldActivateRunpodServerless bool,
+	activatedRunpodServerless bool,
 ) error {
 	sinceHealthyNotification := time.Since(d.lastHealthyNotificationTime)
 	sinceUnhealthyNotification := time.Since(d.lastUnhealthyNotificationTime)
@@ -91,7 +93,7 @@ func (d *DiscordHealthTracker) SendDiscordNotificationIfNeeded(
 	log.Info("Sending Discord notification...")
 
 	// Build webhook body
-	webhookBody := getDiscordWebhookBody(status, generations, lastGenerationTime)
+	webhookBody := getDiscordWebhookBody(status, generations, lastGenerationTime, shouldActivateRunpodServerless, activatedRunpodServerless)
 	reqBody, err := json.Marshal(webhookBody)
 	if err != nil {
 		log.Error("Error marshalling webhook body", "err", err)
@@ -121,6 +123,8 @@ func getDiscordWebhookBody(
 	status shared.HEALTH_STATUS,
 	generations []*ent.Generation,
 	lastGenerationTime time.Time,
+	shouldActivateRunpodServerless bool,
+	activatedRunpodServerless bool,
 ) models.DiscordWebhookBody {
 	generationsStr := ""
 	generationsStrArr := []string{}
@@ -151,6 +155,16 @@ func getDiscordWebhookBody(
 		content = &mentionStr
 	}
 
+	activatedRunpodServerlessStr := "Not needed"
+
+	if shouldActivateRunpodServerless {
+		if activatedRunpodServerless {
+			activatedRunpodServerlessStr = "🟢 Activated"
+		} else {
+			activatedRunpodServerlessStr = "🔴 Couldn't activate"
+		}
+	}
+
 	body := models.DiscordWebhookBody{
 		Content: content,
 		Embeds: []models.DiscordWebhookEmbed{
@@ -168,6 +182,10 @@ func getDiscordWebhookBody(
 					{
 						Name:  "Last Generation",
 						Value: fmt.Sprintf("```%s```", utils.RelativeTimeStr(lastGenerationTime)),
+					},
+					{
+						Name:  "Activate Runpod Serverless",
+						Value: fmt.Sprintf("```%s```", activatedRunpodServerlessStr),
 					},
 				},
 				Footer: models.DiscordWebhookEmbedFooter{

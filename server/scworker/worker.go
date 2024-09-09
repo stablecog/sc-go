@@ -33,7 +33,7 @@ func ShouldUseRunpodGenerate(model *ent.GenerationModel, redis *database.RedisWr
 	}
 
 	if model.RunpodActive {
-		log.Info("🏃‍♂️‍➡️ 📦 Using Runpod for generate")
+		log.Info("🏃‍♂️‍➡️📦 Using Runpod for generate")
 		return true
 	}
 
@@ -46,7 +46,7 @@ func ShouldUseRunpodUpscale(model *ent.UpscaleModel, redis *database.RedisWrappe
 	}
 
 	if model.RunpodActive {
-		log.Info("🏃‍♂️‍➡️ 📦 Using Runpod for upscale")
+		log.Info("🏃‍♂️‍➡️📦 Using Runpod for upscale")
 		return true
 	}
 
