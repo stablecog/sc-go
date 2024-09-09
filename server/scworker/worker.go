@@ -37,15 +37,7 @@ func ShouldUseRunpodGenerate(model *ent.GenerationModel, redis *database.RedisWr
 		return true
 	}
 
-	health, err := redis.GetWorkerHealth()
-	if err != nil {
-		return false
-	}
-
-	if health != shared.HEALTHY {
-		log.Info("🏃‍♂️‍➡️ 📦 Using Runpod for generate")
-	}
-	return health != shared.HEALTHY
+	return false
 }
 
 func ShouldUseRunpodUpscale(model *ent.UpscaleModel, redis *database.RedisWrapper) bool {
@@ -58,13 +50,5 @@ func ShouldUseRunpodUpscale(model *ent.UpscaleModel, redis *database.RedisWrappe
 		return true
 	}
 
-	health, err := redis.GetWorkerHealth()
-	if err != nil {
-		return false
-	}
-
-	if health != shared.HEALTHY {
-		log.Info("🏃‍♂️‍➡️ 📦 Using Runpod for upscale")
-	}
-	return health != shared.HEALTHY
+	return false
 }
