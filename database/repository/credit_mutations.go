@@ -250,17 +250,21 @@ func (r *Repository) DeductCreditsFromUser(userID uuid.UUID, amount int32, forTi
 				return false, err
 			}
 
-			// Move refund credits to the top of the array
+			// Move refund credits to the top of the array, free credits to bottom
 			refundCredits := make([]*ent.Credit, 0)
+			freeCredits := make([]*ent.Credit, 0)
 			otherCredits := make([]*ent.Credit, 0)
 			for _, c := range allCredits {
 				if c.CreditTypeID == uuid.MustParse(REFUND_CREDIT_TYPE_ID) {
 					refundCredits = append(refundCredits, c)
+				} else if c.CreditTypeID == uuid.MustParse(FREE_CREDIT_TYPE_ID) {
+					freeCredits = append(freeCredits, c)
 				} else {
 					otherCredits = append(otherCredits, c)
 				}
 			}
 			credits := append(refundCredits, otherCredits...)
+			credits = append(credits, freeCredits...)
 
 			deducted := int32(0)
 			for _, c := range credits {

@@ -81,7 +81,7 @@ func (r *Repository) GetNonFreeCreditSum(userID uuid.UUID) (int, error) {
 		Sum *int
 	}
 	err := r.DB.Credit.Query().
-		Where(credit.UserIDEQ(userID), credit.CreditTypeIDNEQ(uuid.MustParse(FREE_CREDIT_TYPE_ID)), credit.CreditTypeIDNEQ(uuid.MustParse(TIPPABLE_CREDIT_TYPE_ID))).
+		Where(credit.UserIDEQ(userID), credit.CreditTypeIDNEQ(uuid.MustParse(FREE_CREDIT_TYPE_ID)), credit.CreditTypeIDNEQ(uuid.MustParse(REFUND_CREDIT_TYPE_ID)), credit.CreditTypeIDNEQ(uuid.MustParse(TIPPABLE_CREDIT_TYPE_ID))).
 		Aggregate(
 			ent.Sum(credit.FieldRemainingAmount),
 		).
@@ -101,7 +101,7 @@ func (r *Repository) GetPaidCreditSum(userID uuid.UUID) (int, error) {
 		Sum *int
 	}
 	err := r.DB.Credit.Query().
-		Where(credit.UserIDEQ(userID), credit.StripeLineItemIDNotNil(), credit.CreditTypeIDNEQ(uuid.MustParse(FREE_CREDIT_TYPE_ID)), credit.CreditTypeIDNEQ(uuid.MustParse(TIPPABLE_CREDIT_TYPE_ID))).
+		Where(credit.UserIDEQ(userID), credit.StripeLineItemIDNotNil(), credit.CreditTypeIDNEQ(uuid.MustParse(FREE_CREDIT_TYPE_ID)), credit.CreditTypeIDNEQ(uuid.MustParse(REFUND_CREDIT_TYPE_ID)), credit.CreditTypeIDNEQ(uuid.MustParse(TIPPABLE_CREDIT_TYPE_ID))).
 		Aggregate(
 			ent.Sum(credit.FieldRemainingAmount),
 		).
