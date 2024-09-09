@@ -4,7 +4,6 @@ import (
 	"errors"
 	"time"
 
-	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/credit"
@@ -224,42 +223,13 @@ func (r *Repository) AddAdhocCreditsIfEligible(creditType *ent.CreditType, userI
 	return true, nil
 }
 
-// Deduct credits from user, starting with credits that expire soonest. Return true if deduction was successful
+// Deduct credits from user, starting with credits that were refunded, then credits that expire soonest. Return true if deduction was successful
 func (r *Repository) DeductCreditsFromUser(userID uuid.UUID, amount int32, forTip bool, DB *ent.Client) (success bool, err error) {
 	if DB == nil {
 		DB = r.DB
 	}
 
-	rowsAffected, err := DB.Credit.Update().
-		Where(func(s *sql.Selector) {
-			t := sql.Table(credit.Table)
-			var forTipPredict *sql.Predicate
-			if forTip {
-				// Tippable type
-				forTipPredict = sql.EQ(t.C(credit.FieldCreditTypeID), uuid.MustParse(TIPPABLE_CREDIT_TYPE_ID))
-			} else {
-				// Not tippable type
-				forTipPredict = sql.NEQ(t.C(credit.FieldCreditTypeID), uuid.MustParse(TIPPABLE_CREDIT_TYPE_ID))
-			}
-			s.Where(
-				sql.EQ(t.C(credit.FieldID),
-					sql.Select(credit.FieldID).From(t).Where(
-						sql.And(
-							// Not expired
-							sql.GT(t.C(credit.FieldExpiresAt), time.Now()),
-							// Our user
-							sql.EQ(t.C(credit.FieldUserID), userID),
-							// Has remaining amount
-							sql.GTE(t.C(credit.FieldRemainingAmount), amount),
-							forTipPredict,
-						),
-					).OrderBy(sql.Asc(t.C(credit.FieldExpiresAt))).Limit(1),
-				),
-			)
-		}).AddRemainingAmount(-1 * amount).Save(r.Ctx)
-	if err != nil {
-		return false, err
-	}
+	var rowsAffected int
 	if rowsAffected == 0 {
 		// Check total credits of all types
 		totalCredits, err := r.GetNonExpiredCreditTotalForUser(userID, DB)
@@ -267,29 +237,42 @@ func (r *Repository) DeductCreditsFromUser(userID uuid.UUID, amount int32, forTi
 			return false, err
 		}
 		if int32(totalCredits) >= amount {
-			// User has enough credits, deduct from lowest expiring types first
+			// User has enough credits, deduct from refund first, then lowest expiring types first
 			creditQ := DB.Credit.Query().Where(credit.UserID(userID), credit.RemainingAmountGT(0), credit.ExpiresAtGT(time.Now()))
 			if forTip {
 				creditQ = creditQ.Where(credit.CreditTypeIDEQ(uuid.MustParse(TIPPABLE_CREDIT_TYPE_ID)))
 			} else {
 				creditQ = creditQ.Where(credit.CreditTypeIDNEQ(uuid.MustParse(TIPPABLE_CREDIT_TYPE_ID)))
 			}
-			credits, err := creditQ.Order(ent.Asc(credit.FieldExpiresAt)).All(r.Ctx)
+
+			allCredits, err := creditQ.Order(ent.Asc(credit.FieldExpiresAt)).All(r.Ctx)
+			if err != nil {
+				return false, err
+			}
+
+			// Move refund credits to the top of the array
+			refundCredits := make([]*ent.Credit, 0)
+			otherCredits := make([]*ent.Credit, 0)
+			for _, c := range allCredits {
+				if c.CreditTypeID == uuid.MustParse(REFUND_CREDIT_TYPE_ID) {
+					refundCredits = append(refundCredits, c)
+				} else {
+					otherCredits = append(otherCredits, c)
+				}
+			}
+			credits := append(refundCredits, otherCredits...)
+
 			deducted := int32(0)
 			for _, c := range credits {
-				toDeduct := c.RemainingAmount - (amount - deducted)
-				// Get distance from 0
-				for toDeduct < c.RemainingAmount {
-					toDeduct++
+				if deducted >= amount {
+					break
 				}
+				toDeduct := min(c.RemainingAmount, amount-deducted)
 				_, err = DB.Credit.UpdateOne(c).AddRemainingAmount(-1 * toDeduct).Save(r.Ctx)
 				if err != nil {
 					return false, err
 				}
 				deducted += toDeduct
-				if deducted >= amount {
-					break
-				}
 				rowsAffected++
 			}
 		}
