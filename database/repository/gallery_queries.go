@@ -330,9 +330,9 @@ func (r *Repository) RetrieveMostRecentGalleryDataV3(filters *requests.QueryGene
 	orderByClause := ""
 	if filters != nil {
 		if filters.OrderBy == requests.OrderByLikeCount {
-			orderByClause = fmt.Sprintf("ORDER BY go.like_count %s", orderDir)
+			orderByClause = fmt.Sprintf("ORDER BY go.like_count %s, go.created_at %s", orderDir, orderDir)
 		} else if filters.OrderBy == requests.OrderByLikeCountTrending {
-			orderByClause = fmt.Sprintf("ORDER BY like_count_trending %s", orderDir)
+			orderByClause = fmt.Sprintf("ORDER BY like_count_trending %s, go.created_at %s", orderDir, orderDir)
 		} else {
 			orderByClause = fmt.Sprintf("ORDER BY g.created_at %s, go.created_at %s", orderDir, orderDir)
 		}
