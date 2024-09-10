@@ -254,9 +254,12 @@ func (r *Repository) DeductCreditsFromUser(userID uuid.UUID, amount int32, forTi
 			refundCredits := make([]*ent.Credit, 0)
 			otherCredits := make([]*ent.Credit, 0)
 			for _, c := range allCredits {
-				if c.CreditTypeID == uuid.MustParse(REFUND_CREDIT_TYPE_ID) {
+				switch creditTypeId := c.CreditTypeID; creditTypeId {
+				case uuid.MustParse(REFUND_NONFREE_CREDIT_TYPE_ID):
 					refundCredits = append(refundCredits, c)
-				} else {
+				case uuid.MustParse(REFUND_CREDIT_TYPE_ID):
+					refundCredits = append(refundCredits, c)
+				default:
 					otherCredits = append(otherCredits, c)
 				}
 			}
@@ -285,10 +288,25 @@ func (r *Repository) RefundCreditsToUser(userID uuid.UUID, amount int32, db *ent
 	if db == nil {
 		db = r.DB
 	}
-	// See if user has refund get credit
-	refundCreditType, err := r.GetOrCreateRefundCreditType(db)
+
+	var refundCreditType *ent.CreditType
+	paidCreditCount, err := r.GetNonFreeCreditSum(userID)
 	if err != nil {
 		return false, err
+	}
+
+	// See if user has refund get credit
+	if paidCreditCount >= int(amount) {
+		// Refund paid type
+		refundCreditType, err = r.GetOrCreateRefundNonFreeCreditType(db)
+		if err != nil {
+			return false, err
+		}
+	} else {
+		refundCreditType, err = r.GetOrCreateRefundCreditType(db)
+		if err != nil {
+			return false, err
+		}
 	}
 
 	// See if user has any credits of this type

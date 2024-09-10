@@ -138,7 +138,7 @@ func TestRefundCreditsToUser(t *testing.T) {
 	assert.Equal(t, int32(1234-50), creditsStarted.RemainingAmount)
 
 	// Get refund credit type
-	refundCreditType, err := MockRepo.GetOrCreateRefundCreditType(nil)
+	refundCreditType, err := MockRepo.GetOrCreateRefundNonFreeCreditType(nil)
 	assert.Nil(t, err)
 	// Get credits of this type for user
 	creditsRefund := MockRepo.DB.Credit.Query().Where(credit.UserIDEQ(uuid.MustParse(MOCK_NORMAL_UUID))).Where(credit.CreditTypeIDEQ(refundCreditType.ID)).FirstX(MockRepo.Ctx)

@@ -8,6 +8,7 @@ import (
 
 const FREE_CREDIT_TYPE_ID = "3b12b23e-478b-4c18-8e34-70b3f0af1ee6"
 const REFUND_CREDIT_TYPE_ID = "7ca94fd6-c201-4ca6-a9bf-4473c83e30b4"
+const REFUND_NONFREE_CREDIT_TYPE_ID = "6d86f50a-64d7-4d04-8c7a-a4afa071c202"
 const TIPPABLE_CREDIT_TYPE_ID = "74cc89d3-fb00-4cca-9573-95c6786cf186"
 const TIPPED_CREDIT_TYPE_ID = "d7e2e70e-aaa4-475c-a522-1f9c1c28f25f"
 
@@ -51,6 +52,27 @@ func (r *Repository) GetOrCreateFreeCreditType(DB *ent.Client) (*ent.CreditType,
 	if err != nil && ent.IsNotFound(err) {
 		// Create it
 		creditType, err := r.DB.CreditType.Create().SetID(freeId).SetName("Free").SetAmount(100).SetType(credittype.TypeFree).Save(r.Ctx)
+		if err != nil {
+			return nil, err
+		}
+		return creditType, nil
+	} else if err != nil {
+		return nil, err
+	}
+	return creditType, nil
+}
+
+// Refund credit type for non-freee credits
+func (r *Repository) GetOrCreateRefundNonFreeCreditType(db *ent.Client) (*ent.CreditType, error) {
+	if db == nil {
+		db = r.DB
+	}
+
+	freeId := uuid.MustParse(REFUND_NONFREE_CREDIT_TYPE_ID)
+	creditType, err := db.CreditType.Query().Where(credittype.IDEQ(freeId)).Only(r.Ctx)
+	if err != nil && ent.IsNotFound(err) {
+		// Create it
+		creditType, err := db.CreditType.Create().SetID(freeId).SetName("Refund Non-free").SetDescription("For generate/upscale failure refunds, for paid/gift credits").SetAmount(0).SetType(credittype.TypeOneTime).Save(r.Ctx)
 		if err != nil {
 			return nil, err
 		}
