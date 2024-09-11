@@ -377,11 +377,6 @@ func (j *JobRunner) DeleteUserData(log Logger, dryRun bool) error {
 					return err
 				}
 
-				if _, err := tx.User.UpdateOneID(u.ID).SetDataDeletedAt(time.Now()).Save(j.Ctx); err != nil {
-					log.Errorf("Error setting deleted_at for user %s: %v", u.ID, err)
-					return err
-				}
-
 				err = j.SupabaseAuth.DeleteUser(u.ID)
 				if err != nil {
 					log.Errorf("Error deleting auth user %s: %v", u.ID, err)
