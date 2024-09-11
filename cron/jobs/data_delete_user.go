@@ -336,10 +336,12 @@ func (j *JobRunner) DeleteUserData(log Logger, dryRun bool) error {
 					}
 				}
 
-				// Set deleted_at on user
-				if _, err := tx.User.UpdateOneID(u.ID).SetDataDeletedAt(time.Now()).Save(j.Ctx); err != nil {
-					log.Errorf("Error setting deleted_at for user %s: %v", u.ID, err)
-					return err
+				// Set deleted_at on user (for ban)
+				if u.BannedAt != nil {
+					if _, err := tx.User.UpdateOneID(u.ID).SetDataDeletedAt(time.Now()).Save(j.Ctx); err != nil {
+						log.Errorf("Error setting deleted_at for user %s: %v", u.ID, err)
+						return err
+					}
 				}
 
 				return nil
@@ -372,6 +374,11 @@ func (j *JobRunner) DeleteUserData(log Logger, dryRun bool) error {
 					user.IDEQ(u.ID),
 				).Exec(j.Ctx); err != nil {
 					log.Errorf("Error deleting user %s: %v", u.ID, err)
+					return err
+				}
+
+				if _, err := tx.User.UpdateOneID(u.ID).SetDataDeletedAt(time.Now()).Save(j.Ctx); err != nil {
+					log.Errorf("Error setting deleted_at for user %s: %v", u.ID, err)
 					return err
 				}
 
