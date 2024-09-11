@@ -16,7 +16,6 @@ import (
 	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationoutput"
 	"github.com/stablecog/sc-go/database/ent/upscale"
-	"github.com/stablecog/sc-go/database/ent/user"
 	"github.com/stablecog/sc-go/utils"
 )
 
@@ -369,23 +368,9 @@ func (j *JobRunner) DeleteUserData(log Logger, dryRun bool) error {
 	// Delete from public.users and auth.users for not banned users
 	for _, u := range usersNotBanned {
 		if !dryRun {
-			if err := j.Repo.WithTx(func(tx *ent.Tx) error {
-				if _, err := tx.User.Delete().Where(
-					user.IDEQ(u.ID),
-				).Exec(j.Ctx); err != nil {
-					log.Errorf("Error deleting user %s: %v", u.ID, err)
-					return err
-				}
-
-				err = j.SupabaseAuth.DeleteUser(u.ID)
-				if err != nil {
-					log.Errorf("Error deleting auth user %s: %v", u.ID, err)
-					return err
-				}
-
-				return nil
-			}); err != nil {
-				log.Errorf("Error in TX %s: %v", u.ID, err)
+			err = j.SupabaseAuth.DeleteUser(u.ID)
+			if err != nil {
+				log.Errorf("Error deleting auth user %s: %v", u.ID, err)
 				j.SendUserCleanNotification(log, false, 0, 0, fmt.Sprintf("Error in TX deleting user - they still exist in supabase!, %s: %v", u.ID, err))
 				return err
 			}
