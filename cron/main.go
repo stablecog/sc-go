@@ -5,6 +5,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"net/http"
 	"os"
 	"time"
 
@@ -159,18 +160,20 @@ func main() {
 
 	// Create a job runner
 	jobRunner := jobs.JobRunner{
-		Repo:        repo,
-		Redis:       redis,
-		Ctx:         ctx,
-		Discord:     discord.NewDiscordHealthTracker(ctx),
-		Track:       analyticsService,
-		Stripe:      stripeClient,
-		S3:          s3Client,
-		S3Img2Img:   s3Img2ImgClient,
-		Qdrant:      qdrantClient,
-		MQClient:    rabbitmqClient,
-		CLIP:        clip.NewClipService(redis, safetyChecker),
-		AsynqClient: asynqClient,
+		Repo:         repo,
+		Redis:        redis,
+		Ctx:          ctx,
+		Discord:      discord.NewDiscordHealthTracker(ctx),
+		Track:        analyticsService,
+		Stripe:       stripeClient,
+		S3:           s3Client,
+		S3Img2Img:    s3Img2ImgClient,
+		Qdrant:       qdrantClient,
+		MQClient:     rabbitmqClient,
+		CLIP:         clip.NewClipService(redis, safetyChecker),
+		AsynqClient:  asynqClient,
+		SupabaseAuth: database.NewSupabaseAuth(),
+		HTTP:         &http.Client{},
 	}
 
 	if *healthCheck {
@@ -239,6 +242,8 @@ func main() {
 		})
 		// Auto refund
 		s.Every(10).Minutes().Do(jobRunner.RefundOldGenerationCredits, jobs.NewJobLogger("AUTO_REFUND"))
+		// Auto delete users
+		s.Every(60).Minutes().Do(jobRunner.DeleteUserData, jobs.NewJobLogger("AUTO_DELETE_DATA"), false)
 		// Auto upscale
 		if !*disableAutoUpscale {
 			go jobRunner.StartAutoUpscaleJob(jobs.NewJobLogger("AUTO_UPSCALE"))

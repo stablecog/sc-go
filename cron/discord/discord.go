@@ -41,6 +41,7 @@ type DiscordHealthTracker struct {
 	lastNotificationTime          time.Time
 	lastUnhealthyNotificationTime time.Time
 	lastHealthyNotificationTime   time.Time
+	HTTP                          *http.Client
 }
 
 // Create new instance of discord health tracker
@@ -50,6 +51,7 @@ func NewDiscordHealthTracker(ctx context.Context) *DiscordHealthTracker {
 		webhookUrl: utils.GetEnv().DiscordWebhookUrl,
 		// Init last status as UNKNOWN
 		lastStatus: shared.UNKNOWN,
+		HTTP:       &http.Client{},
 	}
 }
 
@@ -99,10 +101,18 @@ func (d *DiscordHealthTracker) SendDiscordNotificationIfNeeded(
 		log.Error("Error marshalling webhook body", "err", err)
 		return err
 	}
-	res, postErr := http.Post(d.webhookUrl, "application/json", bytes.NewBuffer(reqBody))
-	if postErr != nil {
-		log.Error("Error sending webhook", "err", postErr)
-		return postErr
+
+	req, err := http.NewRequest("POST", d.webhookUrl, bytes.NewBuffer(reqBody))
+	if err != nil {
+		log.Error("Error creating request", "err", err)
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	res, err := d.HTTP.Do(req)
+	if err != nil {
+		log.Error("Error sending webhook", "err", err)
+		return err
 	}
 	defer res.Body.Close()
 

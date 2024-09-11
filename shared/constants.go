@@ -122,6 +122,8 @@ const AUTO_UPSCALE_RETRY_DURATION = 30 * time.Second
 // ! Deleting user data
 const DELETE_BANNED_USER_DATA_AFTER = 24 * time.Hour
 
+const DELETE_USERS_DATA_AFTER = 24 * 3 * time.Hour
+
 // ! API Tokens
 // Maximum number of tokens a user can have at any given time
 const MAX_API_TOKENS_PER_USER = 10

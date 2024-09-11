@@ -3,6 +3,7 @@ package jobs
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/hibiken/asynq"
@@ -18,24 +19,27 @@ import (
 )
 
 type JobRunner struct {
-	Repo        *repository.Repository
-	Redis       *database.RedisWrapper
-	Ctx         context.Context
-	Discord     *discord.DiscordHealthTracker
-	Track       *analytics.AnalyticsService
-	Stripe      *stripe.API
-	S3          *s3.S3
-	S3Img2Img   *s3.S3
-	Qdrant      *qdrant.QdrantClient
-	MQClient    queue.MQClient
-	CLIP        *clip.ClipService
-	AsynqClient *asynq.Client
+	Repo         *repository.Repository
+	Redis        *database.RedisWrapper
+	Ctx          context.Context
+	Discord      *discord.DiscordHealthTracker
+	Track        *analytics.AnalyticsService
+	Stripe       *stripe.API
+	S3           *s3.S3
+	S3Img2Img    *s3.S3
+	Qdrant       *qdrant.QdrantClient
+	MQClient     queue.MQClient
+	CLIP         *clip.ClipService
+	AsynqClient  *asynq.Client
+	SupabaseAuth *database.SupabaseAuth
+	HTTP         *http.Client
 }
 
 // Just wrap logger so we can include the job name without repeating it
 type Logger interface {
 	Infof(s string, args ...any)
 	Errorf(s string, args ...any)
+	Warnf(s string, args ...any)
 }
 
 type JobLogger struct {
@@ -48,6 +52,10 @@ func (j *JobLogger) Infof(s string, args ...any) {
 
 func (j *JobLogger) Errorf(s string, args ...any) {
 	log.Error(fmt.Sprintf("%s -- %v", j.JobName, fmt.Sprintf(s, args...)))
+}
+
+func (j *JobLogger) Warnf(s string, args ...any) {
+	log.Warn(fmt.Sprintf("%s -- %v", j.JobName, fmt.Sprintf(s, args...)))
 }
 
 func NewJobLogger(jobName string) *JobLogger {

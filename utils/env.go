@@ -43,10 +43,11 @@ type SCEnv struct {
 	StripeMediumPackProductID string `env:"STRIPE_MEDIUM_PACK_PRODUCT_ID" envDefault:"2"`
 	StripeMegaPackProductID   string `env:"STRIPE_MEGA_PACK_PRODUCT_ID" envDefault:"3"`
 	// Discord webhooks
-	DiscordWebhookUrl       string `env:"DISCORD_WEBHOOK_URL"`        // For health notifications in cron, Optional
-	DiscordWebhookUrlDeploy string `env:"DISCORD_WEBHOOK_URL_DEPLOY"` // For deploy notifications in server, Optional
-	DiscordWebhookUrlNewSub string `env:"DISCORD_WEBHOOK_URL_NEWSUB"` // For new sub notifications in server, Optional
-	GeoIpWebhook            string `env:"GEOIP_WEBHOOK"`              // For geoip notifications in server, Optional
+	DiscordWebhookUrl          string `env:"DISCORD_WEBHOOK_URL"`           // For health notifications in cron, Optional
+	DiscordWebhookUrlDeploy    string `env:"DISCORD_WEBHOOK_URL_DEPLOY"`    // For deploy notifications in server, Optional
+	DiscordWebhookUrlNewSub    string `env:"DISCORD_WEBHOOK_URL_NEWSUB"`    // For new sub notifications in server, Optional
+	DiscordWebhookUrlUserclean string `env:"DISCORD_WEBHOOK_URL_USERCLEAN"` // Sent when cron wipes users or has an error
+	GeoIpWebhook               string `env:"GEOIP_WEBHOOK"`                 // For geoip notifications in server, Optional
 	// Whether running in github actions, basically whether to use Postgres or not in tests (will use SQLite if false)
 	GithubActions bool `env:"GITHUB_ACTIONS" envDefault:"false"` // Whether we're running in Github Actions
 	// PostgreSQL

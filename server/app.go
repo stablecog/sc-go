@@ -1347,6 +1347,9 @@ func main() {
 
 			// Username
 			r.Post("/username/change", hc.HandleUpdateUsername)
+
+			// Delete account
+			r.Post("/account/schedule-for-deletion", hc.HandleScheduleUserForDeletion)
 		})
 
 		// Admin only routes
