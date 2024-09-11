@@ -34,6 +34,8 @@ spec:
             - secretRef:
                 name: sc-go
           env:
+            - name: GOTRUE_URL
+              value: http://supabase-supabase-auth.prod-supabase:9999
             - name: PUBLIC_SUPABASE_REFERENCE_ID
               value: jaqefzjqokaemzyvjcew
             - name: PRODUCTION

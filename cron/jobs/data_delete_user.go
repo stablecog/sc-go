@@ -107,6 +107,7 @@ func (j *JobRunner) DeleteUserData(log Logger, dryRun bool) error {
 				})
 				if err != nil {
 					log.Errorf("Error deleting objects for user %s: %v", u.ID, err)
+					j.SendUserCleanNotification(log, false, 0, 0, fmt.Sprintf("Error deleting S3 objects for user %s: %v", u.ID, err))
 					return err
 				}
 				deleted += len(o.Deleted)
@@ -161,6 +162,7 @@ func (j *JobRunner) DeleteUserData(log Logger, dryRun bool) error {
 
 				if err != nil {
 					log.Errorf("Error deleting img2img objects for user %s: %v", u.ID, err)
+					j.SendUserCleanNotification(log, false, 0, 0, fmt.Sprintf("Error deleting S3 img2img objects for user %s: %v", u.ID, err))
 					return err
 				}
 			} else {
@@ -343,6 +345,7 @@ func (j *JobRunner) DeleteUserData(log Logger, dryRun bool) error {
 				return nil
 			}); err != nil {
 				log.Errorf("Error in TX %s: %v", u.ID, err)
+				j.SendUserCleanNotification(log, false, 0, 0, fmt.Sprintf("Error in delete user TX %s: %v", u.ID, err))
 				return err
 			}
 		} else {
@@ -381,6 +384,7 @@ func (j *JobRunner) DeleteUserData(log Logger, dryRun bool) error {
 				return nil
 			}); err != nil {
 				log.Errorf("Error in TX %s: %v", u.ID, err)
+				j.SendUserCleanNotification(log, false, 0, 0, fmt.Sprintf("Error in TX deleting user - they still exist in supabase!, %s: %v", u.ID, err))
 				return err
 			}
 		} else {
