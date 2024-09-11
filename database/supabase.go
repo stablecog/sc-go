@@ -28,7 +28,7 @@ func NewSupabaseAuth() *SupabaseAuth {
 }
 
 func (s *SupabaseAuth) DeleteUser(id uuid.UUID) error {
-	return s.client.AdminDeleteUser(types.AdminDeleteUserRequest{
+	return s.client.WithToken(utils.GetEnv().SupabaseAdminKey).AdminDeleteUser(types.AdminDeleteUserRequest{
 		UserID: id,
 	})
 }
