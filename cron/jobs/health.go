@@ -55,7 +55,7 @@ func (j *JobRunner) CheckSCWorkerHealth(log Logger) error {
 	}
 
 	// Last successful generation is too old, do a test generation
-	var durationMinutes float64 = 2
+	var durationMinutes float64 = 3
 	if time.Now().Sub(lastSuccessfulGenerationTime).Minutes() > durationMinutes {
 		// Assume unhealthy for now
 		workerHealthStatus = shared.UNHEALTHY
@@ -99,6 +99,7 @@ func (j *JobRunner) CheckSCWorkerHealth(log Logger) error {
 		workerHealthStatus,
 		generations,
 		lastGenerationTime,
+		lastSuccessfulGenerationTime,
 		shouldActivateRunpodServerless,
 		activatedRunpodServerless,
 	)
