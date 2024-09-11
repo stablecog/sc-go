@@ -234,7 +234,7 @@ func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
 		CreatedAt:               user.CreatedAt,
 		UsernameChangedAt:       user.UsernameChangedAt,
 		HasPurchase:             res.hasPurchase,
-		ScheduledForDeletionAt:  user.ScheduledForDeletionOn,
+		ScheduledForDeletionOn:  user.ScheduledForDeletionOn,
 	})
 }
 
@@ -1119,8 +1119,8 @@ func (c *RestAPI) HandleScheduleUserForDeletion(w http.ResponseWriter, r *http.R
 		if user.ScheduledForDeletionOn != nil {
 			render.Status(r, http.StatusOK)
 			render.JSON(w, r, map[string]interface{}{
-				"success":      true,
-				"scheduled_at": *user.ScheduledForDeletionOn,
+				"success":                   true,
+				"scheduled_for_deletion_on": *user.ScheduledForDeletionOn,
 			})
 			return
 		}
@@ -1134,8 +1134,8 @@ func (c *RestAPI) HandleScheduleUserForDeletion(w http.ResponseWriter, r *http.R
 
 		render.Status(r, http.StatusOK)
 		render.JSON(w, r, map[string]interface{}{
-			"success":      true,
-			"scheduled_at": scheduledAt,
+			"success":                   true,
+			"scheduled_for_deletion_on": scheduledAt,
 		})
 		return
 	case requests.UndeleteAction:
