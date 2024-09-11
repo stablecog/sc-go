@@ -9,7 +9,6 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/stablecog/sc-go/database/ent/generation"
 	"github.com/stablecog/sc-go/database/ent/generationmodel"
 	"github.com/stablecog/sc-go/database/ent/upscalemodel"
 	"github.com/stablecog/sc-go/shared"
@@ -45,44 +44,22 @@ func (j *JobRunner) CheckSCWorkerHealth(log Logger) error {
 		return err
 	}
 
-	nsfwGenerations := 0
-	failedGenerations := 0
 	lastGenerationTime := generations[0].CreatedAt
 	lastSuccessfulGenerationTime := successfulGenerations[0].CreatedAt
 
-	// Count the number of failed generations distinguishing between NSFW and other failures
-	for _, g := range generations {
-		if g.Status == generation.StatusFailed && g.FailureReason != nil && *g.FailureReason == shared.NSFW_ERROR {
-			nsfwGenerations++
-		} else if g.Status == generation.StatusFailed {
-			failedGenerations++
-		}
-	}
-
-	log.Infof("Generation fail rate NSFW %d/%d", nsfwGenerations, len(generations))
-	log.Infof("Generation fail rate other %d/%d", failedGenerations, len(generations))
-
-	// Figure out if we're healthy
-	failRate := float64(failedGenerations) / float64(len(generations))
-
-	// Fail rate is too high, fail
-	if failRate > maxGenerationFailWithoutNSFWRate {
-		workerHealthStatus = shared.UNHEALTHY
-	}
-
 	// Last successful generation is too old, do a test generation
-	var durationMinutes float64 = 5
+	var durationMinutes float64 = 2
 	if time.Now().Sub(lastSuccessfulGenerationTime).Minutes() > durationMinutes {
+		// Assume unhealthy for now
+		workerHealthStatus = shared.UNHEALTHY
+
+		// Try to create a test generation
 		log.Infof(fmt.Sprintf("%f minutes since last successful generation", durationMinutes))
-		if apiKey == "" {
-			log.Infof("SC Worker tester API key not found -> Assuming unhealthy")
-			workerHealthStatus = shared.UNHEALTHY
+		err := CreateTestGeneration(log, apiKey)
+		if err != nil {
+			log.Infof("SC Worker test generation failed -> Assuming unhealthy")
 		} else {
-			err := CreateTestGeneration(log, apiKey)
-			if err != nil {
-				log.Infof("SC Worker test generation failed -> Assuming unhealthy")
-				workerHealthStatus = shared.UNHEALTHY
-			}
+			workerHealthStatus = shared.HEALTHY
 		}
 	}
 
@@ -159,6 +136,11 @@ func (j *JobRunner) ActiveRunpodServerless(log Logger) (bool, error) {
 
 func CreateTestGeneration(log Logger, apiKey string) error {
 	log.Infof("Creating test generation to check SC Worker health...")
+
+	if apiKey == "" {
+		log.Errorf("SC Worker tester API key not found")
+		return fmt.Errorf("SC Worker tester API key not found")
+	}
 
 	url := "https://api.stablecog.com/v1/image/generation/create"
 	prompt := "Mavi renkli bir bina"
