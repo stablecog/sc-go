@@ -44,8 +44,15 @@ func (j *JobRunner) CheckSCWorkerHealth(log Logger) error {
 		return err
 	}
 
-	lastGenerationTime := generations[0].CreatedAt
-	lastSuccessfulGenerationTime := successfulGenerations[0].CreatedAt
+	lastGenerationTime := time.Now().Add(-24 * time.Hour)
+	lastSuccessfulGenerationTime := time.Now().Add(-24 * time.Hour)
+
+	if len(generations) > 0 {
+		lastGenerationTime = generations[0].CreatedAt
+	}
+	if len(successfulGenerations) > 0 {
+		lastSuccessfulGenerationTime = successfulGenerations[0].CreatedAt
+	}
 
 	// Last successful generation is too old, do a test generation
 	var durationMinutes float64 = 2
