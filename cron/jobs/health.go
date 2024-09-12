@@ -54,14 +54,6 @@ func (j *JobRunner) CheckSCWorkerHealth(log Logger) error {
 		lastSuccessfulGenerationTime = successfulGenerations[0].CreatedAt
 	}
 
-	// create a test generation just for now
-	errGen := CreateTestGeneration(log, apiKey)
-	if errGen != nil {
-		log.Infof("SC Worker test generation failed -> Assuming unhealthy")
-	} else {
-		log.Infof("SC Worker test generation succeeded -> Assuming healthy")
-	}
-
 	// Last successful generation is too old, do a test generation
 	var durationMinutes float64 = 3
 	if time.Now().Sub(lastSuccessfulGenerationTime).Minutes() > durationMinutes {
