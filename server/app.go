@@ -1017,7 +1017,7 @@ func main() {
 	}
 	// Update periodically
 	s := gocron.NewScheduler(time.UTC)
-	const cacheIntervalSec = 30
+	const cacheIntervalSec = 15
 	s.Every(cacheIntervalSec).Seconds().StartAt(time.Now().Add(cacheIntervalSec * time.Second)).Do(func() {
 		start := time.Now()
 		log.Info("📦 Updating cache...")
