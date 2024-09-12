@@ -9,8 +9,6 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/stablecog/sc-go/database/ent/generationmodel"
-	"github.com/stablecog/sc-go/database/ent/upscalemodel"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 )
@@ -81,13 +79,13 @@ func (j *JobRunner) CheckSCWorkerHealth(log Logger) error {
 
 	if workerHealthStatus != shared.HEALTHY {
 		shouldActivateRunpodServerless = true
-		activated, err := j.ActiveRunpodServerless(log)
+		err := j.Repo.EnableRunpodServerless()
 		if err != nil {
 			log.Errorf("🏃‍♂️‍➡️📦 🔴 Couldn't activate Runpod serverless: %v", err)
 		} else {
-			log.Infof("🏃‍♂️‍➡️📦 🟢 Activated Runpod serverless: %v", activated)
+			log.Infof("🏃‍♂️‍➡️📦 🟢 Activated Runpod serverless")
+			activatedRunpodServerless = true
 		}
-		activatedRunpodServerless = activated
 	}
 
 	return j.Discord.SendDiscordNotificationIfNeeded(
@@ -113,28 +111,6 @@ type ResponseBody struct {
 		URL      string `json:"url"`
 		ImageURL string `json:"image_url"`
 	} `json:"outputs"`
-}
-
-func (j *JobRunner) ActiveRunpodServerless(log Logger) (bool, error) {
-	errGen := j.Repo.DB.GenerationModel.Update().Where(
-		generationmodel.RunpodEndpointNotNil(),
-		generationmodel.RunpodActive(false),
-	).SetRunpodActive(true).Exec(j.Ctx)
-
-	if errGen != nil {
-		return false, errGen
-	}
-
-	errUps := j.Repo.DB.UpscaleModel.Update().Where(
-		upscalemodel.RunpodEndpointNotNil(),
-		upscalemodel.RunpodActive(false),
-	).SetRunpodActive(true).Exec(j.Ctx)
-
-	if errUps != nil {
-		return false, errUps
-	}
-
-	return true, nil
 }
 
 func CreateTestGeneration(log Logger, apiKey string) error {

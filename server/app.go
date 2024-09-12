@@ -1389,6 +1389,12 @@ func main() {
 				r.Use(middleware.Logger)
 				r.Post("/text", hc.HandleEmbedText)
 			})
+			r.Route("/system", func(r chi.Router) {
+				r.Use(mw.AuthMiddleware(middleware.AuthLevelSuperAdmin))
+				r.Use(middleware.Logger)
+				r.Get("/status", hc.HandleSystemStatus)
+				r.Post("/change-backend", hc.HandleSystemChangeBackend)
+			})
 		})
 
 		// For API tokens

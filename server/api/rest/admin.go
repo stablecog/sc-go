@@ -640,3 +640,62 @@ func (c *RestAPI) HandleEmbedText(w http.ResponseWriter, r *http.Request) {
 		Embedding: embeddings,
 	})
 }
+
+func (c *RestAPI) HandleSystemChangeBackend(w http.ResponseWriter, r *http.Request) {
+	// Parse request body
+	reqBody, _ := io.ReadAll(r.Body)
+	var req requests.ChangeSystemBackendRequest
+	err := json.Unmarshal(reqBody, &req)
+	if err != nil {
+		responses.ErrUnableToParseJson(w, r)
+		return
+	}
+	if req.Backend == shared.BackendScWorker {
+		err := c.Repo.DisableRunpodServerless()
+		if err != nil {
+			log.Error("Error disabling RunPod serverless", "err", err)
+			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+			return
+		}
+		render.Status(r, http.StatusOK)
+		render.JSON(w, r, responses.ChangeSystemBackendResponse{
+			Backend: shared.BackendScWorker,
+		})
+	}
+	if req.Backend == shared.BackendRunpodServerless {
+		err := c.Repo.EnableRunpodServerless()
+		if err != nil {
+			log.Error("Error enabling RunPod serverless", "err", err)
+			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+			return
+		}
+		render.Status(r, http.StatusOK)
+		render.JSON(w, r, responses.ChangeSystemBackendResponse{
+			Backend: shared.BackendRunpodServerless,
+		})
+	}
+	responses.ErrBadRequest(w, r, "Invalid backend", fmt.Sprintf("Backend must one of the following: %s, %s", shared.BackendScWorker.String(), shared.BackendRunpodServerless.String()))
+}
+
+func (c *RestAPI) HandleSystemStatus(w http.ResponseWriter, r *http.Request) {
+	isRunpodServerless, err := c.Repo.IsRunpodServerlessActive()
+	if err != nil {
+		log.Error("Error checking runpod serverless status", "err", err)
+		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+		return
+	}
+
+	if isRunpodServerless {
+		render.Status(r, http.StatusOK)
+		render.JSON(w, r, responses.SystemStatusResponse{
+			Backend: shared.BackendRunpodServerless,
+		})
+		return
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, responses.SystemStatusResponse{
+		Backend: shared.BackendScWorker,
+	})
+	return
+}

@@ -240,3 +240,15 @@ const (
 	UNHEALTHY
 	UNKNOWN
 )
+
+type BackendType string
+
+const (
+	BackendRunpodServerless BackendType = "runpod-serverless"
+	BackendScWorker         BackendType = "sc-worker"
+)
+
+// String returns the string representation of the BackendType
+func (b BackendType) String() string {
+	return string(b)
+}
