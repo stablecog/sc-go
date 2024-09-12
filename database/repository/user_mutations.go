@@ -65,6 +65,25 @@ func (r *Repository) SyncStripeProductIDs(productCustomerIDMap map[string][]stri
 	return nil
 }
 
+// Deleting a user
+func (r *Repository) MarkUserForDeletion(userID uuid.UUID) (time.Time, error) {
+	scheduledAt := time.Now().Add(shared.DELETE_USERS_DATA_AFTER)
+	_, err := r.DB.User.UpdateOneID(userID).SetScheduledForDeletionOn(scheduledAt).Save(r.Ctx)
+	if err != nil {
+		return scheduledAt, err
+	}
+	return scheduledAt, nil
+}
+
+// Undeleting a user
+func (r *Repository) UnmarkUserForDeletion(userID uuid.UUID) (int, error) {
+	_, err := r.DB.User.UpdateOneID(userID).ClearScheduledForDeletionOn().Where(user.BannedAtIsNil()).Save(r.Ctx)
+	if err != nil {
+		return 0, err
+	}
+	return 1, nil
+}
+
 // Ban users
 func (r *Repository) BanUsers(userIDs []uuid.UUID, deleteData bool) (int, error) {
 	upd := r.DB.User.Update().Where(user.IDIn(userIDs...)).SetBannedAt(time.Now())

@@ -234,6 +234,7 @@ func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
 		CreatedAt:               user.CreatedAt,
 		UsernameChangedAt:       user.UsernameChangedAt,
 		HasPurchase:             res.hasPurchase,
+		ScheduledForDeletionOn:  user.ScheduledForDeletionOn,
 	})
 }
 
@@ -1084,6 +1085,73 @@ func (c *RestAPI) HandleLikeGenerationOutputsForUser(w http.ResponseWriter, r *h
 		log.Error("Error setting outputs liked for user", "err", err)
 		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 		return
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, map[string]interface{}{
+		"success": true,
+	})
+}
+
+// HTTP POST - schedule for deletion
+func (c *RestAPI) HandleScheduleUserForDeletion(w http.ResponseWriter, r *http.Request) {
+	var user *ent.User
+	if user = c.GetUserIfAuthenticated(w, r); user == nil {
+		return
+	}
+
+	if user.BannedAt != nil {
+		responses.ErrForbidden(w, r)
+		return
+	}
+
+	// Parse request body
+	reqBody, _ := io.ReadAll(r.Body)
+	var deleteReq requests.DeleteUserRequest
+	err := json.Unmarshal(reqBody, &deleteReq)
+	if err != nil {
+		responses.ErrUnableToParseJson(w, r)
+		return
+	}
+
+	switch deleteReq.Action {
+	case requests.DeleteAction:
+		if user.ScheduledForDeletionOn != nil {
+			render.Status(r, http.StatusOK)
+			render.JSON(w, r, map[string]interface{}{
+				"success":                   true,
+				"scheduled_for_deletion_on": *user.ScheduledForDeletionOn,
+			})
+			return
+		}
+		scheduledAt, err := c.Repo.MarkUserForDeletion(user.ID)
+
+		if err != nil {
+			log.Error("Error marking user for deletion", err)
+			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+			return
+		}
+
+		render.Status(r, http.StatusOK)
+		render.JSON(w, r, map[string]interface{}{
+			"success":                   true,
+			"scheduled_for_deletion_on": scheduledAt,
+		})
+		return
+	case requests.UndeleteAction:
+		if user.ScheduledForDeletionOn == nil {
+			render.Status(r, http.StatusOK)
+			render.JSON(w, r, map[string]interface{}{
+				"success": true,
+			})
+			return
+		}
+		_, err := c.Repo.UnmarkUserForDeletion(user.ID)
+		if err != nil {
+			log.Error("Error unmarking user for deletion", err)
+			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+			return
+		}
 	}
 
 	render.Status(r, http.StatusOK)

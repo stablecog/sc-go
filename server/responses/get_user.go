@@ -49,6 +49,7 @@ type GetUserResponseV2 struct {
 	CreatedAt               time.Time  `json:"created_at"`
 	UsernameChangedAt       *time.Time `json:"username_changed_at,omitempty"`
 	HasPurchase             bool       `json:"has_purchase"`
+	ScheduledForDeletionOn  *time.Time `json:"scheduled_for_deletion_on,omitempty"`
 	// The current amoount of free credits server offers
 	FreeCreditAmount *int     `json:"free_credit_amount,omitempty"`
 	StripeHadError   bool     `json:"stripe_had_error"`

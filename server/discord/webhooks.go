@@ -15,6 +15,29 @@ import (
 	"github.com/stablecog/sc-go/utils"
 )
 
+var httpClient = &http.Client{}
+
+func postWebhook(webhookURL string, body interface{}) error {
+	reqBody, err := json.Marshal(body)
+	if err != nil {
+		return fmt.Errorf("error marshalling webhook body: %w", err)
+	}
+
+	req, err := http.NewRequest("POST", webhookURL, bytes.NewBuffer(reqBody))
+	if err != nil {
+		return fmt.Errorf("error creating request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	res, err := httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("error sending webhook: %w", err)
+	}
+	defer res.Body.Close()
+
+	return nil
+}
+
 // Sends a discord notification on either the healthy/unhealthy interval depending on status
 func FireServerReadyWebhook(version string, msg string, buildStart string) error {
 	webhookUrl := utils.GetEnv().DiscordWebhookUrlDeploy
@@ -47,17 +70,7 @@ func FireServerReadyWebhook(version string, msg string, buildStart string) error
 		},
 		Attachments: []models.DiscordWebhookAttachment{},
 	}
-	reqBody, err := json.Marshal(body)
-	if err != nil {
-		log.Error("Error marshalling webhook body", "err", err)
-		return err
-	}
-	res, postErr := http.Post(webhookUrl, "application/json", bytes.NewBuffer(reqBody))
-	if postErr != nil {
-		log.Error("Error sending webhook", "err", postErr)
-		return postErr
-	}
-	defer res.Body.Close()
+	postWebhook(webhookUrl, body)
 
 	return nil
 }
@@ -110,17 +123,7 @@ func NewSubscriberWebhook(repo *repository.Repository, user *ent.User, productId
 		},
 		Attachments: []models.DiscordWebhookAttachment{},
 	}
-	reqBody, err := json.Marshal(body)
-	if err != nil {
-		log.Error("Error marshalling webhook body", "err", err)
-		return err
-	}
-	res, postErr := http.Post(webhookUrl, "application/json", bytes.NewBuffer(reqBody))
-	if postErr != nil {
-		log.Error("Error sending webhook", "err", postErr)
-		return postErr
-	}
-	defer res.Body.Close()
+	postWebhook(webhookUrl, body)
 
 	return nil
 }
@@ -183,17 +186,7 @@ func SubscriptionUpgradeWebhook(
 		},
 		Attachments: []models.DiscordWebhookAttachment{},
 	}
-	reqBody, err := json.Marshal(body)
-	if err != nil {
-		log.Error("Error marshalling webhook body", "err", err)
-		return err
-	}
-	res, postErr := http.Post(webhookUrl, "application/json", bytes.NewBuffer(reqBody))
-	if postErr != nil {
-		log.Error("Error sending webhook", "err", postErr)
-		return postErr
-	}
-	defer res.Body.Close()
+	postWebhook(webhookUrl, body)
 
 	return nil
 }
@@ -235,17 +228,8 @@ func AdhocCreditsPurchasedWebhook(repo *repository.Repository, user *ent.User, c
 		},
 		Attachments: []models.DiscordWebhookAttachment{},
 	}
-	reqBody, err := json.Marshal(body)
-	if err != nil {
-		log.Error("Error marshalling webhook body", "err", err)
-		return err
-	}
-	res, postErr := http.Post(webhookUrl, "application/json", bytes.NewBuffer(reqBody))
-	if postErr != nil {
-		log.Error("Error sending webhook", "err", postErr)
-		return postErr
-	}
-	defer res.Body.Close()
+
+	postWebhook(webhookUrl, body)
 
 	return nil
 }
@@ -296,17 +280,8 @@ func FireGeoIPBannedUserWebhook(ip string, email string, domain string, userid s
 		},
 		Attachments: []models.DiscordWebhookAttachment{},
 	}
-	reqBody, err := json.Marshal(body)
-	if err != nil {
-		log.Error("Error marshalling webhook body", "err", err)
-		return err
-	}
-	res, postErr := http.Post(webhookUrl, "application/json", bytes.NewBuffer(reqBody))
-	if postErr != nil {
-		log.Error("Error sending webhook", "err", postErr)
-		return postErr
-	}
-	defer res.Body.Close()
+
+	postWebhook(webhookUrl, body)
 
 	return nil
 }
@@ -357,17 +332,8 @@ func FireGeoIPSuspiciousUserWebhook(ip string, email string, domain string, user
 		},
 		Attachments: []models.DiscordWebhookAttachment{},
 	}
-	reqBody, err := json.Marshal(body)
-	if err != nil {
-		log.Error("Error marshalling webhook body", "err", err)
-		return err
-	}
-	res, postErr := http.Post(webhookUrl, "application/json", bytes.NewBuffer(reqBody))
-	if postErr != nil {
-		log.Error("Error sending webhook", "err", postErr)
-		return postErr
-	}
-	defer res.Body.Close()
+
+	postWebhook(webhookUrl, body)
 
 	return nil
 }
@@ -432,17 +398,8 @@ func FireBannedUserWebhook(ip string, email string, domain string, userid string
 		},
 		Attachments: []models.DiscordWebhookAttachment{},
 	}
-	reqBody, err := json.Marshal(body)
-	if err != nil {
-		log.Error("Error marshalling webhook body", "err", err)
-		return err
-	}
-	res, postErr := http.Post(webhookUrl, "application/json", bytes.NewBuffer(reqBody))
-	if postErr != nil {
-		log.Error("Error sending webhook", "err", postErr)
-		return postErr
-	}
-	defer res.Body.Close()
+
+	postWebhook(webhookUrl, body)
 
 	return nil
 }

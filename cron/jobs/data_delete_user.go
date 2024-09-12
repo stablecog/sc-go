@@ -1,12 +1,16 @@
 package jobs
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/google/uuid"
+	"github.com/stablecog/sc-go/cron/models"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/credit"
 	"github.com/stablecog/sc-go/database/ent/generation"
@@ -40,6 +44,12 @@ func (j *JobRunner) DeleteUserData(log Logger, dryRun bool) error {
 
 	if len(users) == 0 {
 		log.Infof("No users to delete")
+		return nil
+	}
+
+	if len(users) > 100 {
+		log.Warnf("Not willing to delete that many users automatically: %d", len(users))
+		j.SendUserCleanNotification(log, false, 0, 0, "Too many users to delete")
 		return nil
 	}
 
@@ -96,6 +106,7 @@ func (j *JobRunner) DeleteUserData(log Logger, dryRun bool) error {
 				})
 				if err != nil {
 					log.Errorf("Error deleting objects for user %s: %v", u.ID, err)
+					j.SendUserCleanNotification(log, false, 0, 0, fmt.Sprintf("Error deleting S3 objects for user %s: %v", u.ID, err))
 					return err
 				}
 				deleted += len(o.Deleted)
@@ -150,6 +161,7 @@ func (j *JobRunner) DeleteUserData(log Logger, dryRun bool) error {
 
 				if err != nil {
 					log.Errorf("Error deleting img2img objects for user %s: %v", u.ID, err)
+					j.SendUserCleanNotification(log, false, 0, 0, fmt.Sprintf("Error deleting S3 img2img objects for user %s: %v", u.ID, err))
 					return err
 				}
 			} else {
@@ -323,15 +335,18 @@ func (j *JobRunner) DeleteUserData(log Logger, dryRun bool) error {
 					}
 				}
 
-				// Set deleted_at on user
-				if _, err := tx.User.UpdateOneID(u.ID).SetDataDeletedAt(time.Now()).Save(j.Ctx); err != nil {
-					log.Errorf("Error setting deleted_at for user %s: %v", u.ID, err)
-					return err
+				// Set deleted_at on user (for ban)
+				if u.BannedAt != nil {
+					if _, err := tx.User.UpdateOneID(u.ID).SetDataDeletedAt(time.Now()).Save(j.Ctx); err != nil {
+						log.Errorf("Error setting deleted_at for user %s: %v", u.ID, err)
+						return err
+					}
 				}
 
 				return nil
 			}); err != nil {
 				log.Errorf("Error in TX %s: %v", u.ID, err)
+				j.SendUserCleanNotification(log, false, 0, 0, fmt.Sprintf("Error in delete user TX %s: %v", u.ID, err))
 				return err
 			}
 		} else {
@@ -349,10 +364,112 @@ func (j *JobRunner) DeleteUserData(log Logger, dryRun bool) error {
 			}
 		}
 	}
+
+	// Delete from public.users and auth.users for not banned users
+	for _, u := range usersNotBanned {
+		if !dryRun {
+			err = j.SupabaseAuth.DeleteUser(u.ID)
+			if err != nil {
+				log.Errorf("Error deleting auth user %s: %v", u.ID, err)
+				j.SendUserCleanNotification(log, false, 0, 0, fmt.Sprintf("Error in TX deleting user - they still exist in supabase!, %s: %v", u.ID, err))
+				return err
+			}
+		} else {
+			log.Infof("Would delete user %s", u.ID)
+			log.Infof("Would delete auth user %s", u.ID)
+		}
+	}
+
+	j.SendUserCleanNotification(log, true, len(usersBanned), len(usersNotBanned), "")
+
 	log.Infof("Total outputs %d", grandTotalOutputs)
 	log.Infof("Total generations %d", grandTotalGenerations)
 	log.Infof("Total prompts %d", grandTotalPrompts)
 	log.Infof("Total negative prompts %d", grandTotalNegativePrompts)
 	log.Infof("Total users %d", len(users))
+	return nil
+}
+
+const (
+	ColorSuccess = 3066993  // Green
+	ColorError   = 15158332 // Red
+)
+
+func (j *JobRunner) SendUserCleanNotification(log Logger, success bool, bannedUsersDeleted, nonBannedUsersDeleted int, errorMsg string) error {
+	webhookUrl := utils.GetEnv().DiscordWebhookUrlUserclean
+	if webhookUrl == "" {
+		log.Warnf("DISCORD_WEBHOOK_URL_USERCLEAN not set, not sending")
+		return nil
+	}
+
+	var (
+		color   int
+		title   string
+		content string
+		fields  []models.DiscordWebhookField
+	)
+
+	if success {
+		color = ColorSuccess
+		title = "User Cleanup Successful"
+		content = "The user cleanup process has completed successfully."
+		fields = []models.DiscordWebhookField{
+			{
+				Name:  "Banned Users Deleted",
+				Value: fmt.Sprintf("```%d```", bannedUsersDeleted),
+			},
+			{
+				Name:  "Non-Banned Users Deleted",
+				Value: fmt.Sprintf("```%d```", nonBannedUsersDeleted),
+			},
+		}
+	} else {
+		color = ColorError
+		title = "User Cleanup Failed"
+		content = "An error occurred during the user cleanup process."
+		fields = []models.DiscordWebhookField{
+			{
+				Name:  "Error Message",
+				Value: fmt.Sprintf("```%s```", errorMsg),
+			},
+		}
+	}
+
+	body := models.DiscordWebhookBody{
+		Content: utils.ToPtr(content),
+		Embeds: []models.DiscordWebhookEmbed{
+			{
+				Title:  title,
+				Color:  color,
+				Fields: fields,
+				Footer: models.DiscordWebhookEmbedFooter{
+					Text: time.Now().Format(time.RFC1123),
+				},
+			},
+		},
+		Attachments: []models.DiscordWebhookAttachment{},
+	}
+
+	reqBody, err := json.Marshal(body)
+	if err != nil {
+		return fmt.Errorf("error marshalling webhook body: %w", err)
+	}
+
+	req, err := http.NewRequest("POST", webhookUrl, bytes.NewBuffer(reqBody))
+	if err != nil {
+		return fmt.Errorf("error creating request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	res, err := j.HTTP.Do(req)
+	if err != nil {
+		return fmt.Errorf("error sending webhook: %w", err)
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode < 200 || res.StatusCode >= 300 {
+		return fmt.Errorf("unexpected status code: %d", res.StatusCode)
+	}
+
 	return nil
 }

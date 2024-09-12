@@ -358,7 +358,7 @@ func (r *Repository) GetBannedUsersToDelete() ([]*ent.User, error) {
 
 // Get non-banned users to delete
 func (r *Repository) GetUsersToDelete() ([]*ent.User, error) {
-	return r.DB.User.Query().Where(user.DataDeletedAtIsNil(), user.ScheduledForDeletionOnNotNil(), user.ScheduledForDeletionOnLT(time.Now())).All(r.Ctx)
+	return r.DB.User.Query().Where(user.DataDeletedAtIsNil(), user.BannedAtIsNil(), user.ScheduledForDeletionOnNotNil(), user.ScheduledForDeletionOnLT(time.Now())).All(r.Ctx)
 }
 
 // Get user by discord ID

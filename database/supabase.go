@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
@@ -24,6 +25,12 @@ func NewSupabaseAuth() *SupabaseAuth {
 		client = client.WithCustomGoTrueURL(utils.GetEnv().GotrueURL)
 	}
 	return &SupabaseAuth{client: client}
+}
+
+func (s *SupabaseAuth) DeleteUser(id uuid.UUID) error {
+	return s.client.WithToken(utils.GetEnv().SupabaseAdminKey).AdminDeleteUser(types.AdminDeleteUserRequest{
+		UserID: id,
+	})
 }
 
 func (s *SupabaseAuth) AuthorizeWithDiscord() (authUrl string, err error) {
