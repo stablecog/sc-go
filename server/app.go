@@ -1019,11 +1019,13 @@ func main() {
 	s := gocron.NewScheduler(time.UTC)
 	const cacheIntervalSec = 30
 	s.Every(cacheIntervalSec).Seconds().StartAt(time.Now().Add(cacheIntervalSec * time.Second)).Do(func() {
+		start := time.Now()
 		log.Info("📦 Updating cache...")
 		err = repo.UpdateCache()
 		if err != nil {
 			log.Error("Error updating cache", "err", err)
 		}
+		log.Infof("📦 🟢 Updated cache in: %d sec.", time.Since(start).Milliseconds())
 	})
 
 	// Create SSE hub
