@@ -8,5 +8,6 @@ type ChangeSystemBackendResponse struct {
 }
 
 type SystemStatusResponse struct {
-	Backend shared.BackendType `json:"backend"`
+	Backend  shared.BackendType   `json:"backend"`
+	Backends []shared.BackendType `json:"backends"`
 }
