@@ -215,7 +215,7 @@ func (w *SCWorker) CreateUpscale(source enttypes.SourceType,
 		return nil, nil, WorkerInternalServerError()
 	}
 	modelName = model.NameInWorker
-	useRunpod := ShouldUseRunpodUpscale(model)
+	useRunpod := ShouldUseRunpodUpscale(model, w.Redis)
 
 	// Initiate upscale
 	// We need to get width/height, from our database if output otherwise from the external image

@@ -35,6 +35,18 @@ type BannedResponse struct {
 	AffectedUsers int `json:"affected_users"`
 }
 
+// Get disposable domains
+func (c *RestAPI) HandleGetDisposableDomains(w http.ResponseWriter, r *http.Request) {
+	if user, email := c.GetUserIDAndEmailIfAuthenticated(w, r); user == nil || email == "" {
+		return
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, BanDomainRequest{
+		Domains: shared.GetCache().DisposableEmailDomains(),
+	})
+}
+
 // Bulk ban email domains
 func (c *RestAPI) HandleBanDomains(w http.ResponseWriter, r *http.Request) {
 	if user, email := c.GetUserIDAndEmailIfAuthenticated(w, r); user == nil || email == "" {

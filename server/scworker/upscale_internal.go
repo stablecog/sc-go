@@ -47,7 +47,7 @@ func CreateUpscaleInternal(AsynqClient *asynq.Client, S3 *s3.S3, Track *analytic
 		Input:   output.ID.String(),
 		ModelId: utils.ToPtr(upscaleModel.ID),
 	}
-	useRunpod := ShouldUseRunpodUpscale(upscaleModel)
+	useRunpod := ShouldUseRunpodUpscale(upscaleModel, Redis)
 
 	var upscale *ent.Upscale
 	var requestId uuid.UUID

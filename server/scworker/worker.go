@@ -27,7 +27,7 @@ type SCWorker struct {
 	AsynqClient    *asynq.Client
 }
 
-func ShouldUseRunpodGenerate(model *ent.GenerationModel) bool {
+func ShouldUseRunpodGenerate(model *ent.GenerationModel, redis *database.RedisWrapper) bool {
 	if model.RunpodEndpoint == nil {
 		return false
 	}
@@ -40,7 +40,7 @@ func ShouldUseRunpodGenerate(model *ent.GenerationModel) bool {
 	return false
 }
 
-func ShouldUseRunpodUpscale(model *ent.UpscaleModel) bool {
+func ShouldUseRunpodUpscale(model *ent.UpscaleModel, redis *database.RedisWrapper) bool {
 	if model.RunpodEndpoint == nil {
 		return false
 	}

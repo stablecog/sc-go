@@ -2,6 +2,7 @@ package repository
 
 import (
 	"github.com/stablecog/sc-go/database/ent/bannedwords"
+	"github.com/stablecog/sc-go/database/ent/disposableemail"
 	"github.com/stablecog/sc-go/database/ent/ipblacklist"
 	"github.com/stablecog/sc-go/database/ent/thumbmarkidblacklist"
 	"github.com/stablecog/sc-go/database/ent/usernameblacklist"
@@ -52,6 +53,17 @@ func (r *Repository) UpdateCache() error {
 		return err
 	}
 	shared.GetCache().SetAdminUUIDs(admins)
+
+	disposableEmailDomains, err := r.DB.DisposableEmail.Query().Select(disposableemail.FieldDomain).All(r.Ctx)
+	if err != nil {
+		log.Error("Failed to get disposable email domains", "err", err)
+		return err
+	}
+	disposableEmailDomainsStr := make([]string, len(disposableEmailDomains))
+	for i, domain := range disposableEmailDomains {
+		disposableEmailDomainsStr[i] = domain.Domain
+	}
+	shared.GetCache().UpdateDisposableEmailDomains(disposableEmailDomainsStr)
 
 	ipBlacklist, err := r.DB.IPBlackList.Query().Select(ipblacklist.FieldIP).All(r.Ctx)
 	if err != nil {

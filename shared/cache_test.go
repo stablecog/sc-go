@@ -155,3 +155,21 @@ func TestIsAdmin(t *testing.T) {
 	// Assert
 	assert.True(t, fc.IsAdmin(uid))
 }
+
+func TestUpdateDisposableEmails(t *testing.T) {
+	resetCache()
+	fc := GetCache()
+	assert.Len(t, fc.DisposableEmailDomains(), 0)
+	emails := []string{"test"}
+	fc.UpdateDisposableEmailDomains(emails)
+	assert.Equal(t, 1, len(fc.DisposableEmailDomains()))
+	assert.Equal(t, "test", fc.DisposableEmailDomains()[0])
+}
+
+func TestIsDisposableEmail(t *testing.T) {
+	resetCache()
+	fc := GetCache()
+	assert.False(t, fc.IsDisposableEmail("test"))
+	fc.UpdateDisposableEmailDomains([]string{"test"})
+	assert.True(t, fc.IsDisposableEmail("test@test"))
+}

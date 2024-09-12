@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
+	"github.com/stablecog/sc-go/log"
 	"golang.org/x/exp/slices"
 )
 
@@ -16,18 +18,19 @@ import (
 // Avoids having to query the database every time a user requests the features
 type Cache struct {
 	// Models and options available to free users //
-	generateModels       []*ent.GenerationModel
-	upscaleModels        []*ent.UpscaleModel
-	schedulers           []*ent.Scheduler
-	voiceoverModels      []*ent.VoiceoverModel
-	voiceoverSpeakers    []*ent.VoiceoverSpeaker
-	adminIDs             []uuid.UUID
-	iPBlacklist          []string
-	thumbmarkIDBlacklist []string
-	usernameBlacklist    []string
-	bannedWords          []*ent.BannedWords
-	clipUrls             []string
-	httpClient           *http.Client
+	generateModels         []*ent.GenerationModel
+	upscaleModels          []*ent.UpscaleModel
+	schedulers             []*ent.Scheduler
+	voiceoverModels        []*ent.VoiceoverModel
+	voiceoverSpeakers      []*ent.VoiceoverSpeaker
+	adminIDs               []uuid.UUID
+	iPBlacklist            []string
+	thumbmarkIDBlacklist   []string
+	disposableEmailDomains []string
+	usernameBlacklist      []string
+	bannedWords            []*ent.BannedWords
+	clipUrls               []string
+	httpClient             *http.Client
 	sync.RWMutex
 }
 
@@ -279,6 +282,18 @@ func (f *Cache) AdminIDs() []uuid.UUID {
 	return f.adminIDs
 }
 
+func (f *Cache) UpdateDisposableEmailDomains(domains []string) {
+	f.Lock()
+	defer f.Unlock()
+	f.disposableEmailDomains = domains
+}
+
+func (f *Cache) DisposableEmailDomains() []string {
+	f.RLock()
+	defer f.RUnlock()
+	return f.disposableEmailDomains
+}
+
 func (f *Cache) UpdateIPBlacklist(ips []string) {
 	f.Lock()
 	defer f.Unlock()
@@ -314,6 +329,32 @@ func (f *Cache) IsUsernameBlacklisted(username string) bool {
 	defer f.RUnlock()
 	for _, blacklistedUsername := range f.usernameBlacklist {
 		if username == blacklistedUsername {
+			return true
+		}
+	}
+	return false
+}
+
+func (f *Cache) IsDisposableEmail(email string) bool {
+	disposableEmailDomains := f.DisposableEmailDomains()
+	if !strings.Contains(email, "@") {
+		for _, disposableDomain := range disposableEmailDomains {
+			if email == disposableDomain {
+				log.Infof("🔴 📨 Disposable domain without @ symbol - Email: %s - Disposable Domain: %s", email, disposableDomain)
+				return true
+			}
+		}
+		return false
+	}
+
+	segs := strings.Split(email, "@")
+	if len(segs) != 2 {
+		return false
+	}
+	domain := strings.ToLower(segs[1])
+	for _, disposableDomain := range disposableEmailDomains {
+		if domain == disposableDomain {
+			log.Infof("🔴 📨 Disposable domain - Email: %s - Domain: %s - Disposable Domain: %s", email, domain, disposableDomain)
 			return true
 		}
 	}
