@@ -1025,7 +1025,7 @@ func main() {
 		if err != nil {
 			log.Error("Error updating cache", "err", err)
 		}
-		log.Infof("📦 🟢 Updated cache in: %d sec.", time.Since(start).Milliseconds())
+		log.Infof("📦 🟢 Updated cache in: %dms", time.Since(start).Milliseconds())
 	})
 
 	// Create SSE hub
