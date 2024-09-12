@@ -7,7 +7,6 @@ import (
 
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/discord"
-	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 )
 
@@ -83,9 +82,6 @@ func (m *Middleware) GeoIPMiddleware() func(next http.Handler) http.Handler {
 					_, err = m.Repo.BanDomains([]string{domain}, false)
 					if err != nil {
 						log.Errorf("Error inserting disposable email domain: %s", err.Error())
-					} else {
-						// Update in cache immediately
-						shared.GetCache().UpdateDisposableEmailDomains(append(shared.GetCache().DisposableEmailDomains(), domain))
 					}
 					// Sleep 30 seconds
 					time.Sleep(30 * time.Second)

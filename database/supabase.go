@@ -1,10 +1,12 @@
 package database
 
 import (
+	"context"
 	"errors"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
@@ -44,7 +46,7 @@ func (s *SupabaseAuth) AuthorizeWithDiscord() (authUrl string, err error) {
 	return res.AuthorizationURL, nil
 }
 
-func (s *SupabaseAuth) GetSupabaseUserIdFromAccessToken(accessToken string) (id, email string, lastSignIn *time.Time, err error) {
+func (s *SupabaseAuth) GetSupabaseUserIdFromAccessToken(accessToken string, db *ent.Client, ctx context.Context) (id, email string, lastSignIn *time.Time, err error) {
 	if accessToken == "" {
 		return "", "", nil, SupabaseAuthUnauthorized
 	}
@@ -66,7 +68,7 @@ func (s *SupabaseAuth) GetSupabaseUserIdFromAccessToken(accessToken string) (id,
 	}
 
 	// Check disposable email
-	if shared.GetCache().IsDisposableEmail(user.Email) {
+	if shared.IsDisposableEmail(user.Email, db, ctx) {
 		log.Info("User is using disposable email (unauthorized)", "email", user.Email)
 		return "", "", nil, SupabaseAuthUnauthorized
 	}

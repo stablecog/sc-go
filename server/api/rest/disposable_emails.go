@@ -27,7 +27,7 @@ func (c *RestAPI) HandleVerifyEmailDomain(w http.ResponseWriter, r *http.Request
 	}
 
 	valid := true
-	if emailReq.Email == "" || shared.GetCache().IsDisposableEmail(emailReq.Email) {
+	if emailReq.Email == "" || shared.IsDisposableEmail(emailReq.Email, c.Repo.DB, c.Repo.Ctx) {
 		valid = false
 	}
 

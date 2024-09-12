@@ -119,7 +119,7 @@ func (m *Middleware) AuthMiddleware(levels ...AuthLevel) func(next http.Handler)
 				ctx = context.WithValue(ctx, "api_token_id", token.ID.String())
 			} else {
 				// Check supabase to see if it's all good
-				userId, email, lastSignIn, err = m.SupabaseAuth.GetSupabaseUserIdFromAccessToken(authHeader[1])
+				userId, email, lastSignIn, err = m.SupabaseAuth.GetSupabaseUserIdFromAccessToken(authHeader[1], m.Repo.DB, m.Repo.Ctx)
 				if err != nil {
 					log.Error("Error getting user id from access token", "err", err)
 					responses.ErrUnauthorized(w, r)

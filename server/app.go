@@ -1017,13 +1017,15 @@ func main() {
 	}
 	// Update periodically
 	s := gocron.NewScheduler(time.UTC)
-	const cacheIntervalSec = 30
+	const cacheIntervalSec = 15
 	s.Every(cacheIntervalSec).Seconds().StartAt(time.Now().Add(cacheIntervalSec * time.Second)).Do(func() {
+		start := time.Now()
 		log.Info("📦 Updating cache...")
 		err = repo.UpdateCache()
 		if err != nil {
 			log.Error("Error updating cache", "err", err)
 		}
+		log.Infof("📦 🟢 Updated cache in: %d sec.", int(time.Since(start).Seconds()))
 	})
 
 	// Create SSE hub
@@ -1381,7 +1383,6 @@ func main() {
 			r.Route("/domains", func(r chi.Router) {
 				r.Use(mw.AuthMiddleware(middleware.AuthLevelSuperAdmin))
 				r.Use(middleware.Logger)
-				r.Get("/disposable", hc.HandleGetDisposableDomains)
 				r.Post("/ban", hc.HandleBanDomains)
 			})
 			r.Route("/clip", func(r chi.Router) {

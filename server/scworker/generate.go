@@ -341,7 +341,7 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 
 	modelName := model.NameInWorker
 
-	useRunpod := ShouldUseRunpodGenerate(model, w.Redis)
+	useRunpod := ShouldUseRunpodGenerate(model)
 
 	// Format prompts
 	generateReq.Prompt = utils.FormatPrompt(generateReq.Prompt)

@@ -54,7 +54,7 @@ func (a *ApiWrapper) ApproveAuthorization(w http.ResponseWriter, r *http.Request
 	accessToken := authHeader[1]
 
 	// Verify token
-	id, _, _, err := a.SupabaseAuth.GetSupabaseUserIdFromAccessToken(accessToken)
+	id, _, _, err := a.SupabaseAuth.GetSupabaseUserIdFromAccessToken(accessToken, a.Repo.DB, a.Repo.Ctx)
 	if err != nil {
 		log.Errorf("Error logging into supabase %v", err)
 		responses.ErrUnauthorized(w, r)
