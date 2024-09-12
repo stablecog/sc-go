@@ -54,19 +54,22 @@ func (j *JobRunner) CheckSCWorkerHealth(log Logger) error {
 		lastSuccessfulGenerationTime = successfulGenerations[0].CreatedAt
 	}
 
+	// create a test generation just for now
+	errGen := CreateTestGeneration(log, apiKey)
+	if errGen != nil {
+		log.Infof("SC Worker test generation failed -> Assuming unhealthy")
+	} else {
+		log.Infof("SC Worker test generation succeeded -> Assuming healthy")
+	}
+
 	// Last successful generation is too old, do a test generation
 	var durationMinutes float64 = 3
 	if time.Now().Sub(lastSuccessfulGenerationTime).Minutes() > durationMinutes {
-		// Assume unhealthy for now
-		workerHealthStatus = shared.UNHEALTHY
-
-		// Try to create a test generation
-		log.Infof(fmt.Sprintf("%f minutes since last successful generation", durationMinutes))
+		log.Infof(fmt.Sprintf("%d minutes since last successful generation.", int(durationMinutes)))
 		err := CreateTestGeneration(log, apiKey)
 		if err != nil {
 			log.Infof("SC Worker test generation failed -> Assuming unhealthy")
-		} else {
-			workerHealthStatus = shared.HEALTHY
+			workerHealthStatus = shared.UNHEALTHY
 		}
 	}
 
@@ -78,7 +81,7 @@ func (j *JobRunner) CheckSCWorkerHealth(log Logger) error {
 	if errRedis != nil {
 		log.Infof("🔴 Couldn't write SC Worker health status to Redis: %v", errRedis)
 	} else {
-		log.Infof("🔴 Wrote SC Worker health status to Redis: %d", workerHealthStatus)
+		log.Infof("🟢 Wrote SC Worker health status to Redis: %d", workerHealthStatus)
 	}
 
 	shouldActivateRunpodServerless := false
