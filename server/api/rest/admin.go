@@ -661,6 +661,7 @@ func (c *RestAPI) HandleSystemChangeBackend(w http.ResponseWriter, r *http.Reque
 		render.JSON(w, r, responses.ChangeSystemBackendResponse{
 			Backend: shared.BackendScWorker,
 		})
+		return
 	}
 	if req.Backend == shared.BackendRunpodServerless {
 		err := c.Repo.EnableRunpodServerless()
@@ -673,6 +674,7 @@ func (c *RestAPI) HandleSystemChangeBackend(w http.ResponseWriter, r *http.Reque
 		render.JSON(w, r, responses.ChangeSystemBackendResponse{
 			Backend: shared.BackendRunpodServerless,
 		})
+		return
 	}
 	responses.ErrBadRequest(w, r, "Invalid backend", fmt.Sprintf("Backend must one of the following: %s, %s", shared.BackendScWorker.String(), shared.BackendRunpodServerless.String()))
 }
