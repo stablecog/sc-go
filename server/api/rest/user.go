@@ -415,9 +415,7 @@ func getMoreCreditsInfo(userID uuid.UUID, highestProductID string, renewsAt *tim
 			}
 		}
 	} else if !stripeHadError && renewsAt != nil {
-		s := time.Now()
 		creditType, err := c.Repo.GetCreditTypeByStripeProductID(highestProductID)
-		log.Infof("HandleGetUserV2 - GetCreditTypeByStripeProductID: %dms", time.Since(s).Milliseconds())
 		if err != nil {
 			log.Warnf("Error getting credit type from product id '%s' %v", highestProductID, err)
 		} else {
