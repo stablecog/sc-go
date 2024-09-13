@@ -642,7 +642,6 @@ func (c *RestAPI) HandleEmbedText(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *RestAPI) HandleSystemChangeBackend(w http.ResponseWriter, r *http.Request) {
-	// Parse request body
 	reqBody, _ := io.ReadAll(r.Body)
 	var req requests.ChangeSystemBackendRequest
 	err := json.Unmarshal(reqBody, &req)
