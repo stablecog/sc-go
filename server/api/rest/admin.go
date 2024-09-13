@@ -675,12 +675,10 @@ func (c *RestAPI) HandleSystemChangeBackend(w http.ResponseWriter, r *http.Reque
 		})
 		return
 	}
-	responses.ErrBadRequest(w, r, "Invalid backend", fmt.Sprintf("Backend must one of the following: %s, %s", shared.BackendScWorker.String(), shared.BackendRunpodServerless.String()))
+	responses.ErrBadRequest(w, r, "Invalid backend", fmt.Sprintf("Backend must one of the following: %v", shared.BACKENDS))
 }
 
 func (c *RestAPI) HandleSystemStatus(w http.ResponseWriter, r *http.Request) {
-	backends := []shared.BackendType{shared.BackendScWorker, shared.BackendRunpodServerless}
-
 	isRunpodServerless, err := c.Repo.IsRunpodServerlessActive()
 	if err != nil {
 		log.Error("Error checking runpod serverless status", "err", err)
@@ -692,7 +690,7 @@ func (c *RestAPI) HandleSystemStatus(w http.ResponseWriter, r *http.Request) {
 		render.Status(r, http.StatusOK)
 		render.JSON(w, r, responses.SystemStatusResponse{
 			Backend:  shared.BackendRunpodServerless,
-			Backends: backends,
+			Backends: shared.BACKENDS,
 		})
 		return
 	}
@@ -700,7 +698,7 @@ func (c *RestAPI) HandleSystemStatus(w http.ResponseWriter, r *http.Request) {
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, responses.SystemStatusResponse{
 		Backend:  shared.BackendScWorker,
-		Backends: backends,
+		Backends: shared.BACKENDS,
 	})
 	return
 }

@@ -248,6 +248,8 @@ const (
 	BackendScWorker         BackendType = "sc-worker"
 )
 
+var BACKENDS = []BackendType{BackendRunpodServerless, BackendScWorker}
+
 // String returns the string representation of the BackendType
 func (b BackendType) String() string {
 	return string(b)
