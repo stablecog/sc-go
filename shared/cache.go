@@ -26,7 +26,7 @@ type Cache struct {
 	adminIDs               []uuid.UUID
 	iPBlacklist            []string
 	thumbmarkIDBlacklist   []string
-	disposableEmailDomains []string
+	disposableEmailDomains map[string]bool
 	usernameBlacklist      []string
 	bannedWords            []*ent.BannedWords
 	clipUrls               []string
@@ -39,6 +39,7 @@ var singleCache *Cache
 
 func newCache() *Cache {
 	return &Cache{
+		disposableEmailDomains: make(map[string]bool),
 		httpClient: &http.Client{
 			Timeout: time.Second * 30, // Set a timeout for all requests
 		},
@@ -285,13 +286,21 @@ func (f *Cache) AdminIDs() []uuid.UUID {
 func (f *Cache) UpdateDisposableEmailDomains(domains []string) {
 	f.Lock()
 	defer f.Unlock()
-	f.disposableEmailDomains = domains
+	for _, domain := range domains {
+		f.disposableEmailDomains[domain] = true
+	}
 }
 
 func (f *Cache) DisposableEmailDomains() []string {
 	f.RLock()
 	defer f.RUnlock()
-	return f.disposableEmailDomains
+	domains := make([]string, len(f.disposableEmailDomains))
+	i := 0
+	for domain := range f.disposableEmailDomains {
+		domains[i] = domain
+		i++
+	}
+	return domains
 }
 
 func (f *Cache) UpdateIPBlacklist(ips []string) {
@@ -336,28 +345,33 @@ func (f *Cache) IsUsernameBlacklisted(username string) bool {
 }
 
 func (f *Cache) IsDisposableEmail(email string) bool {
-	disposableEmailDomains := f.DisposableEmailDomains()
+	f.RLock()
+	defer f.RUnlock()
+
+	email = strings.ToLower(email)
+
+	// Check if the email is actually a domain without @
 	if !strings.Contains(email, "@") {
-		for _, disposableDomain := range disposableEmailDomains {
-			if email == disposableDomain {
-				log.Infof("🔴 📨 Disposable domain without @ symbol - Email: %s - Disposable Domain: %s", email, disposableDomain)
-				return true
-			}
+		if _, exists := f.disposableEmailDomains[email]; exists {
+			log.Infof("🔴 📨 Disposable domain without @ symbol - Email: %s", email)
+			return true
 		}
 		return false
 	}
 
-	segs := strings.Split(email, "@")
-	if len(segs) != 2 {
+	// Split the email into local part and domain
+	parts := strings.Split(email, "@")
+	if len(parts) != 2 {
 		return false
 	}
-	domain := strings.ToLower(segs[1])
-	for _, disposableDomain := range disposableEmailDomains {
-		if domain == disposableDomain {
-			log.Infof("🔴 📨 Disposable domain - Email: %s - Domain: %s - Disposable Domain: %s", email, domain, disposableDomain)
-			return true
-		}
+	domain := parts[1]
+
+	// Check if the domain is in the disposable email domains map
+	if _, exists := f.disposableEmailDomains[domain]; exists {
+		log.Infof("🔴 📨 Disposable domain - Email: %s - Domain: %s", email, domain)
+		return true
 	}
+
 	return false
 }
 
