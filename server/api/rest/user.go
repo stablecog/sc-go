@@ -75,12 +75,10 @@ func (c *RestAPI) HandleGetUserV2(w http.ResponseWriter, r *http.Request) {
 
 	// Update last_seen_at in a separate GO routine, it's not critical to the result of this function
 	go func() {
-		m := time.Now()
 		err := c.Repo.UpdateLastSeenAt(*userID)
 		if err != nil {
 			log.Warn("HandleGetUserV2 - Error updating last seen at", "err", err, "user", userID.String())
 		}
-		log.Infof("HandleGetUserV2 - UpdateLastSeenAt: %dms", time.Since(m).Milliseconds())
 	}()
 
 	type result struct {
