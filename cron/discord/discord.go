@@ -61,8 +61,8 @@ func (d *DiscordHealthTracker) SendDiscordNotificationIfNeeded(
 	generations []*ent.Generation,
 	lastGenerationTime time.Time,
 	lastSuccessfulGenerationTime time.Time,
-	shouldActivateRunpodServerless bool,
-	activatedRunpodServerless bool,
+	isRunpodServerlessActive bool,
+	runpodServerlessErr error,
 ) error {
 	sinceHealthyNotification := time.Since(d.lastHealthyNotificationTime)
 	sinceUnhealthyNotification := time.Since(d.lastUnhealthyNotificationTime)
@@ -96,7 +96,14 @@ func (d *DiscordHealthTracker) SendDiscordNotificationIfNeeded(
 	log.Info("Sending Discord notification...")
 
 	// Build webhook body
-	webhookBody := getDiscordWebhookBody(status, generations, lastGenerationTime, lastSuccessfulGenerationTime, shouldActivateRunpodServerless, activatedRunpodServerless)
+	webhookBody := getDiscordWebhookBody(
+		status,
+		generations,
+		lastGenerationTime,
+		lastSuccessfulGenerationTime,
+		isRunpodServerlessActive,
+		runpodServerlessErr,
+	)
 	reqBody, err := json.Marshal(webhookBody)
 	if err != nil {
 		log.Error("Error marshalling webhook body", "err", err)
@@ -135,8 +142,8 @@ func getDiscordWebhookBody(
 	generations []*ent.Generation,
 	lastGenerationTime time.Time,
 	lastSuccessfulGenerationTime time.Time,
-	shouldActivateRunpodServerless bool,
-	activatedRunpodServerless bool,
+	isRunpodServerlessActive bool,
+	runpodServerlessErr error,
 ) models.DiscordWebhookBody {
 	generationsStr := ""
 	generationsStrArr := []string{}
@@ -167,14 +174,10 @@ func getDiscordWebhookBody(
 		content = &mentionStr
 	}
 
-	activatedRunpodServerlessStr := "Not needed"
+	isRunpodServerlessActiveStr := "⚪️ Inactive"
 
-	if shouldActivateRunpodServerless {
-		if activatedRunpodServerless {
-			activatedRunpodServerlessStr = "🟢 Activated"
-		} else {
-			activatedRunpodServerlessStr = "🔴 Couldn't activate"
-		}
+	if isRunpodServerlessActive {
+		isRunpodServerlessActiveStr = "🟢 Active"
 	}
 
 	body := models.DiscordWebhookBody{
@@ -200,8 +203,8 @@ func getDiscordWebhookBody(
 						Value: fmt.Sprintf("```%s```", utils.RelativeTimeStr(lastSuccessfulGenerationTime)),
 					},
 					{
-						Name:  "Activate Runpod Serverless",
-						Value: fmt.Sprintf("```%s```", activatedRunpodServerlessStr),
+						Name:  "Runpod Serverless Status",
+						Value: fmt.Sprintf("```%s```", isRunpodServerlessActiveStr),
 					},
 				},
 				Footer: models.DiscordWebhookEmbedFooter{
@@ -211,5 +214,13 @@ func getDiscordWebhookBody(
 		},
 		Attachments: []models.DiscordWebhookAttachment{},
 	}
+
+	if runpodServerlessErr != nil {
+		body.Embeds[0].Fields = append(body.Embeds[0].Fields, models.DiscordWebhookField{
+			Name:  "Runpod Serverless Error",
+			Value: fmt.Sprintf("```%s```", runpodServerlessErr.Error()),
+		})
+	}
+
 	return body
 }

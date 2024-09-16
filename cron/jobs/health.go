@@ -74,17 +74,24 @@ func (j *JobRunner) CheckSCWorkerHealth(log Logger) error {
 		log.Infof("🟢 Wrote SC Worker health status to Redis: %d", workerHealthStatus)
 	}
 
-	shouldActivateRunpodServerless := false
-	activatedRunpodServerless := false
+	isRunpodServerlessActive, runpodServerlessErr := j.Repo.IsRunpodServerlessActive()
 
-	if workerHealthStatus != shared.HEALTHY {
-		shouldActivateRunpodServerless = true
+	if runpodServerlessErr != nil {
+		log.Errorf("🏃‍♂️‍➡️📦 🔴 Couldn't check if Runpod serverless is active: %v", runpodServerlessErr)
+	}
+
+	if isRunpodServerlessActive {
+		log.Infof("🏃‍♂️‍➡️📦 🟢 Runpod serverless is active")
+	}
+
+	if workerHealthStatus != shared.HEALTHY && !isRunpodServerlessActive {
 		err := j.Repo.EnableRunpodServerless()
 		if err != nil {
 			log.Errorf("🏃‍♂️‍➡️📦 🔴 Couldn't activate Runpod serverless: %v", err)
+			runpodServerlessErr = err
 		} else {
 			log.Infof("🏃‍♂️‍➡️📦 🟢 Activated Runpod serverless")
-			activatedRunpodServerless = true
+			isRunpodServerlessActive = true
 		}
 	}
 
@@ -93,8 +100,8 @@ func (j *JobRunner) CheckSCWorkerHealth(log Logger) error {
 		generations,
 		lastGenerationTime,
 		lastSuccessfulGenerationTime,
-		shouldActivateRunpodServerless,
-		activatedRunpodServerless,
+		isRunpodServerlessActive,
+		runpodServerlessErr,
 	)
 }
 
