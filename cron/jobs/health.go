@@ -121,7 +121,7 @@ type ResponseBody struct {
 }
 
 func CreateTestGeneration(log Logger, apiKey string) error {
-	log.Infof("Creating test generation to check SC Worker health...")
+	log.Infof("Creating SC Worker test generation to check SC Worker health...")
 
 	if apiKey == "" {
 		log.Errorf("SC Worker tester API key not found")
@@ -144,6 +144,8 @@ func CreateTestGeneration(log Logger, apiKey string) error {
 	jsonData, err := json.Marshal(requestBody)
 	if err != nil {
 		log.Errorf("SC Worker test generation: Couldn't marshal json %v", err)
+debugString := fmt.Sprintf("%+v", requestBody)
+    log.Errorf("SC Worker test generation request body contents: %s", debugString)
 		return err
 	}
 
