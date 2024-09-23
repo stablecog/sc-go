@@ -121,10 +121,10 @@ type ResponseBody struct {
 }
 
 func CreateTestGeneration(log Logger, apiKey string) error {
-	log.Infof("Creating SC Worker test generation to check SC Worker health...")
+	log.Infof("🧪 Creating test generation to check SC Worker health...")
 
 	if apiKey == "" {
-		log.Errorf("SC Worker tester API key not found")
+		log.Errorf("🧪 🔴 SC Worker tester API key not found")
 		return fmt.Errorf("SC Worker tester API key not found")
 	}
 
@@ -143,15 +143,15 @@ func CreateTestGeneration(log Logger, apiKey string) error {
 
 	jsonData, err := json.Marshal(requestBody)
 	if err != nil {
-		log.Errorf("SC Worker test generation: Couldn't marshal json %v", err)
-debugString := fmt.Sprintf("%+v", requestBody)
-    log.Errorf("SC Worker test generation request body contents: %s", debugString)
+		log.Errorf("🧪 🔴 Couldn't marshal json %v", err)
+		debugString := fmt.Sprintf("%+v", requestBody)
+		log.Errorf("🧪 🔴 Request body: %s", debugString)
 		return err
 	}
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
 	if err != nil {
-		log.Errorf("SC Worker test generation: Couldn't create request %v", err)
+		log.Errorf("🧪 🔴 Couldn't create request %v", err)
 		return err
 	}
 
@@ -160,30 +160,30 @@ debugString := fmt.Sprintf("%+v", requestBody)
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Errorf("SC Worker test generation: Couldn't send request %v", err)
+		log.Errorf("🧪 🔴 Couldn't send request %v", err)
 		return err
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Errorf("SC Worker test generation: Couldn't read response body %v", err)
+		log.Errorf("🧪 🔴 Couldn't read response body %v", err)
 		return err
 	}
 
 	var responseBody ResponseBody
 	err = json.Unmarshal(body, &responseBody)
 	if err != nil {
-		log.Errorf("SC Worker test generation: Couldn't unmarshal response body %v", err)
+		log.Errorf("🧪 🔴 Couldn't unmarshal response body %v", err)
 		return err
 	}
 
 	if len(responseBody.Outputs) == 0 {
-		log.Errorf("SC Worker test generation: No outputs in response")
+		log.Errorf("🧪 🔴 No outputs in response")
 		return fmt.Errorf("SC Worker test generation: No outputs in response")
 	}
 
-	log.Infof("SC Worker test generation url: %s", responseBody.Outputs[0].ImageURL)
+	log.Infof("🧪 🟢 SC Worker test generation created: %s", responseBody.Outputs[0].ImageURL)
 
 	return nil
 }
