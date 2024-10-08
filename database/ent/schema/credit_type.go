@@ -24,6 +24,7 @@ func (CreditType) Fields() []ent.Field {
 		field.Text("description").Optional().Nillable(),
 		field.Int32("amount"),
 		field.Text("stripe_product_id").Optional().Nillable(),
+		field.Bool("annual").Default(false),
 		field.Enum("type").Values("free", "subscription", "one_time", "tippable"),
 		field.Time("created_at").Default(time.Now).Immutable(),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),

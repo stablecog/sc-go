@@ -76,6 +76,11 @@ func StripeProductID(v string) predicate.CreditType {
 	return predicate.CreditType(sql.FieldEQ(FieldStripeProductID, v))
 }
 
+// Annual applies equality check predicate on the "annual" field. It's identical to AnnualEQ.
+func Annual(v bool) predicate.CreditType {
+	return predicate.CreditType(sql.FieldEQ(FieldAnnual, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.CreditType {
 	return predicate.CreditType(sql.FieldEQ(FieldCreatedAt, v))
@@ -339,6 +344,16 @@ func StripeProductIDEqualFold(v string) predicate.CreditType {
 // StripeProductIDContainsFold applies the ContainsFold predicate on the "stripe_product_id" field.
 func StripeProductIDContainsFold(v string) predicate.CreditType {
 	return predicate.CreditType(sql.FieldContainsFold(FieldStripeProductID, v))
+}
+
+// AnnualEQ applies the EQ predicate on the "annual" field.
+func AnnualEQ(v bool) predicate.CreditType {
+	return predicate.CreditType(sql.FieldEQ(FieldAnnual, v))
+}
+
+// AnnualNEQ applies the NEQ predicate on the "annual" field.
+func AnnualNEQ(v bool) predicate.CreditType {
+	return predicate.CreditType(sql.FieldNEQ(FieldAnnual, v))
 }
 
 // TypeEQ applies the EQ predicate on the "type" field.

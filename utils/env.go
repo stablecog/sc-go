@@ -35,6 +35,10 @@ type SCEnv struct {
 	StripeUltimateProductID string `env:"STRIPE_ULTIMATE_PRODUCT_ID" envDefault:"prod_NTzE0C8bEuIv6F"`
 	StripeProProductID      string `env:"STRIPE_PRO_PRODUCT_ID" envDefault:"prod_NTzCojAHPw6tbX"`
 	StripeStarterProductID  string `env:"STRIPE_STARTER_PRODUCT_ID" envDefault:"prod_NPuwbni7ZNkHDO"`
+	// Annual price IDss
+	StripeUltimateAnnualPriceID string `env:"STRIPE_ULTIMATE_ANNUAL_PRICE_ID" envDefault:"price_1Mf5BjATa0ehBYTA5Z3Z2Z6v"`
+	StripeProAnnualPriceID      string `env:"STRIPE_PRO_ANNUAL_PRICE_ID" envDefault:"price_1Mf5BjATa0ehBYTA5Z3Z2Z6v"`
+	StripeStarterAnnualPriceID  string `env:"STRIPE_STARTER_ANNUAL_PRICE_ID" envDefault:"price_1Mf5BjATa0ehBYTA5Z3Z2Z6v"`
 	// Stripe ad-hoc purchase price + product IDs
 	StripeLargePackPriceID    string `env:"STRIPE_LARGE_PACK_PRICE_ID" envDefault:"1"`
 	StripeMediumPackPriceID   string `env:"STRIPE_MEDIUM_PACK_PRICE_ID" envDefault:"2"`

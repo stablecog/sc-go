@@ -24,6 +24,8 @@ const (
 	FieldAmount = "amount"
 	// FieldStripeProductID holds the string denoting the stripe_product_id field in the database.
 	FieldStripeProductID = "stripe_product_id"
+	// FieldAnnual holds the string denoting the annual field in the database.
+	FieldAnnual = "annual"
 	// FieldType holds the string denoting the type field in the database.
 	FieldType = "type"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
@@ -50,6 +52,7 @@ var Columns = []string{
 	FieldDescription,
 	FieldAmount,
 	FieldStripeProductID,
+	FieldAnnual,
 	FieldType,
 	FieldCreatedAt,
 	FieldUpdatedAt,
@@ -66,6 +69,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultAnnual holds the default value on creation for the "annual" field.
+	DefaultAnnual bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
@@ -127,6 +132,11 @@ func ByAmount(opts ...sql.OrderTermOption) OrderOption {
 // ByStripeProductID orders the results by the stripe_product_id field.
 func ByStripeProductID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldStripeProductID, opts...).ToFunc()
+}
+
+// ByAnnual orders the results by the annual field.
+func ByAnnual(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAnnual, opts...).ToFunc()
 }
 
 // ByType orders the results by the type field.

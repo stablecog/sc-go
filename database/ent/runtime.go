@@ -127,12 +127,16 @@ func init() {
 	credit.DefaultID = creditDescID.Default.(func() uuid.UUID)
 	credittypeFields := schema.CreditType{}.Fields()
 	_ = credittypeFields
+	// credittypeDescAnnual is the schema descriptor for annual field.
+	credittypeDescAnnual := credittypeFields[5].Descriptor()
+	// credittype.DefaultAnnual holds the default value on creation for the annual field.
+	credittype.DefaultAnnual = credittypeDescAnnual.Default.(bool)
 	// credittypeDescCreatedAt is the schema descriptor for created_at field.
-	credittypeDescCreatedAt := credittypeFields[6].Descriptor()
+	credittypeDescCreatedAt := credittypeFields[7].Descriptor()
 	// credittype.DefaultCreatedAt holds the default value on creation for the created_at field.
 	credittype.DefaultCreatedAt = credittypeDescCreatedAt.Default.(func() time.Time)
 	// credittypeDescUpdatedAt is the schema descriptor for updated_at field.
-	credittypeDescUpdatedAt := credittypeFields[7].Descriptor()
+	credittypeDescUpdatedAt := credittypeFields[8].Descriptor()
 	// credittype.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	credittype.DefaultUpdatedAt = credittypeDescUpdatedAt.Default.(func() time.Time)
 	// credittype.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

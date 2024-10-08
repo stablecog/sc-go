@@ -84,5 +84,11 @@ spec:
               value: price_1Mr4aEATa0ehBYTAalXOVpeg
             - name: STRIPE_MEGA_PACK_PRODUCT_ID
               value: prod_NcJCespFpjjQJj
+            - name: STRIPE_STARTER_ANNUAL_PRICE_ID
+              value: price_1Q7ctVATa0ehBYTAwksAyNVo
+            - name: STRIPE_PRO_ANNUAL_PRICE_ID
+              value: price_1Q7cvsATa0ehBYTArTrZp9jq
+            - name: STRIPE_ULTIMATE_ANNUAL_PRICE_ID
+              value: price_1Q7cwdATa0ehBYTAD0Pu3Fxw
             - name: LOKI_APPLICATION_LABEL
               value: sc-lingua
