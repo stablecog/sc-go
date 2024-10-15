@@ -22,8 +22,12 @@ type Credit struct {
 	ID uuid.UUID `json:"id,omitempty"`
 	// RemainingAmount holds the value of the "remaining_amount" field.
 	RemainingAmount int32 `json:"remaining_amount,omitempty"`
+	// StartsAt holds the value of the "starts_at" field.
+	StartsAt time.Time `json:"starts_at,omitempty"`
 	// ExpiresAt holds the value of the "expires_at" field.
 	ExpiresAt time.Time `json:"expires_at,omitempty"`
+	// Represents the period number for multi-period subscriptions (e.g., annual)
+	Period int `json:"period,omitempty"`
 	// StripeLineItemID holds the value of the "stripe_line_item_id" field.
 	StripeLineItemID *string `json:"stripe_line_item_id,omitempty"`
 	// ReplenishedAt holds the value of the "replenished_at" field.
@@ -80,11 +84,11 @@ func (*Credit) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case credit.FieldRemainingAmount:
+		case credit.FieldRemainingAmount, credit.FieldPeriod:
 			values[i] = new(sql.NullInt64)
 		case credit.FieldStripeLineItemID:
 			values[i] = new(sql.NullString)
-		case credit.FieldExpiresAt, credit.FieldReplenishedAt, credit.FieldCreatedAt, credit.FieldUpdatedAt:
+		case credit.FieldStartsAt, credit.FieldExpiresAt, credit.FieldReplenishedAt, credit.FieldCreatedAt, credit.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		case credit.FieldID, credit.FieldUserID, credit.FieldCreditTypeID:
 			values[i] = new(uuid.UUID)
@@ -115,11 +119,23 @@ func (c *Credit) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				c.RemainingAmount = int32(value.Int64)
 			}
+		case credit.FieldStartsAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field starts_at", values[i])
+			} else if value.Valid {
+				c.StartsAt = value.Time
+			}
 		case credit.FieldExpiresAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field expires_at", values[i])
 			} else if value.Valid {
 				c.ExpiresAt = value.Time
+			}
+		case credit.FieldPeriod:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field period", values[i])
+			} else if value.Valid {
+				c.Period = int(value.Int64)
 			}
 		case credit.FieldStripeLineItemID:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -207,8 +223,14 @@ func (c *Credit) String() string {
 	builder.WriteString("remaining_amount=")
 	builder.WriteString(fmt.Sprintf("%v", c.RemainingAmount))
 	builder.WriteString(", ")
+	builder.WriteString("starts_at=")
+	builder.WriteString(c.StartsAt.Format(time.ANSIC))
+	builder.WriteString(", ")
 	builder.WriteString("expires_at=")
 	builder.WriteString(c.ExpiresAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("period=")
+	builder.WriteString(fmt.Sprintf("%v", c.Period))
 	builder.WriteString(", ")
 	if v := c.StripeLineItemID; v != nil {
 		builder.WriteString("stripe_line_item_id=")

@@ -61,9 +61,19 @@ func RemainingAmount(v int32) predicate.Credit {
 	return predicate.Credit(sql.FieldEQ(FieldRemainingAmount, v))
 }
 
+// StartsAt applies equality check predicate on the "starts_at" field. It's identical to StartsAtEQ.
+func StartsAt(v time.Time) predicate.Credit {
+	return predicate.Credit(sql.FieldEQ(FieldStartsAt, v))
+}
+
 // ExpiresAt applies equality check predicate on the "expires_at" field. It's identical to ExpiresAtEQ.
 func ExpiresAt(v time.Time) predicate.Credit {
 	return predicate.Credit(sql.FieldEQ(FieldExpiresAt, v))
+}
+
+// Period applies equality check predicate on the "period" field. It's identical to PeriodEQ.
+func Period(v int) predicate.Credit {
+	return predicate.Credit(sql.FieldEQ(FieldPeriod, v))
 }
 
 // StripeLineItemID applies equality check predicate on the "stripe_line_item_id" field. It's identical to StripeLineItemIDEQ.
@@ -136,6 +146,46 @@ func RemainingAmountLTE(v int32) predicate.Credit {
 	return predicate.Credit(sql.FieldLTE(FieldRemainingAmount, v))
 }
 
+// StartsAtEQ applies the EQ predicate on the "starts_at" field.
+func StartsAtEQ(v time.Time) predicate.Credit {
+	return predicate.Credit(sql.FieldEQ(FieldStartsAt, v))
+}
+
+// StartsAtNEQ applies the NEQ predicate on the "starts_at" field.
+func StartsAtNEQ(v time.Time) predicate.Credit {
+	return predicate.Credit(sql.FieldNEQ(FieldStartsAt, v))
+}
+
+// StartsAtIn applies the In predicate on the "starts_at" field.
+func StartsAtIn(vs ...time.Time) predicate.Credit {
+	return predicate.Credit(sql.FieldIn(FieldStartsAt, vs...))
+}
+
+// StartsAtNotIn applies the NotIn predicate on the "starts_at" field.
+func StartsAtNotIn(vs ...time.Time) predicate.Credit {
+	return predicate.Credit(sql.FieldNotIn(FieldStartsAt, vs...))
+}
+
+// StartsAtGT applies the GT predicate on the "starts_at" field.
+func StartsAtGT(v time.Time) predicate.Credit {
+	return predicate.Credit(sql.FieldGT(FieldStartsAt, v))
+}
+
+// StartsAtGTE applies the GTE predicate on the "starts_at" field.
+func StartsAtGTE(v time.Time) predicate.Credit {
+	return predicate.Credit(sql.FieldGTE(FieldStartsAt, v))
+}
+
+// StartsAtLT applies the LT predicate on the "starts_at" field.
+func StartsAtLT(v time.Time) predicate.Credit {
+	return predicate.Credit(sql.FieldLT(FieldStartsAt, v))
+}
+
+// StartsAtLTE applies the LTE predicate on the "starts_at" field.
+func StartsAtLTE(v time.Time) predicate.Credit {
+	return predicate.Credit(sql.FieldLTE(FieldStartsAt, v))
+}
+
 // ExpiresAtEQ applies the EQ predicate on the "expires_at" field.
 func ExpiresAtEQ(v time.Time) predicate.Credit {
 	return predicate.Credit(sql.FieldEQ(FieldExpiresAt, v))
@@ -174,6 +224,46 @@ func ExpiresAtLT(v time.Time) predicate.Credit {
 // ExpiresAtLTE applies the LTE predicate on the "expires_at" field.
 func ExpiresAtLTE(v time.Time) predicate.Credit {
 	return predicate.Credit(sql.FieldLTE(FieldExpiresAt, v))
+}
+
+// PeriodEQ applies the EQ predicate on the "period" field.
+func PeriodEQ(v int) predicate.Credit {
+	return predicate.Credit(sql.FieldEQ(FieldPeriod, v))
+}
+
+// PeriodNEQ applies the NEQ predicate on the "period" field.
+func PeriodNEQ(v int) predicate.Credit {
+	return predicate.Credit(sql.FieldNEQ(FieldPeriod, v))
+}
+
+// PeriodIn applies the In predicate on the "period" field.
+func PeriodIn(vs ...int) predicate.Credit {
+	return predicate.Credit(sql.FieldIn(FieldPeriod, vs...))
+}
+
+// PeriodNotIn applies the NotIn predicate on the "period" field.
+func PeriodNotIn(vs ...int) predicate.Credit {
+	return predicate.Credit(sql.FieldNotIn(FieldPeriod, vs...))
+}
+
+// PeriodGT applies the GT predicate on the "period" field.
+func PeriodGT(v int) predicate.Credit {
+	return predicate.Credit(sql.FieldGT(FieldPeriod, v))
+}
+
+// PeriodGTE applies the GTE predicate on the "period" field.
+func PeriodGTE(v int) predicate.Credit {
+	return predicate.Credit(sql.FieldGTE(FieldPeriod, v))
+}
+
+// PeriodLT applies the LT predicate on the "period" field.
+func PeriodLT(v int) predicate.Credit {
+	return predicate.Credit(sql.FieldLT(FieldPeriod, v))
+}
+
+// PeriodLTE applies the LTE predicate on the "period" field.
+func PeriodLTE(v int) predicate.Credit {
+	return predicate.Credit(sql.FieldLTE(FieldPeriod, v))
 }
 
 // StripeLineItemIDEQ applies the EQ predicate on the "stripe_line_item_id" field.

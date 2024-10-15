@@ -68,7 +68,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 	}
 	repo.DB.User.Update().Where(user.IDEQ(u.ID)).AddRoles(sAdminRole).ExecX(ctx)
 	// Give user credits
-	_, err = repo.AddCreditsIfEligible(creditType, u.ID, time.Now().AddDate(0, 0, 30), "", nil)
+	_, err = repo.AddCreditsIfEligible(creditType, u.ID, time.Now().AddDate(0, 0, 30), false, "", nil)
 	if err != nil {
 		return err
 	}
@@ -82,7 +82,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 		return err
 	}
 	// Give user credits
-	_, err = repo.AddCreditsIfEligible(creditType, u.ID, time.Now().AddDate(0, 0, 30), "", nil)
+	_, err = repo.AddCreditsIfEligible(creditType, u.ID, time.Now().AddDate(0, 0, 30), false, "", nil)
 	if err != nil {
 		return err
 	}
@@ -97,7 +97,7 @@ func (repo *Repository) CreateMockData(ctx context.Context) error {
 		return err
 	}
 	// Give user credits
-	_, err = repo.AddCreditsIfEligible(creditType, u.ID, time.Now().AddDate(0, 0, 30), "", nil)
+	_, err = repo.AddCreditsIfEligible(creditType, u.ID, time.Now().AddDate(0, 0, 30), false, "", nil)
 	if err != nil {
 		return err
 	}

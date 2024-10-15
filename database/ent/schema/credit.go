@@ -22,7 +22,9 @@ func (Credit) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New),
 		field.Int32("remaining_amount"),
+		field.Time("starts_at").Default(time.Unix(0, 0)),
 		field.Time("expires_at"),
+		field.Int("period").Default(0).Comment("Represents the period number for multi-period subscriptions (e.g., annual)"),
 		field.String("stripe_line_item_id").Optional().Nillable(),
 		field.Time("replenished_at").Default(time.Now),
 		// ! Relationships / many-to-one
@@ -63,6 +65,6 @@ func (Credit) Annotations() []schema.Annotation {
 func (Credit) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("expires_at", "user_id", "remaining_amount"),
-		index.Fields("stripe_line_item_id", "credit_type_id").Unique(),
+		index.Fields("stripe_line_item_id", "credit_type_id", "period").Unique(),
 	}
 }

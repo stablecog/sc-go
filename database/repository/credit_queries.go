@@ -15,7 +15,7 @@ import (
 func (r *Repository) GetTippableSumForUser(userID uuid.UUID) (int, error) {
 	return r.DB.Credit.Query().
 		Where(
-			credit.UserID(userID), credit.ExpiresAtGT(time.Now()), credit.CreditTypeIDEQ(uuid.MustParse(TIPPABLE_CREDIT_TYPE_ID)),
+			credit.UserID(userID), credit.StartsAtLTE(time.Now()), credit.ExpiresAtGT(time.Now()), credit.CreditTypeIDEQ(uuid.MustParse(TIPPABLE_CREDIT_TYPE_ID)),
 		).
 		Aggregate(
 			ent.Sum(credit.FieldRemainingAmount),
@@ -122,7 +122,7 @@ func (r *Repository) GetNonExpiredCreditTotalForUser(userID uuid.UUID, DB *ent.C
 	var total []struct {
 		Sum int
 	}
-	err := DB.Credit.Query().Where(credit.UserID(userID), credit.ExpiresAtGT(time.Now()), credit.CreditTypeIDNEQ(uuid.MustParse(TIPPABLE_CREDIT_TYPE_ID))).Aggregate(ent.Sum(credit.FieldRemainingAmount)).Scan(r.Ctx, &total)
+	err := DB.Credit.Query().Where(credit.UserID(userID), credit.StartsAtLTE(time.Now()), credit.ExpiresAtGT(time.Now()), credit.CreditTypeIDNEQ(uuid.MustParse(TIPPABLE_CREDIT_TYPE_ID))).Aggregate(ent.Sum(credit.FieldRemainingAmount)).Scan(r.Ctx, &total)
 	if err != nil {
 		return 0, err
 	} else if len(total) == 0 {
