@@ -1424,3 +1424,32 @@ alter table public.upscale_models add column runpod_endpoint text;
 
 alter table public.generation_models add column runpod_active boolean default false not null;
 alter table public.upscale_models add column runpod_active boolean default false not null;
+
+-- Add annual option
+alter table public.credit_types add column annual boolean default false not null;
+
+--- Add the 'period' column
+ALTER TABLE public.credits
+ADD COLUMN period INTEGER NOT NULL DEFAULT 0;
+
+-- Add the 'starts_at' column
+ALTER TABLE public.credits
+ADD COLUMN starts_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT '1970-01-01 00:00:00+00';
+
+-- Drop the existing unique constraint on stripe_line_item_id and credit_type_id
+ALTER TABLE public.credits
+DROP CONSTRAINT credit_stripe_line_item_id_credit_type_id;
+
+-- Create a new unique index including period
+CREATE UNIQUE INDEX credit_stripe_line_item_id_credit_type_id_period 
+ON public.credits (stripe_line_item_id, credit_type_id, period);
+
+-- Create a new index for starts_at, expires_at, and user_id
+CREATE INDEX credit_starts_at_expires_at_user_id 
+ON public.credits (starts_at, expires_at, user_id);
+
+-- Update the comment on the period column
+COMMENT ON COLUMN public.credits.period IS 'Represents the period number for multi-period subscriptions (e.g., annual)';
+
+-- Update the comment on the starts_at column
+COMMENT ON COLUMN public.credits.starts_at IS 'The time when the credit becomes valid. Defaults to Unix epoch (1970-01-01)';

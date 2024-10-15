@@ -676,6 +676,9 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
+			// Check if this is an annual subscription
+			isAnnual := scstripe.IsAnnualPriceID(line.Price.ID)
+
 			// old pro to starter
 			if product == "prod_NDpntRHZ5BK7jJ" {
 				product = "prod_NTzD6l0KByWfLm"
@@ -709,7 +712,7 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 			// Update user credit
 			if err := c.Repo.WithTx(func(tx *ent.Tx) error {
 				client := tx.Client()
-				added, err := c.Repo.AddCreditsIfEligible(creditType, user.ID, expiresAt, line.ID, client)
+				added, err := c.Repo.AddCreditsIfEligible(creditType, user.ID, expiresAt, isAnnual, line.ID, client)
 				if err != nil {
 					log.Error("Unable adding credits to user %s: %v", user.ID.String(), err)
 					return err
@@ -1053,6 +1056,7 @@ type Plan struct {
 }
 
 type Price struct {
+	ID      string `json:"id"`
 	Product string `json:"product"`
 }
 

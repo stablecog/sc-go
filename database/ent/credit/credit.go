@@ -17,8 +17,12 @@ const (
 	FieldID = "id"
 	// FieldRemainingAmount holds the string denoting the remaining_amount field in the database.
 	FieldRemainingAmount = "remaining_amount"
+	// FieldStartsAt holds the string denoting the starts_at field in the database.
+	FieldStartsAt = "starts_at"
 	// FieldExpiresAt holds the string denoting the expires_at field in the database.
 	FieldExpiresAt = "expires_at"
+	// FieldPeriod holds the string denoting the period field in the database.
+	FieldPeriod = "period"
 	// FieldStripeLineItemID holds the string denoting the stripe_line_item_id field in the database.
 	FieldStripeLineItemID = "stripe_line_item_id"
 	// FieldReplenishedAt holds the string denoting the replenished_at field in the database.
@@ -57,7 +61,9 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldRemainingAmount,
+	FieldStartsAt,
 	FieldExpiresAt,
+	FieldPeriod,
 	FieldStripeLineItemID,
 	FieldReplenishedAt,
 	FieldUserID,
@@ -77,6 +83,10 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultStartsAt holds the default value on creation for the "starts_at" field.
+	DefaultStartsAt time.Time
+	// DefaultPeriod holds the default value on creation for the "period" field.
+	DefaultPeriod int
 	// DefaultReplenishedAt holds the default value on creation for the "replenished_at" field.
 	DefaultReplenishedAt func() time.Time
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
@@ -102,9 +112,19 @@ func ByRemainingAmount(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRemainingAmount, opts...).ToFunc()
 }
 
+// ByStartsAt orders the results by the starts_at field.
+func ByStartsAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStartsAt, opts...).ToFunc()
+}
+
 // ByExpiresAt orders the results by the expires_at field.
 func ByExpiresAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldExpiresAt, opts...).ToFunc()
+}
+
+// ByPeriod orders the results by the period field.
+func ByPeriod(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPeriod, opts...).ToFunc()
 }
 
 // ByStripeLineItemID orders the results by the stripe_line_item_id field.

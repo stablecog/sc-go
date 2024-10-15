@@ -32,9 +32,37 @@ func (cc *CreditCreate) SetRemainingAmount(i int32) *CreditCreate {
 	return cc
 }
 
+// SetStartsAt sets the "starts_at" field.
+func (cc *CreditCreate) SetStartsAt(t time.Time) *CreditCreate {
+	cc.mutation.SetStartsAt(t)
+	return cc
+}
+
+// SetNillableStartsAt sets the "starts_at" field if the given value is not nil.
+func (cc *CreditCreate) SetNillableStartsAt(t *time.Time) *CreditCreate {
+	if t != nil {
+		cc.SetStartsAt(*t)
+	}
+	return cc
+}
+
 // SetExpiresAt sets the "expires_at" field.
 func (cc *CreditCreate) SetExpiresAt(t time.Time) *CreditCreate {
 	cc.mutation.SetExpiresAt(t)
+	return cc
+}
+
+// SetPeriod sets the "period" field.
+func (cc *CreditCreate) SetPeriod(i int) *CreditCreate {
+	cc.mutation.SetPeriod(i)
+	return cc
+}
+
+// SetNillablePeriod sets the "period" field if the given value is not nil.
+func (cc *CreditCreate) SetNillablePeriod(i *int) *CreditCreate {
+	if i != nil {
+		cc.SetPeriod(*i)
+	}
 	return cc
 }
 
@@ -171,6 +199,14 @@ func (cc *CreditCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (cc *CreditCreate) defaults() {
+	if _, ok := cc.mutation.StartsAt(); !ok {
+		v := credit.DefaultStartsAt
+		cc.mutation.SetStartsAt(v)
+	}
+	if _, ok := cc.mutation.Period(); !ok {
+		v := credit.DefaultPeriod
+		cc.mutation.SetPeriod(v)
+	}
 	if _, ok := cc.mutation.ReplenishedAt(); !ok {
 		v := credit.DefaultReplenishedAt()
 		cc.mutation.SetReplenishedAt(v)
@@ -194,8 +230,14 @@ func (cc *CreditCreate) check() error {
 	if _, ok := cc.mutation.RemainingAmount(); !ok {
 		return &ValidationError{Name: "remaining_amount", err: errors.New(`ent: missing required field "Credit.remaining_amount"`)}
 	}
+	if _, ok := cc.mutation.StartsAt(); !ok {
+		return &ValidationError{Name: "starts_at", err: errors.New(`ent: missing required field "Credit.starts_at"`)}
+	}
 	if _, ok := cc.mutation.ExpiresAt(); !ok {
 		return &ValidationError{Name: "expires_at", err: errors.New(`ent: missing required field "Credit.expires_at"`)}
+	}
+	if _, ok := cc.mutation.Period(); !ok {
+		return &ValidationError{Name: "period", err: errors.New(`ent: missing required field "Credit.period"`)}
 	}
 	if _, ok := cc.mutation.ReplenishedAt(); !ok {
 		return &ValidationError{Name: "replenished_at", err: errors.New(`ent: missing required field "Credit.replenished_at"`)}
@@ -258,9 +300,17 @@ func (cc *CreditCreate) createSpec() (*Credit, *sqlgraph.CreateSpec) {
 		_spec.SetField(credit.FieldRemainingAmount, field.TypeInt32, value)
 		_node.RemainingAmount = value
 	}
+	if value, ok := cc.mutation.StartsAt(); ok {
+		_spec.SetField(credit.FieldStartsAt, field.TypeTime, value)
+		_node.StartsAt = value
+	}
 	if value, ok := cc.mutation.ExpiresAt(); ok {
 		_spec.SetField(credit.FieldExpiresAt, field.TypeTime, value)
 		_node.ExpiresAt = value
+	}
+	if value, ok := cc.mutation.Period(); ok {
+		_spec.SetField(credit.FieldPeriod, field.TypeInt, value)
+		_node.Period = value
 	}
 	if value, ok := cc.mutation.StripeLineItemID(); ok {
 		_spec.SetField(credit.FieldStripeLineItemID, field.TypeString, value)
@@ -382,6 +432,18 @@ func (u *CreditUpsert) AddRemainingAmount(v int32) *CreditUpsert {
 	return u
 }
 
+// SetStartsAt sets the "starts_at" field.
+func (u *CreditUpsert) SetStartsAt(v time.Time) *CreditUpsert {
+	u.Set(credit.FieldStartsAt, v)
+	return u
+}
+
+// UpdateStartsAt sets the "starts_at" field to the value that was provided on create.
+func (u *CreditUpsert) UpdateStartsAt() *CreditUpsert {
+	u.SetExcluded(credit.FieldStartsAt)
+	return u
+}
+
 // SetExpiresAt sets the "expires_at" field.
 func (u *CreditUpsert) SetExpiresAt(v time.Time) *CreditUpsert {
 	u.Set(credit.FieldExpiresAt, v)
@@ -391,6 +453,24 @@ func (u *CreditUpsert) SetExpiresAt(v time.Time) *CreditUpsert {
 // UpdateExpiresAt sets the "expires_at" field to the value that was provided on create.
 func (u *CreditUpsert) UpdateExpiresAt() *CreditUpsert {
 	u.SetExcluded(credit.FieldExpiresAt)
+	return u
+}
+
+// SetPeriod sets the "period" field.
+func (u *CreditUpsert) SetPeriod(v int) *CreditUpsert {
+	u.Set(credit.FieldPeriod, v)
+	return u
+}
+
+// UpdatePeriod sets the "period" field to the value that was provided on create.
+func (u *CreditUpsert) UpdatePeriod() *CreditUpsert {
+	u.SetExcluded(credit.FieldPeriod)
+	return u
+}
+
+// AddPeriod adds v to the "period" field.
+func (u *CreditUpsert) AddPeriod(v int) *CreditUpsert {
+	u.Add(credit.FieldPeriod, v)
 	return u
 }
 
@@ -532,6 +612,20 @@ func (u *CreditUpsertOne) UpdateRemainingAmount() *CreditUpsertOne {
 	})
 }
 
+// SetStartsAt sets the "starts_at" field.
+func (u *CreditUpsertOne) SetStartsAt(v time.Time) *CreditUpsertOne {
+	return u.Update(func(s *CreditUpsert) {
+		s.SetStartsAt(v)
+	})
+}
+
+// UpdateStartsAt sets the "starts_at" field to the value that was provided on create.
+func (u *CreditUpsertOne) UpdateStartsAt() *CreditUpsertOne {
+	return u.Update(func(s *CreditUpsert) {
+		s.UpdateStartsAt()
+	})
+}
+
 // SetExpiresAt sets the "expires_at" field.
 func (u *CreditUpsertOne) SetExpiresAt(v time.Time) *CreditUpsertOne {
 	return u.Update(func(s *CreditUpsert) {
@@ -543,6 +637,27 @@ func (u *CreditUpsertOne) SetExpiresAt(v time.Time) *CreditUpsertOne {
 func (u *CreditUpsertOne) UpdateExpiresAt() *CreditUpsertOne {
 	return u.Update(func(s *CreditUpsert) {
 		s.UpdateExpiresAt()
+	})
+}
+
+// SetPeriod sets the "period" field.
+func (u *CreditUpsertOne) SetPeriod(v int) *CreditUpsertOne {
+	return u.Update(func(s *CreditUpsert) {
+		s.SetPeriod(v)
+	})
+}
+
+// AddPeriod adds v to the "period" field.
+func (u *CreditUpsertOne) AddPeriod(v int) *CreditUpsertOne {
+	return u.Update(func(s *CreditUpsert) {
+		s.AddPeriod(v)
+	})
+}
+
+// UpdatePeriod sets the "period" field to the value that was provided on create.
+func (u *CreditUpsertOne) UpdatePeriod() *CreditUpsertOne {
+	return u.Update(func(s *CreditUpsert) {
+		s.UpdatePeriod()
 	})
 }
 
@@ -862,6 +977,20 @@ func (u *CreditUpsertBulk) UpdateRemainingAmount() *CreditUpsertBulk {
 	})
 }
 
+// SetStartsAt sets the "starts_at" field.
+func (u *CreditUpsertBulk) SetStartsAt(v time.Time) *CreditUpsertBulk {
+	return u.Update(func(s *CreditUpsert) {
+		s.SetStartsAt(v)
+	})
+}
+
+// UpdateStartsAt sets the "starts_at" field to the value that was provided on create.
+func (u *CreditUpsertBulk) UpdateStartsAt() *CreditUpsertBulk {
+	return u.Update(func(s *CreditUpsert) {
+		s.UpdateStartsAt()
+	})
+}
+
 // SetExpiresAt sets the "expires_at" field.
 func (u *CreditUpsertBulk) SetExpiresAt(v time.Time) *CreditUpsertBulk {
 	return u.Update(func(s *CreditUpsert) {
@@ -873,6 +1002,27 @@ func (u *CreditUpsertBulk) SetExpiresAt(v time.Time) *CreditUpsertBulk {
 func (u *CreditUpsertBulk) UpdateExpiresAt() *CreditUpsertBulk {
 	return u.Update(func(s *CreditUpsert) {
 		s.UpdateExpiresAt()
+	})
+}
+
+// SetPeriod sets the "period" field.
+func (u *CreditUpsertBulk) SetPeriod(v int) *CreditUpsertBulk {
+	return u.Update(func(s *CreditUpsert) {
+		s.SetPeriod(v)
+	})
+}
+
+// AddPeriod adds v to the "period" field.
+func (u *CreditUpsertBulk) AddPeriod(v int) *CreditUpsertBulk {
+	return u.Update(func(s *CreditUpsert) {
+		s.AddPeriod(v)
+	})
+}
+
+// UpdatePeriod sets the "period" field to the value that was provided on create.
+func (u *CreditUpsertBulk) UpdatePeriod() *CreditUpsertBulk {
+	return u.Update(func(s *CreditUpsert) {
+		s.UpdatePeriod()
 	})
 }
 

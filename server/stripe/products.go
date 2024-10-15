@@ -7,6 +7,12 @@ import "github.com/stablecog/sc-go/utils"
 
 func GetPriceIDs() map[int]string {
 	return map[int]string{
+		// ultimate annual
+		6: utils.GetEnv().StripeUltimateAnnualPriceID,
+		// pro annual
+		5: utils.GetEnv().StripeProAnnualPriceID,
+		// starter annual
+		4: utils.GetEnv().StripeStarterAnnualPriceID,
 		// ultimate
 		3: utils.GetEnv().StripeUltimatePriceID,
 		// pro
@@ -14,6 +20,10 @@ func GetPriceIDs() map[int]string {
 		// starter
 		1: utils.GetEnv().StripeStarterPriceID,
 	}
+}
+
+func IsAnnualPriceID(priceID string) bool {
+	return priceID == utils.GetEnv().StripeUltimateAnnualPriceID || priceID == utils.GetEnv().StripeProAnnualPriceID || priceID == utils.GetEnv().StripeStarterAnnualPriceID
 }
 
 func GetProductIDs() map[int]string {

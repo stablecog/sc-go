@@ -107,16 +107,24 @@ func init() {
 	bannedwords.DefaultID = bannedwordsDescID.Default.(func() uuid.UUID)
 	creditFields := schema.Credit{}.Fields()
 	_ = creditFields
+	// creditDescStartsAt is the schema descriptor for starts_at field.
+	creditDescStartsAt := creditFields[2].Descriptor()
+	// credit.DefaultStartsAt holds the default value on creation for the starts_at field.
+	credit.DefaultStartsAt = creditDescStartsAt.Default.(time.Time)
+	// creditDescPeriod is the schema descriptor for period field.
+	creditDescPeriod := creditFields[4].Descriptor()
+	// credit.DefaultPeriod holds the default value on creation for the period field.
+	credit.DefaultPeriod = creditDescPeriod.Default.(int)
 	// creditDescReplenishedAt is the schema descriptor for replenished_at field.
-	creditDescReplenishedAt := creditFields[4].Descriptor()
+	creditDescReplenishedAt := creditFields[6].Descriptor()
 	// credit.DefaultReplenishedAt holds the default value on creation for the replenished_at field.
 	credit.DefaultReplenishedAt = creditDescReplenishedAt.Default.(func() time.Time)
 	// creditDescCreatedAt is the schema descriptor for created_at field.
-	creditDescCreatedAt := creditFields[7].Descriptor()
+	creditDescCreatedAt := creditFields[9].Descriptor()
 	// credit.DefaultCreatedAt holds the default value on creation for the created_at field.
 	credit.DefaultCreatedAt = creditDescCreatedAt.Default.(func() time.Time)
 	// creditDescUpdatedAt is the schema descriptor for updated_at field.
-	creditDescUpdatedAt := creditFields[8].Descriptor()
+	creditDescUpdatedAt := creditFields[10].Descriptor()
 	// credit.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	credit.DefaultUpdatedAt = creditDescUpdatedAt.Default.(func() time.Time)
 	// credit.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -127,12 +135,16 @@ func init() {
 	credit.DefaultID = creditDescID.Default.(func() uuid.UUID)
 	credittypeFields := schema.CreditType{}.Fields()
 	_ = credittypeFields
+	// credittypeDescAnnual is the schema descriptor for annual field.
+	credittypeDescAnnual := credittypeFields[5].Descriptor()
+	// credittype.DefaultAnnual holds the default value on creation for the annual field.
+	credittype.DefaultAnnual = credittypeDescAnnual.Default.(bool)
 	// credittypeDescCreatedAt is the schema descriptor for created_at field.
-	credittypeDescCreatedAt := credittypeFields[6].Descriptor()
+	credittypeDescCreatedAt := credittypeFields[7].Descriptor()
 	// credittype.DefaultCreatedAt holds the default value on creation for the created_at field.
 	credittype.DefaultCreatedAt = credittypeDescCreatedAt.Default.(func() time.Time)
 	// credittypeDescUpdatedAt is the schema descriptor for updated_at field.
-	credittypeDescUpdatedAt := credittypeFields[7].Descriptor()
+	credittypeDescUpdatedAt := credittypeFields[8].Descriptor()
 	// credittype.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	credittype.DefaultUpdatedAt = credittypeDescUpdatedAt.Default.(func() time.Time)
 	// credittype.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

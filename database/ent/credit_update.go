@@ -53,6 +53,20 @@ func (cu *CreditUpdate) AddRemainingAmount(i int32) *CreditUpdate {
 	return cu
 }
 
+// SetStartsAt sets the "starts_at" field.
+func (cu *CreditUpdate) SetStartsAt(t time.Time) *CreditUpdate {
+	cu.mutation.SetStartsAt(t)
+	return cu
+}
+
+// SetNillableStartsAt sets the "starts_at" field if the given value is not nil.
+func (cu *CreditUpdate) SetNillableStartsAt(t *time.Time) *CreditUpdate {
+	if t != nil {
+		cu.SetStartsAt(*t)
+	}
+	return cu
+}
+
 // SetExpiresAt sets the "expires_at" field.
 func (cu *CreditUpdate) SetExpiresAt(t time.Time) *CreditUpdate {
 	cu.mutation.SetExpiresAt(t)
@@ -64,6 +78,27 @@ func (cu *CreditUpdate) SetNillableExpiresAt(t *time.Time) *CreditUpdate {
 	if t != nil {
 		cu.SetExpiresAt(*t)
 	}
+	return cu
+}
+
+// SetPeriod sets the "period" field.
+func (cu *CreditUpdate) SetPeriod(i int) *CreditUpdate {
+	cu.mutation.ResetPeriod()
+	cu.mutation.SetPeriod(i)
+	return cu
+}
+
+// SetNillablePeriod sets the "period" field if the given value is not nil.
+func (cu *CreditUpdate) SetNillablePeriod(i *int) *CreditUpdate {
+	if i != nil {
+		cu.SetPeriod(*i)
+	}
+	return cu
+}
+
+// AddPeriod adds i to the "period" field.
+func (cu *CreditUpdate) AddPeriod(i int) *CreditUpdate {
+	cu.mutation.AddPeriod(i)
 	return cu
 }
 
@@ -239,8 +274,17 @@ func (cu *CreditUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := cu.mutation.AddedRemainingAmount(); ok {
 		_spec.AddField(credit.FieldRemainingAmount, field.TypeInt32, value)
 	}
+	if value, ok := cu.mutation.StartsAt(); ok {
+		_spec.SetField(credit.FieldStartsAt, field.TypeTime, value)
+	}
 	if value, ok := cu.mutation.ExpiresAt(); ok {
 		_spec.SetField(credit.FieldExpiresAt, field.TypeTime, value)
+	}
+	if value, ok := cu.mutation.Period(); ok {
+		_spec.SetField(credit.FieldPeriod, field.TypeInt, value)
+	}
+	if value, ok := cu.mutation.AddedPeriod(); ok {
+		_spec.AddField(credit.FieldPeriod, field.TypeInt, value)
 	}
 	if value, ok := cu.mutation.StripeLineItemID(); ok {
 		_spec.SetField(credit.FieldStripeLineItemID, field.TypeString, value)
@@ -355,6 +399,20 @@ func (cuo *CreditUpdateOne) AddRemainingAmount(i int32) *CreditUpdateOne {
 	return cuo
 }
 
+// SetStartsAt sets the "starts_at" field.
+func (cuo *CreditUpdateOne) SetStartsAt(t time.Time) *CreditUpdateOne {
+	cuo.mutation.SetStartsAt(t)
+	return cuo
+}
+
+// SetNillableStartsAt sets the "starts_at" field if the given value is not nil.
+func (cuo *CreditUpdateOne) SetNillableStartsAt(t *time.Time) *CreditUpdateOne {
+	if t != nil {
+		cuo.SetStartsAt(*t)
+	}
+	return cuo
+}
+
 // SetExpiresAt sets the "expires_at" field.
 func (cuo *CreditUpdateOne) SetExpiresAt(t time.Time) *CreditUpdateOne {
 	cuo.mutation.SetExpiresAt(t)
@@ -366,6 +424,27 @@ func (cuo *CreditUpdateOne) SetNillableExpiresAt(t *time.Time) *CreditUpdateOne 
 	if t != nil {
 		cuo.SetExpiresAt(*t)
 	}
+	return cuo
+}
+
+// SetPeriod sets the "period" field.
+func (cuo *CreditUpdateOne) SetPeriod(i int) *CreditUpdateOne {
+	cuo.mutation.ResetPeriod()
+	cuo.mutation.SetPeriod(i)
+	return cuo
+}
+
+// SetNillablePeriod sets the "period" field if the given value is not nil.
+func (cuo *CreditUpdateOne) SetNillablePeriod(i *int) *CreditUpdateOne {
+	if i != nil {
+		cuo.SetPeriod(*i)
+	}
+	return cuo
+}
+
+// AddPeriod adds i to the "period" field.
+func (cuo *CreditUpdateOne) AddPeriod(i int) *CreditUpdateOne {
+	cuo.mutation.AddPeriod(i)
 	return cuo
 }
 
@@ -571,8 +650,17 @@ func (cuo *CreditUpdateOne) sqlSave(ctx context.Context) (_node *Credit, err err
 	if value, ok := cuo.mutation.AddedRemainingAmount(); ok {
 		_spec.AddField(credit.FieldRemainingAmount, field.TypeInt32, value)
 	}
+	if value, ok := cuo.mutation.StartsAt(); ok {
+		_spec.SetField(credit.FieldStartsAt, field.TypeTime, value)
+	}
 	if value, ok := cuo.mutation.ExpiresAt(); ok {
 		_spec.SetField(credit.FieldExpiresAt, field.TypeTime, value)
+	}
+	if value, ok := cuo.mutation.Period(); ok {
+		_spec.SetField(credit.FieldPeriod, field.TypeInt, value)
+	}
+	if value, ok := cuo.mutation.AddedPeriod(); ok {
+		_spec.AddField(credit.FieldPeriod, field.TypeInt, value)
 	}
 	if value, ok := cuo.mutation.StripeLineItemID(); ok {
 		_spec.SetField(credit.FieldStripeLineItemID, field.TypeString, value)

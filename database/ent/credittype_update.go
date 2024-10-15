@@ -106,6 +106,20 @@ func (ctu *CreditTypeUpdate) ClearStripeProductID() *CreditTypeUpdate {
 	return ctu
 }
 
+// SetAnnual sets the "annual" field.
+func (ctu *CreditTypeUpdate) SetAnnual(b bool) *CreditTypeUpdate {
+	ctu.mutation.SetAnnual(b)
+	return ctu
+}
+
+// SetNillableAnnual sets the "annual" field if the given value is not nil.
+func (ctu *CreditTypeUpdate) SetNillableAnnual(b *bool) *CreditTypeUpdate {
+	if b != nil {
+		ctu.SetAnnual(*b)
+	}
+	return ctu
+}
+
 // SetType sets the "type" field.
 func (ctu *CreditTypeUpdate) SetType(c credittype.Type) *CreditTypeUpdate {
 	ctu.mutation.SetType(c)
@@ -252,6 +266,9 @@ func (ctu *CreditTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if ctu.mutation.StripeProductIDCleared() {
 		_spec.ClearField(credittype.FieldStripeProductID, field.TypeString)
 	}
+	if value, ok := ctu.mutation.Annual(); ok {
+		_spec.SetField(credittype.FieldAnnual, field.TypeBool, value)
+	}
 	if value, ok := ctu.mutation.GetType(); ok {
 		_spec.SetField(credittype.FieldType, field.TypeEnum, value)
 	}
@@ -397,6 +414,20 @@ func (ctuo *CreditTypeUpdateOne) SetNillableStripeProductID(s *string) *CreditTy
 // ClearStripeProductID clears the value of the "stripe_product_id" field.
 func (ctuo *CreditTypeUpdateOne) ClearStripeProductID() *CreditTypeUpdateOne {
 	ctuo.mutation.ClearStripeProductID()
+	return ctuo
+}
+
+// SetAnnual sets the "annual" field.
+func (ctuo *CreditTypeUpdateOne) SetAnnual(b bool) *CreditTypeUpdateOne {
+	ctuo.mutation.SetAnnual(b)
+	return ctuo
+}
+
+// SetNillableAnnual sets the "annual" field if the given value is not nil.
+func (ctuo *CreditTypeUpdateOne) SetNillableAnnual(b *bool) *CreditTypeUpdateOne {
+	if b != nil {
+		ctuo.SetAnnual(*b)
+	}
 	return ctuo
 }
 
@@ -575,6 +606,9 @@ func (ctuo *CreditTypeUpdateOne) sqlSave(ctx context.Context) (_node *CreditType
 	}
 	if ctuo.mutation.StripeProductIDCleared() {
 		_spec.ClearField(credittype.FieldStripeProductID, field.TypeString)
+	}
+	if value, ok := ctuo.mutation.Annual(); ok {
+		_spec.SetField(credittype.FieldAnnual, field.TypeBool, value)
 	}
 	if value, ok := ctuo.mutation.GetType(); ok {
 		_spec.SetField(credittype.FieldType, field.TypeEnum, value)

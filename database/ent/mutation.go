@@ -2534,7 +2534,10 @@ type CreditMutation struct {
 	id                  *uuid.UUID
 	remaining_amount    *int32
 	addremaining_amount *int32
+	starts_at           *time.Time
 	expires_at          *time.Time
+	period              *int
+	addperiod           *int
 	stripe_line_item_id *string
 	replenished_at      *time.Time
 	created_at          *time.Time
@@ -2709,6 +2712,42 @@ func (m *CreditMutation) ResetRemainingAmount() {
 	m.addremaining_amount = nil
 }
 
+// SetStartsAt sets the "starts_at" field.
+func (m *CreditMutation) SetStartsAt(t time.Time) {
+	m.starts_at = &t
+}
+
+// StartsAt returns the value of the "starts_at" field in the mutation.
+func (m *CreditMutation) StartsAt() (r time.Time, exists bool) {
+	v := m.starts_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStartsAt returns the old "starts_at" field's value of the Credit entity.
+// If the Credit object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CreditMutation) OldStartsAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStartsAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStartsAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStartsAt: %w", err)
+	}
+	return oldValue.StartsAt, nil
+}
+
+// ResetStartsAt resets all changes to the "starts_at" field.
+func (m *CreditMutation) ResetStartsAt() {
+	m.starts_at = nil
+}
+
 // SetExpiresAt sets the "expires_at" field.
 func (m *CreditMutation) SetExpiresAt(t time.Time) {
 	m.expires_at = &t
@@ -2743,6 +2782,62 @@ func (m *CreditMutation) OldExpiresAt(ctx context.Context) (v time.Time, err err
 // ResetExpiresAt resets all changes to the "expires_at" field.
 func (m *CreditMutation) ResetExpiresAt() {
 	m.expires_at = nil
+}
+
+// SetPeriod sets the "period" field.
+func (m *CreditMutation) SetPeriod(i int) {
+	m.period = &i
+	m.addperiod = nil
+}
+
+// Period returns the value of the "period" field in the mutation.
+func (m *CreditMutation) Period() (r int, exists bool) {
+	v := m.period
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPeriod returns the old "period" field's value of the Credit entity.
+// If the Credit object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CreditMutation) OldPeriod(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPeriod is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPeriod requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPeriod: %w", err)
+	}
+	return oldValue.Period, nil
+}
+
+// AddPeriod adds i to the "period" field.
+func (m *CreditMutation) AddPeriod(i int) {
+	if m.addperiod != nil {
+		*m.addperiod += i
+	} else {
+		m.addperiod = &i
+	}
+}
+
+// AddedPeriod returns the value that was added to the "period" field in this mutation.
+func (m *CreditMutation) AddedPeriod() (r int, exists bool) {
+	v := m.addperiod
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetPeriod resets all changes to the "period" field.
+func (m *CreditMutation) ResetPeriod() {
+	m.period = nil
+	m.addperiod = nil
 }
 
 // SetStripeLineItemID sets the "stripe_line_item_id" field.
@@ -3075,12 +3170,18 @@ func (m *CreditMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CreditMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 10)
 	if m.remaining_amount != nil {
 		fields = append(fields, credit.FieldRemainingAmount)
 	}
+	if m.starts_at != nil {
+		fields = append(fields, credit.FieldStartsAt)
+	}
 	if m.expires_at != nil {
 		fields = append(fields, credit.FieldExpiresAt)
+	}
+	if m.period != nil {
+		fields = append(fields, credit.FieldPeriod)
 	}
 	if m.stripe_line_item_id != nil {
 		fields = append(fields, credit.FieldStripeLineItemID)
@@ -3110,8 +3211,12 @@ func (m *CreditMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case credit.FieldRemainingAmount:
 		return m.RemainingAmount()
+	case credit.FieldStartsAt:
+		return m.StartsAt()
 	case credit.FieldExpiresAt:
 		return m.ExpiresAt()
+	case credit.FieldPeriod:
+		return m.Period()
 	case credit.FieldStripeLineItemID:
 		return m.StripeLineItemID()
 	case credit.FieldReplenishedAt:
@@ -3135,8 +3240,12 @@ func (m *CreditMutation) OldField(ctx context.Context, name string) (ent.Value, 
 	switch name {
 	case credit.FieldRemainingAmount:
 		return m.OldRemainingAmount(ctx)
+	case credit.FieldStartsAt:
+		return m.OldStartsAt(ctx)
 	case credit.FieldExpiresAt:
 		return m.OldExpiresAt(ctx)
+	case credit.FieldPeriod:
+		return m.OldPeriod(ctx)
 	case credit.FieldStripeLineItemID:
 		return m.OldStripeLineItemID(ctx)
 	case credit.FieldReplenishedAt:
@@ -3165,12 +3274,26 @@ func (m *CreditMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetRemainingAmount(v)
 		return nil
+	case credit.FieldStartsAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStartsAt(v)
+		return nil
 	case credit.FieldExpiresAt:
 		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetExpiresAt(v)
+		return nil
+	case credit.FieldPeriod:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPeriod(v)
 		return nil
 	case credit.FieldStripeLineItemID:
 		v, ok := value.(string)
@@ -3225,6 +3348,9 @@ func (m *CreditMutation) AddedFields() []string {
 	if m.addremaining_amount != nil {
 		fields = append(fields, credit.FieldRemainingAmount)
 	}
+	if m.addperiod != nil {
+		fields = append(fields, credit.FieldPeriod)
+	}
 	return fields
 }
 
@@ -3235,6 +3361,8 @@ func (m *CreditMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
 	case credit.FieldRemainingAmount:
 		return m.AddedRemainingAmount()
+	case credit.FieldPeriod:
+		return m.AddedPeriod()
 	}
 	return nil, false
 }
@@ -3250,6 +3378,13 @@ func (m *CreditMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddRemainingAmount(v)
+		return nil
+	case credit.FieldPeriod:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPeriod(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Credit numeric field %s", name)
@@ -3290,8 +3425,14 @@ func (m *CreditMutation) ResetField(name string) error {
 	case credit.FieldRemainingAmount:
 		m.ResetRemainingAmount()
 		return nil
+	case credit.FieldStartsAt:
+		m.ResetStartsAt()
+		return nil
 	case credit.FieldExpiresAt:
 		m.ResetExpiresAt()
+		return nil
+	case credit.FieldPeriod:
+		m.ResetPeriod()
 		return nil
 	case credit.FieldStripeLineItemID:
 		m.ResetStripeLineItemID()
@@ -3418,6 +3559,7 @@ type CreditTypeMutation struct {
 	amount            *int32
 	addamount         *int32
 	stripe_product_id *string
+	annual            *bool
 	_type             *credittype.Type
 	created_at        *time.Time
 	updated_at        *time.Time
@@ -3724,6 +3866,42 @@ func (m *CreditTypeMutation) ResetStripeProductID() {
 	delete(m.clearedFields, credittype.FieldStripeProductID)
 }
 
+// SetAnnual sets the "annual" field.
+func (m *CreditTypeMutation) SetAnnual(b bool) {
+	m.annual = &b
+}
+
+// Annual returns the value of the "annual" field in the mutation.
+func (m *CreditTypeMutation) Annual() (r bool, exists bool) {
+	v := m.annual
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAnnual returns the old "annual" field's value of the CreditType entity.
+// If the CreditType object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CreditTypeMutation) OldAnnual(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAnnual is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAnnual requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAnnual: %w", err)
+	}
+	return oldValue.Annual, nil
+}
+
+// ResetAnnual resets all changes to the "annual" field.
+func (m *CreditTypeMutation) ResetAnnual() {
+	m.annual = nil
+}
+
 // SetType sets the "type" field.
 func (m *CreditTypeMutation) SetType(c credittype.Type) {
 	m._type = &c
@@ -3920,7 +4098,7 @@ func (m *CreditTypeMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CreditTypeMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.name != nil {
 		fields = append(fields, credittype.FieldName)
 	}
@@ -3932,6 +4110,9 @@ func (m *CreditTypeMutation) Fields() []string {
 	}
 	if m.stripe_product_id != nil {
 		fields = append(fields, credittype.FieldStripeProductID)
+	}
+	if m.annual != nil {
+		fields = append(fields, credittype.FieldAnnual)
 	}
 	if m._type != nil {
 		fields = append(fields, credittype.FieldType)
@@ -3958,6 +4139,8 @@ func (m *CreditTypeMutation) Field(name string) (ent.Value, bool) {
 		return m.Amount()
 	case credittype.FieldStripeProductID:
 		return m.StripeProductID()
+	case credittype.FieldAnnual:
+		return m.Annual()
 	case credittype.FieldType:
 		return m.GetType()
 	case credittype.FieldCreatedAt:
@@ -3981,6 +4164,8 @@ func (m *CreditTypeMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldAmount(ctx)
 	case credittype.FieldStripeProductID:
 		return m.OldStripeProductID(ctx)
+	case credittype.FieldAnnual:
+		return m.OldAnnual(ctx)
 	case credittype.FieldType:
 		return m.OldType(ctx)
 	case credittype.FieldCreatedAt:
@@ -4023,6 +4208,13 @@ func (m *CreditTypeMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetStripeProductID(v)
+		return nil
+	case credittype.FieldAnnual:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAnnual(v)
 		return nil
 	case credittype.FieldType:
 		v, ok := value.(credittype.Type)
@@ -4135,6 +4327,9 @@ func (m *CreditTypeMutation) ResetField(name string) error {
 		return nil
 	case credittype.FieldStripeProductID:
 		m.ResetStripeProductID()
+		return nil
+	case credittype.FieldAnnual:
+		m.ResetAnnual()
 		return nil
 	case credittype.FieldType:
 		m.ResetType()

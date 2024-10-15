@@ -65,6 +65,20 @@ func (ctc *CreditTypeCreate) SetNillableStripeProductID(s *string) *CreditTypeCr
 	return ctc
 }
 
+// SetAnnual sets the "annual" field.
+func (ctc *CreditTypeCreate) SetAnnual(b bool) *CreditTypeCreate {
+	ctc.mutation.SetAnnual(b)
+	return ctc
+}
+
+// SetNillableAnnual sets the "annual" field if the given value is not nil.
+func (ctc *CreditTypeCreate) SetNillableAnnual(b *bool) *CreditTypeCreate {
+	if b != nil {
+		ctc.SetAnnual(*b)
+	}
+	return ctc
+}
+
 // SetType sets the "type" field.
 func (ctc *CreditTypeCreate) SetType(c credittype.Type) *CreditTypeCreate {
 	ctc.mutation.SetType(c)
@@ -163,6 +177,10 @@ func (ctc *CreditTypeCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (ctc *CreditTypeCreate) defaults() {
+	if _, ok := ctc.mutation.Annual(); !ok {
+		v := credittype.DefaultAnnual
+		ctc.mutation.SetAnnual(v)
+	}
 	if _, ok := ctc.mutation.CreatedAt(); !ok {
 		v := credittype.DefaultCreatedAt()
 		ctc.mutation.SetCreatedAt(v)
@@ -184,6 +202,9 @@ func (ctc *CreditTypeCreate) check() error {
 	}
 	if _, ok := ctc.mutation.Amount(); !ok {
 		return &ValidationError{Name: "amount", err: errors.New(`ent: missing required field "CreditType.amount"`)}
+	}
+	if _, ok := ctc.mutation.Annual(); !ok {
+		return &ValidationError{Name: "annual", err: errors.New(`ent: missing required field "CreditType.annual"`)}
 	}
 	if _, ok := ctc.mutation.GetType(); !ok {
 		return &ValidationError{Name: "type", err: errors.New(`ent: missing required field "CreditType.type"`)}
@@ -250,6 +271,10 @@ func (ctc *CreditTypeCreate) createSpec() (*CreditType, *sqlgraph.CreateSpec) {
 	if value, ok := ctc.mutation.StripeProductID(); ok {
 		_spec.SetField(credittype.FieldStripeProductID, field.TypeString, value)
 		_node.StripeProductID = &value
+	}
+	if value, ok := ctc.mutation.Annual(); ok {
+		_spec.SetField(credittype.FieldAnnual, field.TypeBool, value)
+		_node.Annual = value
 	}
 	if value, ok := ctc.mutation.GetType(); ok {
 		_spec.SetField(credittype.FieldType, field.TypeEnum, value)
@@ -394,6 +419,18 @@ func (u *CreditTypeUpsert) UpdateStripeProductID() *CreditTypeUpsert {
 // ClearStripeProductID clears the value of the "stripe_product_id" field.
 func (u *CreditTypeUpsert) ClearStripeProductID() *CreditTypeUpsert {
 	u.SetNull(credittype.FieldStripeProductID)
+	return u
+}
+
+// SetAnnual sets the "annual" field.
+func (u *CreditTypeUpsert) SetAnnual(v bool) *CreditTypeUpsert {
+	u.Set(credittype.FieldAnnual, v)
+	return u
+}
+
+// UpdateAnnual sets the "annual" field to the value that was provided on create.
+func (u *CreditTypeUpsert) UpdateAnnual() *CreditTypeUpsert {
+	u.SetExcluded(credittype.FieldAnnual)
 	return u
 }
 
@@ -546,6 +583,20 @@ func (u *CreditTypeUpsertOne) UpdateStripeProductID() *CreditTypeUpsertOne {
 func (u *CreditTypeUpsertOne) ClearStripeProductID() *CreditTypeUpsertOne {
 	return u.Update(func(s *CreditTypeUpsert) {
 		s.ClearStripeProductID()
+	})
+}
+
+// SetAnnual sets the "annual" field.
+func (u *CreditTypeUpsertOne) SetAnnual(v bool) *CreditTypeUpsertOne {
+	return u.Update(func(s *CreditTypeUpsert) {
+		s.SetAnnual(v)
+	})
+}
+
+// UpdateAnnual sets the "annual" field to the value that was provided on create.
+func (u *CreditTypeUpsertOne) UpdateAnnual() *CreditTypeUpsertOne {
+	return u.Update(func(s *CreditTypeUpsert) {
+		s.UpdateAnnual()
 	})
 }
 
@@ -869,6 +920,20 @@ func (u *CreditTypeUpsertBulk) UpdateStripeProductID() *CreditTypeUpsertBulk {
 func (u *CreditTypeUpsertBulk) ClearStripeProductID() *CreditTypeUpsertBulk {
 	return u.Update(func(s *CreditTypeUpsert) {
 		s.ClearStripeProductID()
+	})
+}
+
+// SetAnnual sets the "annual" field.
+func (u *CreditTypeUpsertBulk) SetAnnual(v bool) *CreditTypeUpsertBulk {
+	return u.Update(func(s *CreditTypeUpsert) {
+		s.SetAnnual(v)
+	})
+}
+
+// UpdateAnnual sets the "annual" field to the value that was provided on create.
+func (u *CreditTypeUpsertBulk) UpdateAnnual() *CreditTypeUpsertBulk {
+	return u.Update(func(s *CreditTypeUpsert) {
+		s.UpdateAnnual()
 	})
 }
 
