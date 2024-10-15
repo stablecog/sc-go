@@ -337,9 +337,21 @@ func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	highestProductID, highestPriceID, cancelsAt, renewsAt, err := c.GetAndSyncStripeSubscriptionInfo(user.StripeCustomerID)
+
+	if err != nil {
+		log.Error("Error getting and syncing stripe subscription info", "err", err)
+		responses.ErrInternalServerError(w, r, "Could not sync Stripe subscription info")
+		return
+	}
+
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, map[string]interface{}{
-		"success": true,
+		"success":            true,
+		"highest_product_id": highestProductID,
+		"highest_price_id":   highestPriceID,
+		"cancels_at":         cancelsAt,
+		"renews_at":          renewsAt,
 	})
 }
 
