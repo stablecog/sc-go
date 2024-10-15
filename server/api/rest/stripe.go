@@ -340,9 +340,7 @@ func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Req
 	highestProductID, highestPriceID, cancelsAt, renewsAt, err := c.GetAndSyncStripeSubscriptionInfo(user.StripeCustomerID)
 
 	if err != nil {
-		log.Error("Error getting and syncing stripe subscription info", "err", err)
-		responses.ErrInternalServerError(w, r, "Could not sync Stripe subscription info")
-		return
+		log.Error("Error getting and syncing Stripe subscription info", "err", err)
 	}
 
 	render.Status(r, http.StatusOK)
