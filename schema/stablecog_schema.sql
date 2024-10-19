@@ -1437,8 +1437,7 @@ ALTER TABLE public.credits
 ADD COLUMN starts_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT '1970-01-01 00:00:00+00';
 
 -- Drop the existing unique constraint on stripe_line_item_id and credit_type_id
-ALTER TABLE public.credits
-DROP CONSTRAINT credit_stripe_line_item_id_credit_type_id;
+drop index credit_stripe_line_item_id_credit_type_id;
 
 -- Create a new unique index including period
 CREATE UNIQUE INDEX credit_stripe_line_item_id_credit_type_id_period 
@@ -1453,3 +1452,10 @@ COMMENT ON COLUMN public.credits.period IS 'Represents the period number for mul
 
 -- Update the comment on the starts_at column
 COMMENT ON COLUMN public.credits.starts_at IS 'The time when the credit becomes valid. Defaults to Unix epoch (1970-01-01)';
+
+-- Index
+CREATE INDEX idx_generation_outputs_partial 
+ON generation_outputs (updated_at DESC, created_at DESC) 
+WHERE 
+    gallery_status = 'approved' 
+    AND (upscaled_image_path IS NULL OR upscaled_image_path = '');
