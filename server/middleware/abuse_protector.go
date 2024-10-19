@@ -136,14 +136,14 @@ func (m *Middleware) AbuseProtectorMiddleware() func(next http.Handler) http.Han
 			}
 
 			if user.BannedAt != nil {
-				log.Infof(`User "%s" is already banned`, userIDStr)
+				log.Infof(`AbuseProtectorMiddleware | User "%s" is already banned`, userIDStr)
 				next.ServeHTTP(w, r)
 				return
 			}
 
 			err = discord.FireBannedUserWebhook(utils.GetIPAddress(r), email, domain, userIDStr, utils.GetCountryCode(r), thumbmarkID, banReasons)
 			if err != nil {
-				log.Errorf("Error firing BannedUser webhook: %s", err.Error())
+				log.Errorf("AbuseProtectorMiddleware | Error firing BannedUser webhook: %s", err.Error())
 				next.ServeHTTP(w, r)
 				return
 			}
@@ -151,7 +151,7 @@ func (m *Middleware) AbuseProtectorMiddleware() func(next http.Handler) http.Han
 			// Ban the user
 			_, err = m.Repo.BanUsers([]uuid.UUID{userID}, false)
 			if err != nil {
-				log.Errorf("Error updating user as banned: %s", err.Error())
+				log.Errorf("AbuseProtectorMiddleware | Error updating user as banned: %s", err.Error())
 			}
 			time.Sleep(30 * time.Second)
 			next.ServeHTTP(w, r)
