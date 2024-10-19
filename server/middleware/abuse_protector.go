@@ -109,7 +109,7 @@ func (m *Middleware) AbuseProtectorMiddleware() func(next http.Handler) http.Han
 			// Get domain
 			segs := strings.Split(email, "@")
 			if len(segs) != 2 {
-				log.Warnf("Invalid email encountered while banning user: %s", email)
+				log.Warnf("AbuseProtectorMiddleware | Invalid email encountered while banning user: %s", email)
 				next.ServeHTTP(w, r)
 				return
 			}
@@ -122,22 +122,40 @@ func (m *Middleware) AbuseProtectorMiddleware() func(next http.Handler) http.Han
 				}
 			}
 
-			if len(banReasons) > 0 {
-				err = discord.FireBannedUserWebhook(utils.GetIPAddress(r), email, domain, userIDStr, utils.GetCountryCode(r), thumbmarkID, banReasons)
-				if err != nil {
-					log.Errorf("Error firing BannedUser webhook: %s", err.Error())
-					next.ServeHTTP(w, r)
-					return
-				}
-				// Ban the user
-				_, err = m.Repo.BanUsers([]uuid.UUID{userID}, false)
-				if err != nil {
-					log.Errorf("Error updating user as banned: %s", err.Error())
-				}
-				time.Sleep(30 * time.Second)
+			if len(banReasons) == 0 {
+				next.ServeHTTP(w, r)
+				return
 			}
 
+			user, err := m.Repo.GetUser(userID)
+
+			if err != nil {
+				log.Errorf("AbuseProtectorMiddleware | Error getting user: %s", err.Error())
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			if user.BannedAt != nil {
+				log.Infof(`User "%s" is already banned`, userIDStr)
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			err = discord.FireBannedUserWebhook(utils.GetIPAddress(r), email, domain, userIDStr, utils.GetCountryCode(r), thumbmarkID, banReasons)
+			if err != nil {
+				log.Errorf("Error firing BannedUser webhook: %s", err.Error())
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			// Ban the user
+			_, err = m.Repo.BanUsers([]uuid.UUID{userID}, false)
+			if err != nil {
+				log.Errorf("Error updating user as banned: %s", err.Error())
+			}
+			time.Sleep(30 * time.Second)
 			next.ServeHTTP(w, r)
+			return
 		})
 	}
 }
