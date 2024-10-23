@@ -320,7 +320,7 @@ func (c *RestAPI) HandleSubscriptionUpdate(w http.ResponseWriter, r *http.Reques
 	var preview *stripe.Invoice
 	var prorationDate int64
 
-	if scstripe.IsAnnualPriceID(currentPriceID) {
+	if scstripe.IsAnnualPriceID(targetPriceID) {
 		// For annual subscriptions, create a preview with prorations
 		prorationDate = time.Now().Unix()
 
