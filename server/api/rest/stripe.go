@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/render"
 	"github.com/redis/go-redis/v9"
 	"github.com/stablecog/sc-go/database/ent"
+	"github.com/stablecog/sc-go/database/ent/credit"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/server/discord"
 	"github.com/stablecog/sc-go/server/requests"
@@ -225,6 +226,194 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, sessionResponse)
+}
+
+func (c *RestAPI) HandleSubscriptionDowngradeV2(w http.ResponseWriter, r *http.Request) {
+	var user *ent.User
+	if user = c.GetUserIfAuthenticated(w, r); user == nil {
+		return
+	}
+
+	if user.BannedAt != nil {
+		responses.ErrForbidden(w, r)
+		return
+	}
+
+	// Parse request body
+	reqBody, _ := io.ReadAll(r.Body)
+	var stripeReq requests.StripeDowngradeRequest
+	err := json.Unmarshal(reqBody, &stripeReq)
+	if err != nil {
+		responses.ErrUnableToParseJson(w, r)
+		return
+	}
+
+	// Validate target price ID
+	var targetPriceID string
+	var targetPriceLevel int
+	for level, priceID := range scstripe.GetPriceIDs() {
+		if priceID == stripeReq.TargetPriceID {
+			targetPriceID = priceID
+			targetPriceLevel = level
+			break
+		}
+	}
+	if targetPriceID == "" {
+		responses.ErrBadRequest(w, r, "invalid_price_id", "")
+		return
+	}
+
+	// Get customer with subscriptions
+	customer, err := c.StripeClient.Customers.Get(user.StripeCustomerID, &stripe.CustomerParams{
+		Params: stripe.Params{
+			Expand: []*string{
+				stripe.String("subscriptions"),
+			},
+		},
+	})
+
+	if err != nil {
+		log.Error("Error getting customer", "err", err)
+		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+		return
+	}
+
+	if customer.Subscriptions == nil || len(customer.Subscriptions.Data) == 0 {
+		responses.ErrBadRequest(w, r, "no_active_subscription", "")
+		return
+	}
+
+	// Find current active subscription
+	var currentSub *stripe.Subscription
+	var currentPriceID string
+	for _, sub := range customer.Subscriptions.Data {
+		if sub.Status == stripe.SubscriptionStatusActive {
+			for _, item := range sub.Items.Data {
+				for _, priceID := range scstripe.GetPriceIDs() {
+					if item.Price.ID == priceID {
+						currentSub = sub
+						currentPriceID = item.Price.ID
+						break
+					}
+				}
+				if currentPriceID != "" {
+					break
+				}
+			}
+		}
+	}
+
+	if currentPriceID == "" {
+		responses.ErrBadRequest(w, r, "no_active_subscription", "")
+		return
+	}
+
+	if currentPriceID == targetPriceID {
+		responses.ErrBadRequest(w, r, "not_lower", "")
+		return
+	}
+
+	// Validate downgrade
+	for level, priceID := range scstripe.GetPriceIDs() {
+		if priceID == currentPriceID {
+			if level <= targetPriceLevel {
+				responses.ErrBadRequest(w, r, "not_lower", "")
+				return
+			}
+			break
+		}
+	}
+
+	// Handle annual subscription downgrade
+	if scstripe.IsAnnualPriceID(currentPriceID) {
+		// If there's already a scheduled subscription, cancel it
+		schedulesIter := c.StripeClient.SubscriptionSchedules.List(&stripe.SubscriptionScheduleListParams{
+			Customer: stripe.String(user.StripeCustomerID),
+		})
+		if err != nil {
+			log.Error("Error listing subscription schedules", "err", err)
+			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+			return
+		}
+
+		// Cancel any existing schedules
+		for schedulesIter.Next() {
+			schedule := schedulesIter.SubscriptionSchedule()
+			if schedule.Status == "active" || schedule.Status == "not_started" {
+				_, err = c.StripeClient.SubscriptionSchedules.Cancel(schedule.ID, nil)
+				if err != nil {
+					log.Error("Error canceling subscription schedule", "err", err)
+					responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+					return
+				}
+			}
+		}
+
+		// Schedule current subscription to cancel at period end
+		_, err = c.StripeClient.Subscriptions.Update(currentSub.ID, &stripe.SubscriptionParams{
+			CancelAtPeriodEnd: stripe.Bool(true),
+		})
+		if err != nil {
+			log.Error("Error updating subscription", "err", err)
+			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+			return
+		}
+
+		// Create new subscription scheduled to start at period end
+		scheduleParams := &stripe.SubscriptionScheduleParams{
+			Customer: stripe.String(user.StripeCustomerID),
+			Phases: []*stripe.SubscriptionSchedulePhaseParams{
+				{
+					StartDate: stripe.Int64(currentSub.CurrentPeriodEnd),
+					Items: []*stripe.SubscriptionSchedulePhaseItemParams{
+						{
+							Price:    stripe.String(targetPriceID),
+							Quantity: stripe.Int64(1),
+						},
+					},
+					Iterations: stripe.Int64(1),
+				},
+			},
+		}
+
+		_, err = c.StripeClient.SubscriptionSchedules.New(scheduleParams)
+		if err != nil {
+			log.Error("Error creating subscription schedule", "err", err)
+			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+			return
+		}
+	} else {
+		// Handle non-annual subscription downgrade
+		_, err = c.StripeClient.Subscriptions.Update(currentSub.ID, &stripe.SubscriptionParams{
+			ProrationBehavior: stripe.String("none"),
+			Items: []*stripe.SubscriptionItemsParams{
+				{
+					ID:    stripe.String(currentSub.Items.Data[0].ID),
+					Price: stripe.String(targetPriceID),
+				},
+			},
+		})
+
+		if err != nil {
+			log.Error("Error updating subscription", "err", err)
+			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+			return
+		}
+	}
+
+	highestProductID, highestPriceID, cancelsAt, renewsAt, err := c.GetAndSyncStripeSubscriptionInfo(user.StripeCustomerID)
+	if err != nil {
+		log.Error("Error getting and syncing Stripe subscription info", "err", err)
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, map[string]interface{}{
+		"success":            true,
+		"highest_product_id": highestProductID,
+		"highest_price_id":   highestPriceID,
+		"cancels_at":         cancelsAt,
+		"renews_at":          renewsAt,
+	})
 }
 
 // HTTP Post - handle stripe subscription downgrade
@@ -539,8 +728,11 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 	// For subscription upgrades, we want to cancel all old subscriptions
 	case "customer.subscription.created":
 		newSub, err := stripeObjectMapToSubscriptionObject(event.Data.Object)
+		user, err := c.Repo.GetUserByStripeCustomerId(newSub.Customer.ID)
 		var newProduct string
 		var oldProduct string
+		var oldPrice string
+		var currentLineItemID string
 		if err != nil || newSub == nil {
 			log.Error("Unable parsing stripe subscription object", "err", err)
 			responses.ErrInternalServerError(w, r, err.Error())
@@ -557,16 +749,42 @@ func (c *RestAPI) HandleStripeWebhook(w http.ResponseWriter, r *http.Request) {
 			sub := subIter.Subscription()
 			if sub.ID != newSub.ID {
 				if sub.Items != nil && len(sub.Items.Data) > 0 && sub.Items.Data[0].Price != nil && sub.Items.Data[0].Price.Product != nil {
+					currentLineItemID = sub.Items.Data[0].ID
 					oldProduct = sub.Items.Data[0].Price.Product.ID
+					oldPrice = sub.Items.Data[0].Price.ID
 				}
 				// We need to cancel this subscription
-				_, err := c.StripeClient.Subscriptions.Cancel(sub.ID, &stripe.SubscriptionCancelParams{
-					Prorate: stripe.Bool(false),
-				})
-				if err != nil {
-					log.Error("Unable canceling stripe subscription", "err", err)
-					responses.ErrInternalServerError(w, r, err.Error())
-					return
+				if scstripe.IsAnnualPriceID(oldPrice) {
+					if err := c.Repo.WithTx(func(tx *ent.Tx) error {
+						client := tx.Client()
+						// Cancel all credits for this price ID
+						_, err := client.Credit.Delete().Where(
+							credit.UserIDEQ(user.ID),
+							credit.StripeLineItemIDEQ(currentLineItemID)).
+							Exec(c.Repo.Ctx)
+						if err != nil {
+							return err
+						}
+
+						_, err = c.StripeClient.Subscriptions.Cancel(sub.ID, &stripe.SubscriptionCancelParams{
+							Prorate: stripe.Bool(true),
+						})
+
+						return err
+					}); err != nil {
+						log.Error("Unable canceling stripe subscription", "err", err)
+						responses.ErrInternalServerError(w, r, err.Error())
+						return
+					}
+				} else {
+					_, err := c.StripeClient.Subscriptions.Cancel(sub.ID, &stripe.SubscriptionCancelParams{
+						Prorate: stripe.Bool(false),
+					})
+					if err != nil {
+						log.Error("Unable canceling stripe subscription", "err", err)
+						responses.ErrInternalServerError(w, r, err.Error())
+						return
+					}
 				}
 			}
 		}
