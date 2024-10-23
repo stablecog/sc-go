@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"github.com/redis/go-redis/v9"
 	"github.com/stablecog/sc-go/database/ent"
@@ -220,6 +221,171 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, sessionResponse)
+}
+
+// HTTP Post - handle stripe subscription update preview
+func (c *RestAPI) HandleSubscriptionUpdate(w http.ResponseWriter, r *http.Request) {
+	action := chi.URLParam(r, "action")
+
+	if action != "preview" && action != "commit" {
+		responses.ErrBadRequest(w, r, "invalid_action", "")
+		return
+	}
+
+	var user *ent.User
+	if user = c.GetUserIfAuthenticated(w, r); user == nil {
+		return
+	}
+
+	if user.BannedAt != nil {
+		responses.ErrForbidden(w, r)
+		return
+	}
+
+	// Parse request body
+	reqBody, _ := io.ReadAll(r.Body)
+	var stripeReq requests.StripeDowngradeRequest
+	err := json.Unmarshal(reqBody, &stripeReq)
+	if err != nil {
+		responses.ErrUnableToParseJson(w, r)
+		return
+	}
+
+	// Make sure price ID exists in map
+	var targetPriceID string
+	for _, priceID := range scstripe.GetPriceIDs() {
+		if priceID == stripeReq.TargetPriceID {
+			targetPriceID = priceID
+			break
+		}
+	}
+	if targetPriceID == "" {
+		responses.ErrBadRequest(w, r, "invalid_price_id", "")
+		return
+	}
+
+	// Get subscription
+	customer, err := c.StripeClient.Customers.Get(user.StripeCustomerID, &stripe.CustomerParams{
+		Params: stripe.Params{
+			Expand: []*string{
+				stripe.String("subscriptions"),
+			},
+		},
+	})
+
+	if err != nil {
+		log.Error("Error getting customer", "err", err)
+		responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+		return
+	}
+
+	if customer.Subscriptions == nil || len(customer.Subscriptions.Data) == 0 || customer.Subscriptions.TotalCount == 0 {
+		responses.ErrBadRequest(w, r, "no_active_subscription", "")
+		return
+	}
+
+	var currentPriceID string
+	var currentSubId string
+	var currentItemId string
+	var currentSub *stripe.Subscription
+	for _, sub := range customer.Subscriptions.Data {
+		if sub.Status == stripe.SubscriptionStatusActive && sub.CancelAt == 0 {
+			for _, item := range sub.Items.Data {
+				// If price ID is in map it's valid
+				for _, priceID := range scstripe.GetPriceIDs() {
+					if item.Price.ID == priceID {
+						currentPriceID = item.Price.ID
+						currentSubId = sub.ID
+						currentItemId = item.ID
+						currentSub = sub
+						break
+					}
+				}
+				break
+			}
+		}
+	}
+
+	if currentPriceID == "" {
+		responses.ErrBadRequest(w, r, "no_active_subscription", "")
+		return
+	}
+
+	if currentPriceID == targetPriceID {
+		responses.ErrBadRequest(w, r, "not_different", "")
+		return
+	}
+
+	// Generate preview based on subscription type
+	var preview *stripe.Invoice
+	var prorationDate int64
+
+	if scstripe.IsAnnualPriceID(currentPriceID) {
+		// For annual subscriptions, create a preview with prorations
+		prorationDate = time.Now().Unix()
+
+		// Get the upcoming invoice preview
+		params := &stripe.InvoiceUpcomingParams{
+			Customer:     stripe.String(user.StripeCustomerID),
+			Subscription: stripe.String(currentSubId),
+			SubscriptionItems: []*stripe.SubscriptionItemsParams{
+				{
+					ID:    stripe.String(currentItemId),
+					Price: stripe.String(targetPriceID),
+				},
+			},
+			SubscriptionProrationDate: stripe.Int64(prorationDate),
+		}
+
+		preview, err = c.StripeClient.Invoices.Upcoming(params)
+		if err != nil {
+			log.Error("Error generating invoice preview", "err", err)
+			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+			return
+		}
+	}
+
+	// Calculate preview information
+	var previewInfo struct {
+		CurrentPlan      string  `json:"current_plan"`
+		NewPlan          string  `json:"new_plan"`
+		HasProration     bool    `json:"has_proration"`
+		ProrationAmount  float64 `json:"proration_amount,omitempty"`
+		ProrationDate    int64   `json:"proration_date,omitempty"`
+		NewAmount        float64 `json:"new_amount"`
+		CurrentPeriodEnd int64   `json:"current_period_end"`
+		IsAnnual         bool    `json:"is_annual"`
+	}
+
+	previewInfo.CurrentPlan = currentPriceID
+	previewInfo.NewPlan = targetPriceID
+	previewInfo.IsAnnual = scstripe.IsAnnualPriceID(currentPriceID)
+	previewInfo.CurrentPeriodEnd = currentSub.CurrentPeriodEnd
+
+	if preview != nil {
+		// For annual subscriptions with proration
+		previewInfo.HasProration = true
+		previewInfo.ProrationAmount = float64(preview.AmountDue) / 100 // Convert cents to dollars
+		previewInfo.ProrationDate = prorationDate
+		previewInfo.NewAmount = float64(preview.Total) / 100
+	} else {
+		// For non-annual subscriptions (no proration)
+		previewInfo.HasProration = false
+		// Get the price amount from the target price ID
+		price, err := c.StripeClient.Prices.Get(targetPriceID, nil)
+		if err != nil {
+			log.Error("Error getting price information", "err", err)
+			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+			return
+		}
+		previewInfo.NewAmount = float64(price.UnitAmount) / 100
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, map[string]interface{}{
+		"success": true,
+		"preview": previewInfo,
+	})
 }
 
 // HTTP Post - handle stripe subscription downgrade

@@ -1333,6 +1333,7 @@ func main() {
 
 			// Subscriptions
 			r.Post("/subscription/downgrade", hc.HandleSubscriptionDowngrade)
+			r.Post("/subscription/update/{action}", hc.HandleSubscriptionUpdate)
 			r.Post("/subscription/checkout", hc.HandleCreateCheckoutSession)
 			r.Post("/subscription/portal", hc.HandleCreatePortalSession)
 
