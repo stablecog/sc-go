@@ -155,6 +155,11 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 
 	// If they have a current one, make sure they are upgrading
 	if currentPriceID != "" && !adhocPrice {
+		// Annual cannot upgrade
+		if scstripe.IsAnnualPriceID(currentPriceID) {
+			responses.ErrBadRequest(w, r, "cannot_upgrade", "Must cancel and re-subscribe with annual plan")
+			return
+		}
 		var currentPriceLevel int
 		for level, priceID := range scstripe.GetPriceIDs() {
 			if priceID == currentPriceID {
@@ -306,6 +311,12 @@ func (c *RestAPI) HandleSubscriptionDowngrade(w http.ResponseWriter, r *http.Req
 
 	if currentPriceID == targetPriceID {
 		responses.ErrBadRequest(w, r, "not_lower", "")
+		return
+	}
+
+	// Can't downgrade from annual
+	if scstripe.IsAnnualPriceID(currentPriceID) {
+		responses.ErrBadRequest(w, r, "cannot_downgrade", "Cancel and re-subscribe")
 		return
 	}
 
