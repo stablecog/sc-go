@@ -22,6 +22,24 @@ func GetPriceIDs() map[int]string {
 	}
 }
 
+func GetPriceIDLevel(priceID string) int {
+	switch priceID {
+	case utils.GetEnv().StripeUltimateAnnualPriceID:
+		return 6
+	case utils.GetEnv().StripeProAnnualPriceID:
+		return 5
+	case utils.GetEnv().StripeStarterAnnualPriceID:
+		return 4
+	case utils.GetEnv().StripeUltimatePriceID:
+		return 3
+	case utils.GetEnv().StripeProPriceID:
+		return 2
+	case utils.GetEnv().StripeStarterPriceID:
+		return 1
+	}
+	return 0
+}
+
 func IsAnnualPriceID(priceID string) bool {
 	return priceID == utils.GetEnv().StripeUltimateAnnualPriceID || priceID == utils.GetEnv().StripeProAnnualPriceID || priceID == utils.GetEnv().StripeStarterAnnualPriceID
 }

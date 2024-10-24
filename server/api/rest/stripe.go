@@ -316,15 +316,82 @@ func (c *RestAPI) HandleSubscriptionUpdate(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	// Get parameters
+	levelCurrent := scstripe.GetPriceIDLevel(currentPriceID)
+	levelTarget := scstripe.GetPriceIDLevel(targetPriceID)
+
+	isUpgrade := levelTarget > levelCurrent
+
+	currentIsAnnual := scstripe.IsAnnualPriceID(currentPriceID)
+	targetIsAnnual := scstripe.IsAnnualPriceID(targetPriceID)
+
 	// Generate preview based on subscription type
 	var preview *stripe.Invoice
 	var prorationDate int64
+	var previewInfo struct {
+		CurrentPlan      string          `json:"current_plan"`
+		NewPlan          string          `json:"new_plan"`
+		HasProration     bool            `json:"has_proration"`
+		ProrationAmount  float64         `json:"proration_amount,omitempty"`
+		ProrationDate    int64           `json:"proration_date,omitempty"`
+		NewAmount        float64         `json:"new_amount"`
+		CurrentPeriodEnd int64           `json:"current_period_end"`
+		IsAnnual         bool            `json:"is_annual"`
+		NewPlanStartsAt  int64           `json:"new_plan_starts_at,omitempty"`
+		Currency         stripe.Currency `json:"currency"`
+	}
 
-	if scstripe.IsAnnualPriceID(targetPriceID) {
-		// For annual subscriptions, create a preview with prorations
+	previewInfo.CurrentPlan = currentPriceID
+	previewInfo.NewPlan = targetPriceID
+	previewInfo.IsAnnual = currentIsAnnual
+	previewInfo.CurrentPeriodEnd = currentSub.CurrentPeriodEnd
+
+	// Handle downgrading in any scenario
+	if !isUpgrade && ((currentIsAnnual && !targetIsAnnual) || (!currentIsAnnual && !targetIsAnnual)) {
+		// No immediate charge; schedule new plan at end of current period
+		price, err := c.StripeClient.Prices.Get(targetPriceID, nil)
+		if err != nil {
+			log.Error("Error getting price information", "err", err)
+			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+			return
+		}
+
+		previewInfo.HasProration = false
+		previewInfo.NewAmount = float64(price.UnitAmount) / 100
+		previewInfo.NewPlanStartsAt = currentSub.CurrentPeriodEnd
+		previewInfo.Currency = price.Currency
+	}
+
+	// Handle upgrading from monthly to any plan
+	if isUpgrade && !currentIsAnnual {
+		params := &stripe.InvoiceUpcomingParams{
+			Customer:     stripe.String(user.StripeCustomerID),
+			Subscription: stripe.String(currentSubId),
+			SubscriptionItems: []*stripe.SubscriptionItemsParams{
+				{
+					ID:    stripe.String(currentItemId),
+					Price: stripe.String(targetPriceID),
+				},
+			},
+			SubscriptionProrationBehavior: stripe.String("none"),
+		}
+
+		preview, err = c.StripeClient.Invoices.Upcoming(params)
+		if err != nil {
+			log.Error("Error generating invoice preview", "err", err)
+			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
+			return
+		}
+
+		previewInfo.HasProration = false
+		previewInfo.NewAmount = float64(preview.AmountDue) / 100
+		previewInfo.Currency = preview.Currency
+	}
+
+	// Handle upgrading from annual plan to hhigher annual plan
+	if isUpgrade && currentIsAnnual && targetIsAnnual {
 		prorationDate = time.Now().Unix()
 
-		// Get the upcoming invoice preview
 		params := &stripe.InvoiceUpcomingParams{
 			Customer:     stripe.String(user.StripeCustomerID),
 			Subscription: stripe.String(currentSubId),
@@ -343,42 +410,12 @@ func (c *RestAPI) HandleSubscriptionUpdate(w http.ResponseWriter, r *http.Reques
 			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
 			return
 		}
-	}
 
-	// Calculate preview information
-	var previewInfo struct {
-		CurrentPlan      string  `json:"current_plan"`
-		NewPlan          string  `json:"new_plan"`
-		HasProration     bool    `json:"has_proration"`
-		ProrationAmount  float64 `json:"proration_amount,omitempty"`
-		ProrationDate    int64   `json:"proration_date,omitempty"`
-		NewAmount        float64 `json:"new_amount"`
-		CurrentPeriodEnd int64   `json:"current_period_end"`
-		IsAnnual         bool    `json:"is_annual"`
-	}
-
-	previewInfo.CurrentPlan = currentPriceID
-	previewInfo.NewPlan = targetPriceID
-	previewInfo.IsAnnual = scstripe.IsAnnualPriceID(currentPriceID)
-	previewInfo.CurrentPeriodEnd = currentSub.CurrentPeriodEnd
-
-	if preview != nil {
-		// For annual subscriptions with proration
 		previewInfo.HasProration = true
-		previewInfo.ProrationAmount = float64(preview.AmountDue) / 100 // Convert cents to dollars
+		previewInfo.ProrationAmount = float64(preview.AmountDue) / 100
 		previewInfo.ProrationDate = prorationDate
 		previewInfo.NewAmount = float64(preview.Total) / 100
-	} else {
-		// For non-annual subscriptions (no proration)
-		previewInfo.HasProration = false
-		// Get the price amount from the target price ID
-		price, err := c.StripeClient.Prices.Get(targetPriceID, nil)
-		if err != nil {
-			log.Error("Error getting price information", "err", err)
-			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
-			return
-		}
-		previewInfo.NewAmount = float64(price.UnitAmount) / 100
+		previewInfo.Currency = preview.Currency
 	}
 
 	render.Status(r, http.StatusOK)
