@@ -616,12 +616,6 @@ func (c *RestAPI) HandleSubscriptionUpdate(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if err != nil {
-		log.Error("Error extracting currency info", "err", err)
-		responses.ErrInternalServerError(w, r, "currency_info_extraction_error")
-		return
-	}
-
 	if action == "commit" {
 		c.handleSubscriptionCommit(w, r, user, currentSub, currentItemId, currentPriceID, targetPriceID)
 		return
