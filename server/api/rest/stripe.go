@@ -474,6 +474,9 @@ func (c *RestAPI) handleSubscriptionCommit(w http.ResponseWriter, r *http.Reques
 		}
 	}
 
+	// Sync newest info to the DB
+	c.GetAndSyncStripeSubscriptionInfo(user.StripeCustomerID)
+
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, map[string]interface{}{
 		"success": true,
