@@ -312,7 +312,7 @@ func (c *RestAPI) handleSubscriptionPreview(
 		}
 
 		previewInfo.HasProration = false
-		previewInfo.NewAmount = float64(preview.AmountDue) / 100
+		previewInfo.NewAmount = float64(preview.AmountDue) / newUnitDecimals
 		previewInfo.Discount = preview.Discount
 	}
 
