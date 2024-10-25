@@ -1465,6 +1465,7 @@ func extractCurrencyInfo(currency stripe.Currency, priceObj *stripe.Price) (int6
 	currencyString := string(currency)
 	priceOption, exists := priceObj.CurrencyOptions[currencyString]
 	if !exists {
+		log.Error("No currency options found", "currency:", currencyString, "currencyOptions:", priceObj.CurrencyOptions)
 		return 0, 0, errors.New("No currency options found: " + currencyString)
 	}
 	return priceOption.UnitAmount, priceOption.UnitAmountDecimal, nil
