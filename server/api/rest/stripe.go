@@ -570,11 +570,15 @@ func (c *RestAPI) HandleSubscriptionUpdate(w http.ResponseWriter, r *http.Reques
 
 	if action == "commit" {
 		c.handleSubscriptionCommit(w, r, user, currentSub, currentItemId, currentPriceID, targetPriceID)
-	} else if action == "preview" {
-		c.handleSubscriptionPreview(w, r, user, currentSub, currentItemId, currentPriceID, targetPriceID)
-	} else {
-		responses.ErrBadRequest(w, r, "invalid_action", "")
+		return
 	}
+
+	if action == "preview" {
+		c.handleSubscriptionPreview(w, r, user, currentSub, currentItemId, currentPriceID, targetPriceID)
+		return
+	}
+
+	responses.ErrBadRequest(w, r, "invalid_action", "")
 	return
 }
 
