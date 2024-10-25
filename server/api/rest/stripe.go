@@ -291,6 +291,7 @@ func (c *RestAPI) handleSubscriptionPreview(
 
 	// Handle downgrading in any scenario
 	if !isUpgrade && ((currentIsAnnual && !targetIsAnnual) || (!currentIsAnnual && !targetIsAnnual)) {
+		log.Info("Downgrade subscription preview", "current_price_id", currentPriceID, "target_price_id", targetPriceID)
 		// No immediate charge; schedule new plan at end of current period
 		previewInfo.HasProration = false
 		previewInfo.NewAmount = float64(newUnitAmount) / currencyAmountDivider
