@@ -2,6 +2,7 @@ package rest
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"time"
@@ -224,7 +225,15 @@ func (c *RestAPI) HandleCreateCheckoutSession(w http.ResponseWriter, r *http.Req
 	render.JSON(w, r, sessionResponse)
 }
 
-func (c *RestAPI) handleSubscriptionPreview(w http.ResponseWriter, r *http.Request, user *ent.User, currentSub *stripe.Subscription, currentItemId string, currentPriceID string, targetPriceID string) {
+func (c *RestAPI) handleSubscriptionPreview(
+	w http.ResponseWriter,
+	r *http.Request,
+	user *ent.User,
+	currentSub *stripe.Subscription,
+	currentItemId string,
+	currentPriceID string,
+	targetPriceID string,
+) {
 	// Get parameters
 	levelCurrent := scstripe.GetPriceIDLevel(currentPriceID)
 	levelTarget := scstripe.GetPriceIDLevel(targetPriceID)
@@ -255,21 +264,28 @@ func (c *RestAPI) handleSubscriptionPreview(w http.ResponseWriter, r *http.Reque
 	previewInfo.NewPlan = targetPriceID
 	previewInfo.IsAnnual = currentIsAnnual
 	previewInfo.CurrentPeriodEnd = currentSub.CurrentPeriodEnd
+	previewInfo.Currency = currentSub.Currency
+
+	targetPriceObj, err := c.StripeClient.Prices.Get(targetPriceID, nil)
+	if err != nil {
+		log.Error("Error getting price information", "err", err)
+		responses.ErrInternalServerError(w, r, "target_price_info_error")
+		return
+	}
+
+	newUnitAmount, newUnitDecimals, err := extractCurrencyInfo(currentSub.Currency, targetPriceObj)
+	if err != nil {
+		log.Error("Error extracting currency info", "err", err)
+		responses.ErrInternalServerError(w, r, "new_currency_info_extraction_error")
+		return
+	}
 
 	// Handle downgrading in any scenario
 	if !isUpgrade && ((currentIsAnnual && !targetIsAnnual) || (!currentIsAnnual && !targetIsAnnual)) {
 		// No immediate charge; schedule new plan at end of current period
-		price, err := c.StripeClient.Prices.Get(targetPriceID, nil)
-		if err != nil {
-			log.Error("Error getting price information", "err", err)
-			responses.ErrInternalServerError(w, r, "An unknown error has occurred")
-			return
-		}
-
 		previewInfo.HasProration = false
-		previewInfo.NewAmount = float64(price.UnitAmount) / 100
+		previewInfo.NewAmount = float64(newUnitAmount) / newUnitDecimals
 		previewInfo.NewPlanStartsAt = currentSub.CurrentPeriodEnd
-		previewInfo.Currency = price.Currency
 		previewInfo.Discount = preview.Discount
 	}
 
@@ -284,6 +300,7 @@ func (c *RestAPI) handleSubscriptionPreview(w http.ResponseWriter, r *http.Reque
 					Price: stripe.String(targetPriceID),
 				},
 			},
+			Currency:                      stripe.String(string(previewInfo.Currency)),
 			SubscriptionProrationBehavior: stripe.String("none"),
 		}
 
@@ -296,7 +313,6 @@ func (c *RestAPI) handleSubscriptionPreview(w http.ResponseWriter, r *http.Reque
 
 		previewInfo.HasProration = false
 		previewInfo.NewAmount = float64(preview.AmountDue) / 100
-		previewInfo.Currency = preview.Currency
 		previewInfo.Discount = preview.Discount
 	}
 
@@ -314,6 +330,7 @@ func (c *RestAPI) handleSubscriptionPreview(w http.ResponseWriter, r *http.Reque
 				},
 			},
 			SubscriptionProrationDate: stripe.Int64(prorationDate),
+			Currency:                  stripe.String(string(previewInfo.Currency)),
 		}
 
 		preview, err := c.StripeClient.Invoices.Upcoming(params)
@@ -324,9 +341,9 @@ func (c *RestAPI) handleSubscriptionPreview(w http.ResponseWriter, r *http.Reque
 		}
 
 		previewInfo.HasProration = true
-		previewInfo.ProrationAmount = float64(preview.AmountDue) / 100
+		previewInfo.ProrationAmount = float64(preview.AmountDue) / newUnitDecimals
 		previewInfo.ProrationDate = prorationDate
-		previewInfo.NewAmount = float64(preview.Total) / 100
+		previewInfo.NewAmount = float64(preview.Total) / newUnitDecimals
 		previewInfo.Currency = preview.Currency
 		previewInfo.Discount = preview.Discount
 	}
@@ -338,7 +355,15 @@ func (c *RestAPI) handleSubscriptionPreview(w http.ResponseWriter, r *http.Reque
 	})
 }
 
-func (c *RestAPI) handleSubscriptionCommit(w http.ResponseWriter, r *http.Request, user *ent.User, currentSub *stripe.Subscription, currentItemId string, currentPriceID string, targetPriceID string) {
+func (c *RestAPI) handleSubscriptionCommit(
+	w http.ResponseWriter,
+	r *http.Request,
+	user *ent.User,
+	currentSub *stripe.Subscription,
+	currentItemId string,
+	currentPriceID string,
+	targetPriceID string,
+) {
 	// Get parameters
 	levelCurrent := scstripe.GetPriceIDLevel(currentPriceID)
 	levelTarget := scstripe.GetPriceIDLevel(targetPriceID)
@@ -447,6 +472,7 @@ func (c *RestAPI) handleSubscriptionCommit(w http.ResponseWriter, r *http.Reques
 					Quantity: stripe.Int64(1),
 				},
 			},
+			Currency:             stripe.String(string(currentSub.Currency)),
 			DefaultPaymentMethod: stripe.String(currentPaymentMethodID),
 		}
 
@@ -587,6 +613,12 @@ func (c *RestAPI) HandleSubscriptionUpdate(w http.ResponseWriter, r *http.Reques
 
 	if currentPriceID == targetPriceID {
 		responses.ErrBadRequest(w, r, "not_different", "")
+		return
+	}
+
+	if err != nil {
+		log.Error("Error extracting currency info", "err", err)
+		responses.ErrInternalServerError(w, r, "currency_info_extraction_error")
 		return
 	}
 
@@ -1433,6 +1465,15 @@ func stripeObjectMapToPaymentIntent(obj map[string]interface{}) (*PaymentIntent,
 		return nil, err
 	}
 	return &pi, nil
+}
+
+func extractCurrencyInfo(currency stripe.Currency, priceObj *stripe.Price) (int64, float64, error) {
+	currencyString := string(currency)
+	priceOption, exists := priceObj.CurrencyOptions[currencyString]
+	if !exists {
+		return 0, 0, errors.New("No currency options found")
+	}
+	return priceOption.UnitAmount, priceOption.UnitAmountDecimal, nil
 }
 
 // ! Stripe types are busted so we modify the ones included in their lib
