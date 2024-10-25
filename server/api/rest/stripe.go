@@ -246,7 +246,6 @@ func (c *RestAPI) handleSubscriptionPreview(
 	targetIsAnnual := scstripe.IsAnnualPriceID(targetPriceID)
 
 	// Generate preview based on subscription type
-	var preview *stripe.Invoice
 	var prorationDate int64
 	var previewInfo struct {
 		CurrentPlan      string           `json:"current_plan"`
@@ -296,7 +295,6 @@ func (c *RestAPI) handleSubscriptionPreview(
 		previewInfo.HasProration = false
 		previewInfo.NewAmount = float64(newUnitAmount) / currencyAmountDivider
 		previewInfo.NewPlanStartsAt = currentSub.CurrentPeriodEnd
-		previewInfo.Discount = preview.Discount
 	}
 
 	// Handle upgrading from monthly to any plan
@@ -322,7 +320,6 @@ func (c *RestAPI) handleSubscriptionPreview(
 
 		previewInfo.HasProration = false
 		previewInfo.NewAmount = float64(preview.AmountDue) / currencyAmountDivider
-		previewInfo.Discount = preview.Discount
 	}
 
 	// Handle upgrading from annual plan to higher annual plan
@@ -353,7 +350,6 @@ func (c *RestAPI) handleSubscriptionPreview(
 		previewInfo.ProrationDate = prorationDate
 		previewInfo.NewAmount = float64(preview.Total) / currencyAmountDivider
 		previewInfo.Currency = preview.Currency
-		previewInfo.Discount = preview.Discount
 	}
 
 	render.Status(r, http.StatusOK)
