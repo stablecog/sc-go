@@ -23,6 +23,8 @@ import (
 	"golang.org/x/exp/slices"
 )
 
+const currencyAmountDivider = 100
+
 // For creating customer portal session
 func (c *RestAPI) HandleCreatePortalSession(w http.ResponseWriter, r *http.Request) {
 	var user *ent.User
@@ -280,7 +282,7 @@ func (c *RestAPI) handleSubscriptionPreview(
 		return
 	}
 
-	newUnitAmount, newUnitDecimals, err := extractCurrencyInfo(currentSub.Currency, targetPriceObj)
+	newUnitAmount, err := extractCurrencyInfo(currentSub.Currency, targetPriceObj)
 	if err != nil {
 		log.Error("Error extracting currency info", "err", err)
 		responses.ErrInternalServerError(w, r, "new_currency_info_extraction_error")
@@ -291,7 +293,7 @@ func (c *RestAPI) handleSubscriptionPreview(
 	if !isUpgrade && ((currentIsAnnual && !targetIsAnnual) || (!currentIsAnnual && !targetIsAnnual)) {
 		// No immediate charge; schedule new plan at end of current period
 		previewInfo.HasProration = false
-		previewInfo.NewAmount = float64(newUnitAmount) / newUnitDecimals
+		previewInfo.NewAmount = float64(newUnitAmount) / currencyAmountDivider
 		previewInfo.NewPlanStartsAt = currentSub.CurrentPeriodEnd
 		previewInfo.Discount = preview.Discount
 	}
@@ -318,7 +320,7 @@ func (c *RestAPI) handleSubscriptionPreview(
 		}
 
 		previewInfo.HasProration = false
-		previewInfo.NewAmount = float64(preview.AmountDue) / newUnitDecimals
+		previewInfo.NewAmount = float64(preview.AmountDue) / currencyAmountDivider
 		previewInfo.Discount = preview.Discount
 	}
 
@@ -346,9 +348,9 @@ func (c *RestAPI) handleSubscriptionPreview(
 		}
 
 		previewInfo.HasProration = true
-		previewInfo.ProrationAmount = float64(preview.AmountDue) / newUnitDecimals
+		previewInfo.ProrationAmount = float64(preview.AmountDue) / currencyAmountDivider
 		previewInfo.ProrationDate = prorationDate
-		previewInfo.NewAmount = float64(preview.Total) / newUnitDecimals
+		previewInfo.NewAmount = float64(preview.Total) / currencyAmountDivider
 		previewInfo.Currency = preview.Currency
 		previewInfo.Discount = preview.Discount
 	}
@@ -1467,15 +1469,15 @@ func stripeObjectMapToPaymentIntent(obj map[string]interface{}) (*PaymentIntent,
 	return &pi, nil
 }
 
-func extractCurrencyInfo(currency stripe.Currency, priceObj *stripe.Price) (int64, float64, error) {
+func extractCurrencyInfo(currency stripe.Currency, priceObj *stripe.Price) (int64, error) {
 	currencyString := string(currency)
 	priceOption, exists := priceObj.CurrencyOptions[currencyString]
 	if !exists {
 		log.Error("No currency options found", "currency:", currency, "currencyOptions:", priceObj.CurrencyOptions)
-		return 0, 0, errors.New("No currency options found: " + currencyString)
+		return 0, errors.New("No currency options found: " + currencyString)
 	}
 	log.Info("Currency options found", "currency:", currency, "priceOption:", priceOption)
-	return priceOption.UnitAmount, priceOption.UnitAmountDecimal, nil
+	return priceOption.UnitAmount, nil
 }
 
 // ! Stripe types are busted so we modify the ones included in their lib
