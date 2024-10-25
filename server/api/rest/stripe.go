@@ -474,7 +474,7 @@ func (c *RestAPI) handleSubscriptionCommit(w http.ResponseWriter, r *http.Reques
 		}
 	}
 
-	// Sync newest info to the DB
+	// Sync newest info to User table in the DB
 	_, _, _, _, err = c.GetAndSyncStripeSubscriptionInfo(user.StripeCustomerID)
 
 	if err != nil {
