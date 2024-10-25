@@ -266,7 +266,14 @@ func (c *RestAPI) handleSubscriptionPreview(
 	previewInfo.CurrentPeriodEnd = currentSub.CurrentPeriodEnd
 	previewInfo.Currency = currentSub.Currency
 
-	targetPriceObj, err := c.StripeClient.Prices.Get(targetPriceID, nil)
+	priceParams := &stripe.PriceParams{
+		Params: stripe.Params{
+			Expand: []*string{
+				stripe.String("currency_options"),
+			},
+		},
+	}
+	targetPriceObj, err := c.StripeClient.Prices.Get(targetPriceID, priceParams)
 	if err != nil {
 		log.Error("Error getting price information", "err", err)
 		responses.ErrInternalServerError(w, r, "target_price_info_error")
@@ -1465,7 +1472,7 @@ func extractCurrencyInfo(currency stripe.Currency, priceObj *stripe.Price) (int6
 	currencyString := string(currency)
 	priceOption, exists := priceObj.CurrencyOptions[currencyString]
 	if !exists {
-		log.Error("No currency options found", "currency:", currencyString, "currencyOptions:", priceObj.CurrencyOptions)
+		log.Error("No currency options found", "currency:", currency, "currencyOptions:", priceObj.CurrencyOptions)
 		return 0, 0, errors.New("No currency options found: " + currencyString)
 	}
 	return priceOption.UnitAmount, priceOption.UnitAmountDecimal, nil
