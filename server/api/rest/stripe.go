@@ -416,7 +416,7 @@ func (c *RestAPI) handleSubscriptionCommit(w http.ResponseWriter, r *http.Reques
 		}
 
 		if err != nil {
-			log.Error("Error managing subscription schedule", "err", err)
+			log.Error("handleSubscriptionCommit | Error managing subscription schedule", "err", err)
 			responses.ErrInternalServerError(w, r, "Failed to schedule subscription change")
 			return
 		}
@@ -429,7 +429,7 @@ func (c *RestAPI) handleSubscriptionCommit(w http.ResponseWriter, r *http.Reques
 			Prorate: stripe.Bool(false),
 		})
 		if err != nil {
-			log.Error("Error canceling current subscription", "err", err)
+			log.Error("handleSubscriptionCommit | Error canceling current subscription", "err", err)
 			responses.ErrInternalServerError(w, r, "Failed to cancel current subscription")
 			return
 		}
@@ -446,7 +446,7 @@ func (c *RestAPI) handleSubscriptionCommit(w http.ResponseWriter, r *http.Reques
 			DefaultPaymentMethod: stripe.String(currentPaymentMethodID),
 		})
 		if err != nil {
-			log.Error("Error creating new subscription", "err", err)
+			log.Error("handleSubscriptionCommit | Error creating new subscription", "err", err)
 			responses.ErrInternalServerError(w, r, "Failed to create new subscription")
 			return
 		}
@@ -468,14 +468,18 @@ func (c *RestAPI) handleSubscriptionCommit(w http.ResponseWriter, r *http.Reques
 
 		_, err = c.StripeClient.Subscriptions.Update(currentSub.ID, params)
 		if err != nil {
-			log.Error("Error updating subscription", "err", err)
+			log.Error("handleSubscriptionCommit | Error updating subscription", "err", err)
 			responses.ErrInternalServerError(w, r, "Failed to update subscription")
 			return
 		}
 	}
 
 	// Sync newest info to the DB
-	c.GetAndSyncStripeSubscriptionInfo(user.StripeCustomerID)
+	_, _, _, _, err = c.GetAndSyncStripeSubscriptionInfo(user.StripeCustomerID)
+
+	if err != nil {
+		log.Error("handleSubscriptionCommit | Error getting and syncing Stripe subscription info", "err", err)
+	}
 
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, map[string]interface{}{
