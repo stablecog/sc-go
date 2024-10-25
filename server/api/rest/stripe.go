@@ -349,6 +349,11 @@ func (c *RestAPI) handleSubscriptionCommit(w http.ResponseWriter, r *http.Reques
 	targetIsAnnual := scstripe.IsAnnualPriceID(targetPriceID)
 
 	currentPaymentMethodID := currentSub.DefaultPaymentMethod.ID
+	currentDiscountID := ""
+
+	if currentSub != nil && currentSub.Discount != nil && currentSub.Discount.Coupon != nil && currentSub.Discount.Coupon.ID != "" {
+		currentDiscountID = currentSub.Discount.Coupon.ID
+	}
 
 	var err error
 
@@ -434,8 +439,7 @@ func (c *RestAPI) handleSubscriptionCommit(w http.ResponseWriter, r *http.Reques
 			return
 		}
 
-		// Create new subscription immediately
-		_, err = c.StripeClient.Subscriptions.New(&stripe.SubscriptionParams{
+		newSubParams := &stripe.SubscriptionParams{
 			Customer: stripe.String(user.StripeCustomerID),
 			Items: []*stripe.SubscriptionItemsParams{
 				{
@@ -444,7 +448,15 @@ func (c *RestAPI) handleSubscriptionCommit(w http.ResponseWriter, r *http.Reques
 				},
 			},
 			DefaultPaymentMethod: stripe.String(currentPaymentMethodID),
-		})
+		}
+
+		// Apply the existing coupon to the new subscription if available
+		if currentDiscountID != "" {
+			newSubParams.Coupon = &currentDiscountID
+		}
+
+		// Create new subscription immediately
+		_, err = c.StripeClient.Subscriptions.New(newSubParams)
 		if err != nil {
 			log.Error("handleSubscriptionCommit | Error creating new subscription", "err", err)
 			responses.ErrInternalServerError(w, r, "Failed to create new subscription")
