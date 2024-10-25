@@ -568,11 +568,14 @@ func (c *RestAPI) HandleSubscriptionUpdate(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if action == "preview" {
+	if action == "commit" {
+		c.handleSubscriptionCommit(w, r, user, currentSub, currentItemId, currentPriceID, targetPriceID)
+	} else if action == "preview" {
 		c.handleSubscriptionPreview(w, r, user, currentSub, currentItemId, currentPriceID, targetPriceID)
 	} else {
-		c.handleSubscriptionCommit(w, r, user, currentSub, currentItemId, currentPriceID, targetPriceID)
+		responses.ErrBadRequest(w, r, "invalid_action", "")
 	}
+	return
 }
 
 // HTTP Post - handle stripe subscription downgrade
