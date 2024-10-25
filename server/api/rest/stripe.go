@@ -348,6 +348,8 @@ func (c *RestAPI) handleSubscriptionCommit(w http.ResponseWriter, r *http.Reques
 	currentIsAnnual := scstripe.IsAnnualPriceID(currentPriceID)
 	targetIsAnnual := scstripe.IsAnnualPriceID(targetPriceID)
 
+	currentPaymentMethodID := currentSub.DefaultPaymentMethod.ID
+
 	var err error
 
 	// Case 1: Downgrading (from annual to monthly or monthly to lower monthly)
@@ -441,6 +443,7 @@ func (c *RestAPI) handleSubscriptionCommit(w http.ResponseWriter, r *http.Reques
 					Quantity: stripe.Int64(1),
 				},
 			},
+			DefaultPaymentMethod: stripe.String(currentPaymentMethodID),
 		})
 		if err != nil {
 			log.Error("Error creating new subscription", "err", err)
