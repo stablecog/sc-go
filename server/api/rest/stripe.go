@@ -307,7 +307,6 @@ func (c *RestAPI) handleSubscriptionPreview(
 					Price: stripe.String(targetPriceID),
 				},
 			},
-			Currency:                      stripe.String(string(previewInfo.Currency)),
 			SubscriptionProrationBehavior: stripe.String("none"),
 		}
 
@@ -337,7 +336,6 @@ func (c *RestAPI) handleSubscriptionPreview(
 				},
 			},
 			SubscriptionProrationDate: stripe.Int64(prorationDate),
-			Currency:                  stripe.String(string(previewInfo.Currency)),
 		}
 
 		preview, err := c.StripeClient.Invoices.Upcoming(params)
