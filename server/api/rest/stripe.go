@@ -444,6 +444,7 @@ func (c *RestAPI) handleSubscriptionCommit(
 								Quantity: stripe.Int64(1),
 							},
 						},
+						Currency: stripe.String(string(currentSub.Currency)),
 					},
 				},
 			}
