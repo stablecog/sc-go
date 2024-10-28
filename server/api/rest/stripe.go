@@ -498,7 +498,7 @@ func (c *RestAPI) handleSubscriptionCommit(
 	// Case 3: Upgrading from annual to higher annual plan
 	if isUpgrade && currentIsAnnual && targetIsAnnual {
 		// Update existing subscription with proration
-		params := &stripe.SubscriptionParams{
+		newSubParams := &stripe.SubscriptionParams{
 			Items: []*stripe.SubscriptionItemsParams{
 				{
 					ID:    stripe.String(currentItemId),
@@ -509,7 +509,12 @@ func (c *RestAPI) handleSubscriptionCommit(
 			ProrationDate:     stripe.Int64(time.Now().Unix()),
 		}
 
-		_, err = c.StripeClient.Subscriptions.Update(currentSub.ID, params)
+		// Apply the existing coupon to the new subscription if available
+		if currentDiscountID != "" {
+			newSubParams.Coupon = &currentDiscountID
+		}
+
+		_, err = c.StripeClient.Subscriptions.Update(currentSub.ID, newSubParams)
 		if err != nil {
 			log.Error("handleSubscriptionCommit | Error updating subscription", "err", err)
 			responses.ErrInternalServerError(w, r, "Failed to update subscription")
