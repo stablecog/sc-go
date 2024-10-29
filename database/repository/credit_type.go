@@ -4,10 +4,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/stablecog/sc-go/database/ent"
 	"github.com/stablecog/sc-go/database/ent/credittype"
+	"github.com/stablecog/sc-go/shared"
 )
 
 const FREE_CREDIT_TYPE_ID = "3b12b23e-478b-4c18-8e34-70b3f0af1ee6"
-const FREE_CREDIT_INITIAL_AMOUNT = 50
 const REFUND_CREDIT_TYPE_ID = "7ca94fd6-c201-4ca6-a9bf-4473c83e30b4"
 const REFUND_NONFREE_CREDIT_TYPE_ID = "6d86f50a-64d7-4d04-8c7a-a4afa071c202"
 const TIPPABLE_CREDIT_TYPE_ID = "74cc89d3-fb00-4cca-9573-95c6786cf186"
@@ -52,7 +52,7 @@ func (r *Repository) GetOrCreateFreeCreditType(DB *ent.Client) (*ent.CreditType,
 	creditType, err := r.DB.CreditType.Query().Where(credittype.IDEQ(freeId)).Only(r.Ctx)
 	if err != nil && ent.IsNotFound(err) {
 		// Create it
-		creditType, err := r.DB.CreditType.Create().SetID(freeId).SetName("Free").SetAmount(FREE_CREDIT_INITIAL_AMOUNT).SetType(credittype.TypeFree).Save(r.Ctx)
+		creditType, err := r.DB.CreditType.Create().SetID(freeId).SetName("Free").SetAmount(shared.FREE_CREDIT_INITIAL_AMOUNT).SetType(credittype.TypeFree).Save(r.Ctx)
 		if err != nil {
 			return nil, err
 		}

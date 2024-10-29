@@ -112,6 +112,9 @@ const FREE_CREDIT_AMOUNT_DAILY = 10
 // They get up to FREE_CREDIT_AMOUNT_DAILY in this time period
 const FREE_CREDIT_REPLENISHMENT_INTERVAL = 12 * time.Hour
 
+// How many free credits to give initially to all users
+const FREE_CREDIT_INITIAL_AMOUNT = 50
+
 // Last sign in within 7 days
 // const FREE_CREDIT_LAST_ACTIVITY_REQUIREMENT = 168 * time.Hour
 
