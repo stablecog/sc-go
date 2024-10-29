@@ -70,7 +70,7 @@ func TestGetFreeCreditReplenishesAtForUser(t *testing.T) {
 
 	// Credits replenished ~6 hours ago
 	replenishedAt := time.Date(2020, 1, 1, 6, 0, 0, 0, time.UTC)
-	MockRepo.DB.Credit.UpdateOne(credit).SetReplenishedAt(replenishedAt).SetRemainingAmount(50).ExecX(context.Background())
+	MockRepo.DB.Credit.UpdateOne(credit).SetReplenishedAt(replenishedAt).SetRemainingAmount(shared.FREE_CREDIT_INITIAL_AMOUNT / 2).ExecX(context.Background())
 
 	// Get free credit replenishes at
 	replenishesAt, credit, creditType, err := MockRepo.GetFreeCreditReplenishesAtForUser(u.ID)

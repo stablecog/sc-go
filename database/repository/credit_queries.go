@@ -46,18 +46,18 @@ var Now = time.Now
 
 func (r *Repository) GetFreeCreditReplenishesAtForUser(userID uuid.UUID) (*time.Time, *ent.Credit, *ent.CreditType, error) {
 	// Free type
-	ctype, err := r.GetOrCreateFreeCreditType(nil)
+	creditType, err := r.GetOrCreateFreeCreditType(nil)
 	if err != nil {
 		log.Error("Error getting free credit type", "err", err)
 		return nil, nil, nil, err
 	}
 	// get the free credit row
-	credit, err := r.DB.Credit.Query().Where(credit.UserID(userID), credit.CreditTypeID(ctype.ID)).Only(r.Ctx)
+	credit, err := r.DB.Credit.Query().Where(credit.UserID(userID), credit.CreditTypeID(creditType.ID)).Only(r.Ctx)
 	if err != nil {
 		log.Error("Error getting free credit", "err", err)
 		return nil, nil, nil, err
 	}
-	if credit.RemainingAmount >= ctype.Amount {
+	if credit.RemainingAmount >= creditType.Amount {
 		// Already has full amount
 		return nil, nil, nil, nil
 	}
@@ -72,7 +72,7 @@ func (r *Repository) GetFreeCreditReplenishesAtForUser(userID uuid.UUID) (*time.
 
 	replenishesAt := now.Add(diff)
 
-	return &replenishesAt, credit, ctype, nil
+	return &replenishesAt, credit, creditType, nil
 }
 
 // Determine if a user has non-free credits or not
