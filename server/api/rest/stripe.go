@@ -479,6 +479,10 @@ func (c *RestAPI) handleSubscriptionCommit(
 			},
 			Currency:             stripe.String(string(currentSub.Currency)),
 			DefaultPaymentMethod: stripe.String(currentPaymentMethodID),
+			BillingCycleAnchor:   stripe.Int64(time.Now().Unix()), // Reset billing cycle anchor
+			ProrationBehavior:    stripe.String("none"),           // No proration
+			PaymentBehavior:      stripe.String("error_if_incomplete"),
+			OffSession:           stripe.Bool(true),
 		}
 
 		// Apply the existing coupon to the new subscription if available

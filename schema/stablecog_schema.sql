@@ -1459,3 +1459,5 @@ ON generation_outputs (updated_at DESC, created_at DESC)
 WHERE 
     gallery_status = 'approved' 
     AND (upscaled_image_path IS NULL OR upscaled_image_path = '');
+
+CREATE INDEX idx_prompts_text_type ON prompts(text, type);
