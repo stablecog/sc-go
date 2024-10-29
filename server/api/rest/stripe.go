@@ -23,7 +23,7 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-const currencyAmountDivider = 100
+const CURRENCY_AMOUNT_DIVIDER = 100
 
 // For creating customer portal session
 func (c *RestAPI) HandleCreatePortalSession(w http.ResponseWriter, r *http.Request) {
@@ -293,7 +293,7 @@ func (c *RestAPI) handleSubscriptionPreview(
 		log.Info("Downgrade subscription preview", "current_price_id", currentPriceID, "target_price_id", targetPriceID)
 		// No immediate charge; schedule new plan at end of current period
 		previewInfo.HasProration = false
-		previewInfo.NewAmount = float64(newUnitAmount) / currencyAmountDivider
+		previewInfo.NewAmount = float64(newUnitAmount) / CURRENCY_AMOUNT_DIVIDER
 		previewInfo.NewPlanStartsAt = currentSub.CurrentPeriodEnd
 	}
 
@@ -319,7 +319,7 @@ func (c *RestAPI) handleSubscriptionPreview(
 		}
 
 		previewInfo.HasProration = false
-		previewInfo.NewAmount = float64(preview.AmountDue) / currencyAmountDivider
+		previewInfo.NewAmount = float64(preview.AmountDue) / CURRENCY_AMOUNT_DIVIDER
 	}
 
 	// Handle upgrading from annual plan to higher annual plan
@@ -346,9 +346,9 @@ func (c *RestAPI) handleSubscriptionPreview(
 		}
 
 		previewInfo.HasProration = true
-		previewInfo.ProrationAmount = float64(preview.AmountDue) / currencyAmountDivider
+		previewInfo.ProrationAmount = float64(preview.AmountDue) / CURRENCY_AMOUNT_DIVIDER
 		previewInfo.ProrationDate = prorationDate
-		previewInfo.NewAmount = float64(preview.Total) / currencyAmountDivider
+		previewInfo.NewAmount = float64(preview.Total) / CURRENCY_AMOUNT_DIVIDER
 		previewInfo.Currency = preview.Currency
 	}
 

@@ -53,6 +53,7 @@ func TestGetFreeCreditReplenishesAtForUser(t *testing.T) {
 	Now = func() time.Time {
 		return now
 	}
+
 	// Setup
 	u, err := MockRepo.CreateUser(uuid.New(), "TestGetFreeCreditReplenishesAtForUser@stablecog.com", "cus_1234", nil, nil)
 	assert.Nil(t, err)
@@ -60,20 +61,22 @@ func TestGetFreeCreditReplenishesAtForUser(t *testing.T) {
 	assert.Nil(t, u.ActiveProductID)
 	_, err = MockRepo.GiveFreeCredits(u.ID, nil)
 	assert.Nil(t, err)
+
 	// Get credits
 	ctype, err := MockRepo.GetOrCreateFreeCreditType(nil)
 	assert.Nil(t, err)
 	credit := MockRepo.DB.Credit.Query().Where(credit.UserID(u.ID), credit.CreditTypeID(ctype.ID)).OnlyX(context.Background())
 	assert.NotNil(t, credit)
-	// Credits replnished ~6 hours ago
+
+	// Credits replenished ~6 hours ago
 	replenishedAt := time.Date(2020, 1, 1, 6, 0, 0, 0, time.UTC)
 	MockRepo.DB.Credit.UpdateOne(credit).SetReplenishedAt(replenishedAt).SetRemainingAmount(50).ExecX(context.Background())
 
 	// Get free credit replenishes at
-	replenishesAt, c, ct, err := MockRepo.GetFreeCreditReplenishesAtForUser(u.ID)
+	replenishesAt, credit, creditType, err := MockRepo.GetFreeCreditReplenishesAtForUser(u.ID)
 	assert.Nil(t, err)
-	assert.NotNil(t, c)
-	assert.NotNil(t, ct)
+	assert.NotNil(t, credit)
+	assert.NotNil(t, creditType)
 	assert.Equal(t, replenishedAt.Add(shared.FREE_CREDIT_REPLENISHMENT_INTERVAL), *replenishesAt)
 
 	// Cleanup
