@@ -152,8 +152,6 @@ func (m *Middleware) AbuseProtectorMiddleware() func(next http.Handler) http.Han
 			_, err = m.Repo.BanUsers([]uuid.UUID{userID}, false)
 			if err != nil {
 				log.Errorf("AbuseProtectorMiddleware | Error updating user as banned: %s", err.Error())
-			} else {
-				log.Infof(`AbuseProtectorMiddleware | User "%s" banned for reasons: %s`, userIDStr, strings.Join(banReasons, ", "))
 			}
 			time.Sleep(30 * time.Second)
 			next.ServeHTTP(w, r)
