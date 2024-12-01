@@ -18,7 +18,7 @@ require (
 	github.com/posthog/posthog-go v0.0.0-20240327112532-87b23fe11103
 	github.com/prometheus/client_golang v1.19.1
 	github.com/redis/go-redis/v9 v9.6.1
-	github.com/sashabaranov/go-openai v1.27.1
+	github.com/sashabaranov/go-openai v1.36.0
 	github.com/stablecog/sc-go/cron v0.0.0-20240730141151-89c08cf309f7
 	github.com/stablecog/sc-go/database v0.0.0-20240730141151-89c08cf309f7
 	github.com/stablecog/sc-go/discobot v0.0.0-20240730141151-89c08cf309f7
