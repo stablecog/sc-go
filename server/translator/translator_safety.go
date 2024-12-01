@@ -218,6 +218,7 @@ func (t *TranslatorSafetyChecker) IsPromptNSFW(input string) (isNsfw bool, nsfwR
 	}
 	// API check
 	res, err := t.OpenaiClient.Moderations(t.Ctx, openai.ModerationRequest{
+		Model: "omni-moderation-latest",
 		Input: input,
 	})
 	if err != nil {
