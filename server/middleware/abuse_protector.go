@@ -32,13 +32,13 @@ func isAccountNew(createdAtStr string) bool {
 
 var shouldBanRules []ShouldBanRule = []ShouldBanRule{
 	{
-		Reason: "Four dots in the address, @googlemail, new, and free.",
+		Reason: "Three dots in the address, @googlemail.com, new, and free.",
 		Func: func(r *http.Request) bool {
 			email, _ := r.Context().Value("user_email").(string)
 			activeProductID, _ := r.Context().Value("user_active_product_id").(string)
 			createdAtStr, _ := r.Context().Value("user_created_at").(string)
 
-			hasThreeDots := strings.Count(email, ".") >= 4
+			hasThreeDots := strings.Count(email, ".") >= 3
 			isGoogleMail := strings.HasSuffix(email, "@googlemail.com")
 			isFreeUser := activeProductID == ""
 			isNew := isAccountNew(createdAtStr)
