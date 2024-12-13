@@ -27,7 +27,7 @@ func isAccountNew(createdAtStr string) bool {
 		log.Errorf("Error parsing user created at: %s", err.Error())
 		return false
 	}
-	return time.Since(createdAt) < 24*time.Hour*7
+	return time.Since(createdAt) < 24*time.Hour*14
 }
 
 var shouldBanRules []ShouldBanRule = []ShouldBanRule{
