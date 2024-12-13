@@ -379,6 +379,10 @@ func FireBannedUserWebhook(ip string, email string, domain string, userid string
 						Value: ip,
 					},
 					{
+						Name:  "Country Code",
+						Value: countryCode,
+					},
+					{
 						Name:  "Domain",
 						Value: domain,
 					},
