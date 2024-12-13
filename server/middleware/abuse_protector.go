@@ -32,6 +32,24 @@ func isAccountNew(createdAtStr string) bool {
 
 var shouldBanRules []ShouldBanRule = []ShouldBanRule{
 	{
+		Reason: `From BD, has "+" or multiple dots in the email, new, and free.`,
+		Func: func(r *http.Request) bool {
+			email, _ := r.Context().Value("user_email").(string)
+			activeProductID, _ := r.Context().Value("user_active_product_id").(string)
+			createdAtStr, _ := r.Context().Value("user_created_at").(string)
+			countryCode := utils.GetCountryCode(r)
+
+			fromBD := countryCode == "BD"
+			hasPlus := strings.Contains(email, "+")
+			hasMultipleDots := strings.Count(email, ".") >= 2
+			isFreeUser := activeProductID == ""
+			isNew := isAccountNew(createdAtStr)
+
+			shouldBan := fromBD && (hasPlus || hasMultipleDots) && isFreeUser && isNew
+			return shouldBan
+		},
+	},
+	{
 		Reason: "Three dots in the address, @googlemail.com, new, and free.",
 		Func: func(r *http.Request) bool {
 			email, _ := r.Context().Value("user_email").(string)
