@@ -109,6 +109,23 @@ var shouldBanRules []ShouldBanRule = []ShouldBanRule{
 			return shouldBan
 		},
 	},
+	{
+		Reason: "Four dots in the address and Gmail.",
+		Func: func(r *http.Request) bool {
+			email, _ := r.Context().Value("user_email").(string)
+			activeProductID, _ := r.Context().Value("user_active_product_id").(string)
+			createdAtStr, _ := r.Context().Value("user_created_at").(string)
+
+			hasFourDots := strings.Count(email, ".") >= 4
+			isGoogleMail := strings.HasSuffix(email, "@googlemail.com")
+			isGmail := strings.HasSuffix(email, "@gmail.com")
+			isFreeUser := activeProductID == ""
+			isNew := isAccountNew(createdAtStr)
+
+			shouldBan := hasFourDots && (isGoogleMail || isGmail) && isFreeUser && isNew
+			return shouldBan
+		},
+	},
 }
 
 func (m *Middleware) AbuseProtectorMiddleware() func(next http.Handler) http.Handler {
