@@ -38,10 +38,11 @@ var shouldBanRules []ShouldBanRule = []ShouldBanRule{
 			activeProductID, _ := r.Context().Value("user_active_product_id").(string)
 			createdAtStr, _ := r.Context().Value("user_created_at").(string)
 			countryCode := utils.GetCountryCode(r)
+			emailWithoutDomain := strings.Split(email, "@")[0]
 
 			fromBD := countryCode == "BD"
-			hasPlus := strings.Contains(email, "+")
-			hasMultipleDots := strings.Count(email, ".") >= 2
+			hasPlus := strings.Contains(emailWithoutDomain, "+")
+			hasMultipleDots := strings.Count(emailWithoutDomain, ".") >= 2
 			isFreeUser := activeProductID == ""
 			isNew := isAccountNew(createdAtStr)
 
@@ -55,8 +56,9 @@ var shouldBanRules []ShouldBanRule = []ShouldBanRule{
 			email, _ := r.Context().Value("user_email").(string)
 			activeProductID, _ := r.Context().Value("user_active_product_id").(string)
 			createdAtStr, _ := r.Context().Value("user_created_at").(string)
+			emailWithoutDomain := strings.Split(email, "@")[0]
 
-			hasThreeDots := strings.Count(email, ".") >= 3
+			hasThreeDots := strings.Count(emailWithoutDomain, ".") >= 3
 			isGoogleMail := strings.HasSuffix(email, "@googlemail.com")
 			isFreeUser := activeProductID == ""
 			isNew := isAccountNew(createdAtStr)
@@ -90,9 +92,10 @@ var shouldBanRules []ShouldBanRule = []ShouldBanRule{
 			activeProductID, _ := r.Context().Value("user_active_product_id").(string)
 			createdAtStr, _ := r.Context().Value("user_created_at").(string)
 			email, _ := r.Context().Value("user_email").(string)
+			emailWithoutDomain := strings.Split(email, "@")[0]
 
 			isOutlook := strings.HasSuffix(email, "@outlook.com")
-			hasPlus := strings.Contains(email, "+")
+			hasPlus := strings.Contains(emailWithoutDomain, "+")
 			isNew := isAccountNew(createdAtStr)
 			isFreeUser := activeProductID == ""
 			hasThreeNumbers := false
@@ -115,8 +118,9 @@ var shouldBanRules []ShouldBanRule = []ShouldBanRule{
 			email, _ := r.Context().Value("user_email").(string)
 			activeProductID, _ := r.Context().Value("user_active_product_id").(string)
 			createdAtStr, _ := r.Context().Value("user_created_at").(string)
+			emailWithoutDomain := strings.Split(email, "@")[0]
 
-			hasFourDots := strings.Count(email, ".") >= 4
+			hasFourDots := strings.Count(emailWithoutDomain, ".") >= 4
 			isGoogleMail := strings.HasSuffix(email, "@googlemail.com")
 			isGmail := strings.HasSuffix(email, "@gmail.com")
 			isFreeUser := activeProductID == ""
