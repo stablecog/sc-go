@@ -76,10 +76,16 @@ var shouldBanRules []ShouldBanRule = []ShouldBanRule{
 			activeProductID, _ := r.Context().Value("user_active_product_id").(string)
 			createdAtStr, _ := r.Context().Value("user_created_at").(string)
 			countryCode := utils.GetCountryCode(r)
-			domain := strings.Split(email, "@")[1]
 
 			fromBD := countryCode == "BD"
-			isWhitelistedDomain := slices.Contains(domainWhitelist, domain)
+			isWhitelistedDomain := false
+			for _, domain := range domainWhitelist {
+				fullDomain := "@" + domain
+				if strings.HasSuffix(email, fullDomain) {
+					isWhitelistedDomain = true
+					break
+				}
+			}
 			isFreeUser := activeProductID == ""
 			isNew := isAccountNew(createdAtStr)
 
