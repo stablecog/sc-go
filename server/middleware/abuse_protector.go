@@ -21,6 +21,25 @@ type ShouldBanRule struct {
 	Func   RuleFunc
 }
 
+var domainWhitelist = []string{
+	"gmail.com",
+	"hotmail.com",
+	"yahoo.com",
+	"outlook.com",
+	"mail.ru",
+	"icloud.com",
+	"googlemail.com",
+	"qq.com",
+	"guru.smp.belajar.id",
+	"yandex.ru",
+	"proton.me",
+	"protonmail.com",
+	"privaterelay.appleid.com",
+	"guru.sma.belajar.id",
+	"web.de",
+	"aol.com",
+}
+
 func isAccountNew(createdAtStr string) bool {
 	createdAt, err := time.Parse(time.RFC3339, createdAtStr)
 	if err != nil {
@@ -47,6 +66,24 @@ var shouldBanRules []ShouldBanRule = []ShouldBanRule{
 			isNew := isAccountNew(createdAtStr)
 
 			shouldBan := fromBD && (hasPlus || hasMultipleDots) && isFreeUser && isNew
+			return shouldBan
+		},
+	},
+	{
+		Reason: `From BD, non-whitelisted domain, new, and free.`,
+		Func: func(r *http.Request) bool {
+			email, _ := r.Context().Value("user_email").(string)
+			activeProductID, _ := r.Context().Value("user_active_product_id").(string)
+			createdAtStr, _ := r.Context().Value("user_created_at").(string)
+			countryCode := utils.GetCountryCode(r)
+			domain := strings.Split(email, "@")[1]
+
+			fromBD := countryCode == "BD"
+			isWhitelistedDomain := slices.Contains(domainWhitelist, domain)
+			isFreeUser := activeProductID == ""
+			isNew := isAccountNew(createdAtStr)
+
+			shouldBan := fromBD && !isWhitelistedDomain && isFreeUser && isNew
 			return shouldBan
 		},
 	},
