@@ -35,6 +35,18 @@ type BannedResponse struct {
 	AffectedUsers int `json:"affected_users"`
 }
 
+var whilelistedDomains = []string{
+	"gmail.com",
+	"googlemail.com",
+	"yahoo.com",
+	"outlook.com",
+	"hotmail.com",
+	"icloud.com",
+	"protonmail.com",
+	"mail.com",
+	"yandex.com",
+}
+
 // Get disposable domains
 func (c *RestAPI) HandleGetDisposableDomains(w http.ResponseWriter, r *http.Request) {
 	if user, email := c.GetUserIDAndEmailIfAuthenticated(w, r); user == nil || email == "" {
@@ -69,6 +81,14 @@ func (c *RestAPI) HandleBanDomains(w http.ResponseWriter, r *http.Request) {
 
 	// Exec ban
 	if banDomainsReq.Action == "ban" {
+		// Check if any domains are whitelisted
+		for _, domain := range banDomainsReq.Domains {
+			if slices.Contains(whilelistedDomains, domain) {
+				responses.ErrBadRequest(w, r, fmt.Sprintf("Domain %s is whitelisted and cannot be banned", domain), "")
+				return
+			}
+		}
+
 		affected, err := c.Repo.BanDomains(banDomainsReq.Domains, banDomainsReq.DeleteData)
 		if err != nil {
 			responses.ErrInternalServerError(w, r, err.Error())
