@@ -13,12 +13,13 @@ require (
 	github.com/go-co-op/gocron v1.37.0
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-multierror v1.1.1
+	github.com/hibiken/asynq v0.24.1
 	github.com/jarcoal/httpmock v1.3.0
 	github.com/joho/godotenv v1.5.1
 	github.com/posthog/posthog-go v0.0.0-20240327112532-87b23fe11103
 	github.com/prometheus/client_golang v1.19.1
 	github.com/redis/go-redis/v9 v9.6.1
-	github.com/sashabaranov/go-openai v1.36.0
+	github.com/sashabaranov/go-openai v1.41.2
 	github.com/stablecog/sc-go/cron v0.0.0-20240730141151-89c08cf309f7
 	github.com/stablecog/sc-go/database v0.0.0-20240730141151-89c08cf309f7
 	github.com/stablecog/sc-go/discobot v0.0.0-20240730141151-89c08cf309f7
@@ -104,7 +105,6 @@ require (
 	github.com/grafana/loki-client-go v0.0.0-20230116142646-e7494d0ef70c // indirect
 	github.com/grafana/regexp v0.0.0-20240518133315-a468a5bfb3bc // indirect
 	github.com/hashicorp/hcl/v2 v2.21.0 // indirect
-	github.com/hibiken/asynq v0.24.1 // indirect
 	github.com/iris-contrib/schema v0.0.6 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.14.3 // indirect
