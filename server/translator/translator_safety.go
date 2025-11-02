@@ -221,14 +221,16 @@ func (t *TranslatorSafetyChecker) IsPromptNSFW(input string) (isNsfw bool, nsfwR
 		Model: "omni-moderation-latest",
 		Input: input,
 	})
+
 	if err != nil {
 		log.Error("Error calling openai safety check", "err", err)
-		return
+		return true, "", 0, err
 	}
-	if len(res.Results) < 0 {
+
+	if len(res.Results) == 0 {
 		log.Error("Error calling openai safety check", "err", "no results")
 		err = errors.New("no results")
-		return
+		return true, "", 0, err
 	}
 
 	isMinors := res.Results[0].Categories.SexualMinors || res.Results[0].CategoryScores.SexualMinors > 0.25
