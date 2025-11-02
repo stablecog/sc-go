@@ -227,7 +227,7 @@ func (t *TranslatorSafetyChecker) IsPromptNSFW(input string) (isNsfw bool, nsfwR
 		return true, "", 0, err
 	}
 
-	if len(res.Results) == 0 {
+	if len(res.Results) < 1 {
 		log.Error("Error calling openai safety check", "err", "no results")
 		err = errors.New("no results")
 		return true, "", 0, err
