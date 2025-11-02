@@ -25,6 +25,7 @@ import (
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 	"github.com/stripe/stripe-go/v74"
+	"github.com/stripe/stripe-go/v74/subscription"
 )
 
 // HTTP Get - user info
@@ -1120,6 +1121,16 @@ func (c *RestAPI) HandleScheduleUserForDeletion(w http.ResponseWriter, r *http.R
 			})
 			return
 		}
+		// Check if user has a subscription
+		if user.ActiveProductID != nil {
+			if err := cancelAllActiveSubs(user.StripeCustomerID); err != nil {
+				log.Error("subscription cancellation failed:", err)
+				responses.ErrInternalServerError(w, r,
+					"Unable to cancel active stripe subscription")
+				return
+			}
+		}
+
 		scheduledAt, err := c.Repo.MarkUserForDeletion(user.ID)
 
 		if err != nil {
@@ -1154,4 +1165,29 @@ func (c *RestAPI) HandleScheduleUserForDeletion(w http.ResponseWriter, r *http.R
 	render.JSON(w, r, map[string]interface{}{
 		"success": true,
 	})
+}
+
+// Cancel all active subscriptions for a stripe customer
+func cancelAllActiveSubs(customerID string) error {
+	params := &stripe.SubscriptionListParams{
+		Customer: stripe.String(customerID),
+		Status:   stripe.String(string(stripe.SubscriptionStatusActive)),
+	}
+	i := subscription.List(params)
+
+	for i.Next() {
+		sub := i.Subscription()
+
+		_, err := subscription.Cancel(sub.ID, &stripe.SubscriptionCancelParams{
+			Prorate: stripe.Bool(false),
+		})
+		if err != nil {
+			return fmt.Errorf("cancel sub %s: %w", sub.ID, err)
+		}
+	}
+
+	if err := i.Err(); err != nil {
+		return fmt.Errorf("list subs: %w", err)
+	}
+	return nil
 }
