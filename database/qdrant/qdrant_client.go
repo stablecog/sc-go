@@ -106,44 +106,6 @@ func (q QdrantClient) RoundTrip(r *http.Request) (*http.Response, error) {
 	return q.r.RoundTrip(r)
 }
 
-func NewQdrantTestClient(ctx context.Context) (*QdrantClient, error) {
-	// Get URLs from env, comma separated
-	if utils.GetEnv().QdrantAltUrl == "" {
-		log.Errorf("QDRANT_URL not set")
-		return nil, errors.New("QDRANT_URL not set")
-	}
-	var auth string
-	if utils.GetEnv().QdrantUsername != "" && utils.GetEnv().QdrantPassword != "" {
-		auth = base64.StdEncoding.EncodeToString([]byte(utils.GetEnv().QdrantUsername + ":" + utils.GetEnv().QdrantPassword))
-	}
-	// Create client
-	qClient := &QdrantClient{
-		ActiveUrl:      utils.GetEnv().QdrantAltUrl,
-		Ctx:            ctx,
-		token:          auth,
-		r:              http.DefaultTransport,
-		CollectionName: utils.GetEnv().QdrantCollectionName,
-	}
-
-	transport := http.DefaultTransport
-	if auth != "" {
-		transport = qClient
-	}
-
-	c, doer, err := NewClientWithResponses(qClient.ActiveUrl, WithHTTPClient(&http.Client{
-		Timeout:   QDRANT_TIMEOUT_S * time.Second,
-		Transport: transport,
-	}))
-	if err != nil {
-		log.Errorf("Error creating qdrant client %v", err)
-		return nil, err
-	}
-	qClient.Client = c
-	qClient.Doer = doer
-
-	return qClient, nil
-}
-
 func NewQdrantClient(ctx context.Context) (*QdrantClient, error) {
 	// Get URLs from env, comma separated
 	if utils.GetEnv().QdrantUrl == "" {

@@ -35,7 +35,6 @@ type RestAPI struct {
 	QueueThrottler *shared.UserQueueThrottlerMap
 	S3             *s3.S3
 	Qdrant         *qdrant.QdrantClient
-	QdrantTest     *qdrant.QdrantClient
 	Clip           *clip.ClipService
 	SafetyChecker  *translator.TranslatorSafetyChecker
 	SCWorker       *scworker.SCWorker
