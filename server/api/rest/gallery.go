@@ -157,7 +157,7 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 		var embeddings []float32
 		if err == nil {
 			// Get embeddings from qdrant
-			getPointRes, err := c.Qdrant.GetPoint(uid, false)
+			getPointRes, err := c.QdrantTest.GetPoint(uid, false)
 			if err != nil {
 				log.Error("Error getting point from qdrant", "err", err)
 				if strings.Contains(err.Error(), "Error querying collection 404") {
@@ -177,7 +177,7 @@ func (c *RestAPI) HandleSemanticSearchGallery(w http.ResponseWriter, r *http.Req
 			}
 		}
 
-		res, err := c.Qdrant.QueryGenerations(embeddings, perPage, offset, scoreThreshold, filters.Oversampling, qdrantFilters, false, false)
+		res, err := c.QdrantTest.QueryGenerations(embeddings, perPage, offset, scoreThreshold, filters.Oversampling, qdrantFilters, false, false)
 		if err != nil {
 			log.Error("Error querying qdrant", "err", err)
 			responses.ErrInternalServerError(w, r, "An unknown error occurred")

@@ -65,6 +65,7 @@ type SCEnv struct {
 	MockRedis             bool   `env:"MOCK_REDIS" envDefault:"false"`                                 // Whether to mock redis for tests
 	// Qdrant
 	QdrantUrl            string `env:"QDRANT_URL"`                                    // Qdrant URL, required
+	QdrantAltUrl         string `env:"QDRANT_NEW_URL"`                                // Qdrant Alternative URL, optional
 	QdrantUsername       string `env:"QDRANT_USERNAME"`                               // Qdrant Username, Optional
 	QdrantPassword       string `env:"QDRANT_PASSWORD"`                               // Qdrant Password, Optional
 	QdrantCollectionName string `env:"QDRANT_COLLECTION_NAME" envDefault:"stablecog"` // Qdrant Collection Name

@@ -145,6 +145,24 @@ func main() {
 		log.Warn("Error creating qdrant indexes", "err", err)
 	}
 
+	// ! Test - second qdrnat client
+	qdrantNewClient, err := qdrant.NewQdrantTestClient(ctx)
+	if err != nil {
+		log.Fatal("Error connecting to qdrant", "err", err)
+		os.Exit(1)
+	}
+	err = qdrantNewClient.CreateCollectionIfNotExists(false)
+	if err != nil {
+		log.Fatal("Error creating qdrant collection", "err", err)
+		os.Exit(1)
+	}
+
+	// Create indexes in Qdrant
+	err = qdrantNewClient.CreateAllIndexes()
+	if err != nil {
+		log.Warn("Error creating qdrant indexes", "err", err)
+	}
+
 	// Q Throttler
 	qThrottler := shared.NewQueueThrottler(ctx, redis.Client, shared.REQUEST_COG_TIMEOUT)
 
@@ -1102,6 +1120,7 @@ func main() {
 		QueueThrottler: qThrottler,
 		S3:             s3ClientImg,
 		Qdrant:         qdrantClient,
+		QdrantTest:     qdrantNewClient,
 		Clip:           clip.NewClipService(redis, safetyChecker),
 		SMap:           apiTokenSmap,
 		SafetyChecker:  safetyChecker,
