@@ -13,12 +13,13 @@ require (
 	github.com/go-co-op/gocron v1.37.0
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-multierror v1.1.1
+	github.com/hibiken/asynq v0.24.1
 	github.com/jarcoal/httpmock v1.3.0
 	github.com/joho/godotenv v1.5.1
+	github.com/openai/openai-go/v3 v3.7.0
 	github.com/posthog/posthog-go v0.0.0-20240327112532-87b23fe11103
 	github.com/prometheus/client_golang v1.19.1
 	github.com/redis/go-redis/v9 v9.6.1
-	github.com/sashabaranov/go-openai v1.36.0
 	github.com/stablecog/sc-go/cron v0.0.0-20240730141151-89c08cf309f7
 	github.com/stablecog/sc-go/database v0.0.0-20240730141151-89c08cf309f7
 	github.com/stablecog/sc-go/discobot v0.0.0-20240730141151-89c08cf309f7
@@ -28,7 +29,7 @@ require (
 	github.com/stablecog/sc-go/utils v0.0.0-20240730141151-89c08cf309f7
 	github.com/stretchr/testify v1.9.0
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
-	golang.org/x/net v0.27.0
+	golang.org/x/net v0.34.0
 )
 
 require (
@@ -53,7 +54,7 @@ require (
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/otel v1.28.0 // indirect
 	go.opentelemetry.io/otel/trace v1.28.0 // indirect
-	golang.org/x/sys v0.24.0 // indirect
+	golang.org/x/sys v0.29.0 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 )
 
@@ -104,7 +105,6 @@ require (
 	github.com/grafana/loki-client-go v0.0.0-20230116142646-e7494d0ef70c // indirect
 	github.com/grafana/regexp v0.0.0-20240518133315-a468a5bfb3bc // indirect
 	github.com/hashicorp/hcl/v2 v2.21.0 // indirect
-	github.com/hibiken/asynq v0.24.1 // indirect
 	github.com/iris-contrib/schema v0.0.6 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.14.3 // indirect
@@ -138,6 +138,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f // indirect
+	github.com/openai/openai-go v1.12.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
 	github.com/pgvector/pgvector-go v0.2.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
@@ -153,6 +154,10 @@ require (
 	github.com/supabase-community/gotrue-go v1.2.1 // indirect
 	github.com/tdewolff/minify/v2 v2.20.37 // indirect
 	github.com/tdewolff/parse/v2 v2.7.15 // indirect
+	github.com/tidwall/gjson v1.18.0 // indirect
+	github.com/tidwall/match v1.2.0 // indirect
+	github.com/tidwall/pretty v1.2.1 // indirect
+	github.com/tidwall/sjson v1.2.5 // indirect
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.12 // indirect
@@ -166,11 +171,11 @@ require (
 	go.opentelemetry.io/otel/metric v1.28.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	golang.org/x/arch v0.8.0 // indirect
-	golang.org/x/crypto v0.25.0 // indirect
+	golang.org/x/crypto v0.32.0 // indirect
 	golang.org/x/mod v0.19.0 // indirect
 	golang.org/x/oauth2 v0.21.0 // indirect
-	golang.org/x/sync v0.7.0 // indirect
-	golang.org/x/text v0.16.0 // indirect
+	golang.org/x/sync v0.10.0 // indirect
+	golang.org/x/text v0.21.0 // indirect
 	golang.org/x/time v0.6.0 // indirect
 	golang.org/x/tools v0.23.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240725223205-93522f1f2a9f // indirect

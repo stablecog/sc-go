@@ -8,7 +8,8 @@ import (
 	"net/http"
 	"strings"
 
-	openai "github.com/sashabaranov/go-openai"
+	openai "github.com/openai/openai-go/v3"
+	openaiOption "github.com/openai/openai-go/v3/option"
 	"github.com/stablecog/sc-go/database"
 	"github.com/stablecog/sc-go/log"
 	"github.com/stablecog/sc-go/utils"
@@ -23,7 +24,7 @@ const OPENAI_TRANSLATOR_MAX_TOKENS = 500
 type TranslatorSafetyChecker struct {
 	Ctx             context.Context
 	TargetFloresUrl string
-	OpenaiClient    *openai.Client
+	OpenaiClient    openai.Client
 	Redis           *database.RedisWrapper
 	// TODO - mock better for testing, this just disables
 	Disable    bool
@@ -36,7 +37,7 @@ func NewTranslatorSafetyChecker(ctx context.Context, openaiKey string, disable b
 	return &TranslatorSafetyChecker{
 		Ctx:             ctx,
 		TargetFloresUrl: utils.GetEnv().PrivateLinguaAPIUrl,
-		OpenaiClient:    openai.NewClient(openaiKey),
+		OpenaiClient:    openai.NewClient(openaiOption.WithAPIKey(openaiKey)),
 		Disable:         disable,
 		Redis:           redis,
 		HTTPClient:      &http.Client{}, // Initialize a reusable HTTP client
@@ -217,18 +218,20 @@ func (t *TranslatorSafetyChecker) IsPromptNSFW(input string) (isNsfw bool, nsfwR
 		return false, "", 0, nil
 	}
 	// API check
-	res, err := t.OpenaiClient.Moderations(t.Ctx, openai.ModerationRequest{
-		Model: "omni-moderation-latest",
-		Input: input,
+	res, err := t.OpenaiClient.Moderations.New(t.Ctx, openai.ModerationNewParams{
+		Model: openai.ModerationModelOmniModerationLatest,
+		Input: openai.ModerationNewParamsInputUnion{OfString: openai.String(input)},
 	})
+
 	if err != nil {
 		log.Error("Error calling openai safety check", "err", err)
-		return
+		return true, "", 0, err
 	}
-	if len(res.Results) < 0 {
+
+	if len(res.Results) < 1 {
 		log.Error("Error calling openai safety check", "err", "no results")
 		err = errors.New("no results")
-		return
+		return true, "", 0, err
 	}
 
 	isMinors := res.Results[0].Categories.SexualMinors || res.Results[0].CategoryScores.SexualMinors > 0.25
@@ -238,31 +241,24 @@ func (t *TranslatorSafetyChecker) IsPromptNSFW(input string) (isNsfw bool, nsfwR
 		// Populate reason
 		if isMinors {
 			nsfwReason = "sexual_minors"
-			score = res.Results[0].CategoryScores.SexualMinors
+			score = float32(res.Results[0].CategoryScores.SexualMinors)
 		} else {
 			nsfwReason = "sexual"
-			score = res.Results[0].CategoryScores.Sexual
+			score = float32(res.Results[0].CategoryScores.Sexual)
 		}
 	}
 	return
 }
 
-func TranslateViaOpenAI(prompt string, client *openai.Client, ctx context.Context) (string, error) {
-	res, err := client.CreateChatCompletion(
+func TranslateViaOpenAI(prompt string, client openai.Client, ctx context.Context) (string, error) {
+	res, err := client.Chat.Completions.New(
 		ctx,
-		openai.ChatCompletionRequest{
-			Model:     openai.GPT4oMini,
-			MaxTokens: OPENAI_TRANSLATOR_MAX_TOKENS,
-			Messages: []openai.ChatCompletionMessage{
-				{
-					Role:    openai.ChatMessageRoleSystem,
-					Content: OPENAI_TRANSLATOR_SYSTEM_MESSAGE,
-				},
-				{
-					Role:    openai.ChatMessageRoleUser,
-					Content: prompt,
-				},
+		openai.ChatCompletionNewParams{
+			Messages: []openai.ChatCompletionMessageParamUnion{
+				openai.SystemMessage(OPENAI_TRANSLATOR_SYSTEM_MESSAGE),
+				openai.UserMessage(prompt),
 			},
+			Model: openai.ChatModelGPT4oMini,
 		},
 	)
 	if err != nil {
