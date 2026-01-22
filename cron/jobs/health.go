@@ -58,6 +58,8 @@ func (j *JobRunner) CheckSCWorkerHealth(log Logger) error {
 		log.Infof(fmt.Sprintf("%d minutes since last successful generation.", int(durationMinutes)))
 		err := CreateTestGeneration(log, apiKey)
 		if err != nil {
+			// log the error but continue
+			log.Errorf("🧪 🔴 SC Worker test generation failed: %v", err)
 			log.Infof("SC Worker test generation failed -> Assuming unhealthy")
 			workerHealthStatus = shared.UNHEALTHY
 		}
