@@ -1,6 +1,7 @@
 package jobs
 
 import (
+	"context"
 	"time"
 
 	"bytes"
@@ -9,6 +10,7 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/sethvargo/go-retry"
 	"github.com/stablecog/sc-go/shared"
 	"github.com/stablecog/sc-go/utils"
 )
@@ -56,10 +58,16 @@ func (j *JobRunner) CheckSCWorkerHealth(log Logger) error {
 	var durationMinutes float64 = 3
 	if time.Now().Sub(lastSuccessfulGenerationTime).Minutes() > durationMinutes {
 		log.Infof(fmt.Sprintf("%d minutes since last successful generation.", int(durationMinutes)))
-		err := CreateTestGeneration(log, apiKey)
+		b := retry.WithMaxRetries(3, retry.NewExponential(1*time.Second))
+		err := retry.Do(context.Background(), b, func(ctx context.Context) error {
+			err := CreateTestGeneration(log, apiKey)
+			if err != nil {
+				log.Errorf("🧪 🔴 SC Worker test generation failed: %v", err)
+				return retry.RetryableError(err)
+			}
+			return nil
+		})
 		if err != nil {
-			// log the error but continue
-			log.Errorf("🧪 🔴 SC Worker test generation failed: %v", err)
 			log.Infof("SC Worker test generation failed -> Assuming unhealthy")
 			workerHealthStatus = shared.UNHEALTHY
 		}

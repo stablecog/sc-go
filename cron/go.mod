@@ -117,6 +117,7 @@ require (
 	github.com/sashabaranov/go-openai v1.27.1 // indirect
 	github.com/schollz/closestmatch v2.1.0+incompatible // indirect
 	github.com/sergi/go-diff v1.1.0 // indirect
+	github.com/sethvargo/go-retry v0.3.0 // indirect
 	github.com/shopspring/decimal v1.4.0 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/stablecog/sc-go/discobot v0.0.0-20240730141151-89c08cf309f7 // indirect
