@@ -57,10 +57,11 @@ func (j *JobRunner) CheckSCWorkerHealth(log Logger) error {
 	// Last successful generation is too old, do a test generation
 	const durationMinutes float64 = 3
 	const exponentialRetryCount uint64 = 4
+	const exponentialBaseDelay = 1 * time.Second
 
 	if time.Since(lastSuccessfulGenerationTime).Minutes() > durationMinutes {
 		log.Infof(fmt.Sprintf("%d minutes since last successful generation.", int(durationMinutes)))
-		b := retry.WithMaxRetries(exponentialRetryCount, retry.NewExponential(1*time.Second))
+		b := retry.WithMaxRetries(exponentialRetryCount, retry.NewExponential(exponentialBaseDelay))
 		err := retry.Do(context.Background(), b, func(ctx context.Context) error {
 			err := CreateTestGeneration(log, apiKey)
 			if err != nil {
