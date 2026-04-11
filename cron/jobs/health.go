@@ -55,10 +55,12 @@ func (j *JobRunner) CheckSCWorkerHealth(log Logger) error {
 	}
 
 	// Last successful generation is too old, do a test generation
-	var durationMinutes float64 = 3
-	if time.Now().Sub(lastSuccessfulGenerationTime).Minutes() > durationMinutes {
+	const durationMinutes float64 = 3
+	const exponentialRetryCount uint64 = 4
+
+	if time.Since(lastSuccessfulGenerationTime).Minutes() > durationMinutes {
 		log.Infof(fmt.Sprintf("%d minutes since last successful generation.", int(durationMinutes)))
-		b := retry.WithMaxRetries(3, retry.NewExponential(1*time.Second))
+		b := retry.WithMaxRetries(exponentialRetryCount, retry.NewExponential(1*time.Second))
 		err := retry.Do(context.Background(), b, func(ctx context.Context) error {
 			err := CreateTestGeneration(log, apiKey)
 			if err != nil {
@@ -73,7 +75,7 @@ func (j *JobRunner) CheckSCWorkerHealth(log Logger) error {
 		}
 	}
 
-	log.Infof("Done checking health in %dms", time.Now().Sub(start).Milliseconds())
+	log.Infof("Done checking health in %dms", time.Since(start).Milliseconds())
 
 	// Write health status to redis
 	errRedis := j.Redis.SetWorkerHealth(workerHealthStatus)
