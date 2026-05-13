@@ -22,11 +22,37 @@ const maxGenerationFailWithoutNSFWRate = 0.5
 const generationCountToCheck = 10
 const successfulGenerationCountToCheck = 1
 
+// Per-attempt HTTP timeout for the test generation request. A normal successful
+// generation takes ~20s, so the timeout has to sit comfortably above that — too
+// tight and we'd time out healthy slow-tail requests and flag the worker
+// unhealthy for no reason.
+const testGenerationHTTPTimeout = 30 * time.Second
+
+// Wall-clock budget for the entire health check. Must accommodate the worst-case
+// retry loop: exponentialRetryCount attempts × testGenerationHTTPTimeout, plus
+// the exponential backoff sleeps between them (1+2+4 = 7s with the current
+// settings). 4 × 30 + 7 = 127s, so 150s leaves a small safety margin.
+//
+// SingletonMode on the cron schedule means a slow run that consumes most of this
+// budget will simply skip the intervening 60s firings — exactly what we want.
+// What this bound enforces is: a single run can't drift so far that its
+// start-of-run snapshot becomes meaningless by the time the embed is posted.
+const healthCheckBudget = 150 * time.Second
+
 const HEALTH_JOB_NAME = "HEALTH_JOB"
 
 // CheckHealth cron job
 func (j *JobRunner) CheckSCWorkerHealth(log Logger) error {
-	start := time.Now()
+	// asOf is sampled once at the start of the run and is the reference time used
+	// for every relative-time display + the embed footer. If we used time.Now()
+	// at send time instead, a slow run (e.g. one stuck in test-gen retries) would
+	// render its old snapshot against a fresh "now" and produce timestamps that
+	// look impossible compared to neighbouring fast runs ("20m ago" sandwiched
+	// between two "Just now" messages within a single minute).
+	asOf := time.Now()
+	ctx, cancel := context.WithTimeout(j.Ctx, healthCheckBudget)
+	defer cancel()
+
 	log.Infof("Checking health...")
 	apiKey := utils.GetEnv().ScWorkerTesterApiKey
 
@@ -39,13 +65,13 @@ func (j *JobRunner) CheckSCWorkerHealth(log Logger) error {
 	}
 
 	successfulGenerations, err := j.Repo.GetSuccessfulGenerations(successfulGenerationCountToCheck)
-	if err != nil || len(generations) == 0 {
+	if err != nil {
 		log.Errorf("Couldn't get successful generations %v", err)
 		return err
 	}
 
-	lastGenerationTime := time.Now().Add(-24 * time.Hour)
-	lastSuccessfulGenerationTime := time.Now().Add(-24 * time.Hour)
+	lastGenerationTime := asOf.Add(-24 * time.Hour)
+	lastSuccessfulGenerationTime := asOf.Add(-24 * time.Hour)
 
 	if len(generations) > 0 {
 		lastGenerationTime = generations[0].CreatedAt
@@ -59,11 +85,11 @@ func (j *JobRunner) CheckSCWorkerHealth(log Logger) error {
 	const exponentialRetryCount uint64 = 4
 	const exponentialBaseDelay = 1 * time.Second
 
-	if time.Since(lastSuccessfulGenerationTime).Minutes() > durationMinutes {
+	if asOf.Sub(lastSuccessfulGenerationTime).Minutes() > durationMinutes {
 		log.Infof(fmt.Sprintf("%d minutes since last successful generation.", int(durationMinutes)))
 		b := retry.WithMaxRetries(exponentialRetryCount, retry.NewExponential(exponentialBaseDelay))
-		err := retry.Do(context.Background(), b, func(ctx context.Context) error {
-			err := CreateTestGeneration(log, apiKey)
+		err := retry.Do(ctx, b, func(ctx context.Context) error {
+			err := CreateTestGeneration(ctx, log, apiKey)
 			if err != nil {
 				log.Errorf("🧪 🔴 SC Worker test generation failed: %v", err)
 				return retry.RetryableError(err)
@@ -76,7 +102,7 @@ func (j *JobRunner) CheckSCWorkerHealth(log Logger) error {
 		}
 	}
 
-	log.Infof("Done checking health in %dms", time.Since(start).Milliseconds())
+	log.Infof("Done checking health in %dms", time.Since(asOf).Milliseconds())
 
 	// Write health status to redis
 	errRedis := j.Redis.SetWorkerHealth(workerHealthStatus)
@@ -115,6 +141,7 @@ func (j *JobRunner) CheckSCWorkerHealth(log Logger) error {
 		lastSuccessfulGenerationTime,
 		isRunpodServerlessActive,
 		runpodServerlessErr,
+		asOf,
 	)
 }
 
@@ -133,7 +160,7 @@ type ResponseBody struct {
 	} `json:"outputs"`
 }
 
-func CreateTestGeneration(log Logger, apiKey string) error {
+func CreateTestGeneration(ctx context.Context, log Logger, apiKey string) error {
 	log.Infof("🧪 Creating test generation to check SC Worker health...")
 
 	if apiKey == "" {
@@ -162,7 +189,13 @@ func CreateTestGeneration(log Logger, apiKey string) error {
 		return err
 	}
 
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	// Pin a per-attempt deadline so a stalled API call can't drag the cron job
+	// out beyond healthCheckBudget. The outer ctx is still honored — whichever
+	// expires first wins.
+	reqCtx, cancel := context.WithTimeout(ctx, testGenerationHTTPTimeout)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(reqCtx, "POST", url, bytes.NewBuffer(jsonData))
 	if err != nil {
 		log.Errorf("🧪 🔴 Couldn't create request %v", err)
 		return err
@@ -170,7 +203,7 @@ func CreateTestGeneration(log Logger, apiKey string) error {
 
 	req.Header.Set("Authorization", "Bearer "+apiKey)
 
-	client := &http.Client{}
+	client := &http.Client{Timeout: testGenerationHTTPTimeout}
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Errorf("🧪 🔴 Couldn't send request %v", err)

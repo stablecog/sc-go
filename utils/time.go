@@ -7,8 +7,14 @@ import (
 
 // Create a relative time string from now to past (e.g., "1h ago")
 func RelativeTimeStr(t time.Time) string {
-	now := time.Now()
-	diff := now.Sub(t)
+	return RelativeTimeStrFrom(t, time.Now())
+}
+
+// Create a relative time string from `asOf` back to `t` (e.g., "1h ago").
+// Use this when the reference point must be pinned (e.g. a snapshot taken at job
+// start) so that "X ago" stays consistent with the data being displayed.
+func RelativeTimeStrFrom(t time.Time, asOf time.Time) string {
+	diff := asOf.Sub(t)
 	diffInSeconds := int(diff.Seconds())
 	if diffInSeconds < 2 {
 		return "Just now"

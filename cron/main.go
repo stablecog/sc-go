@@ -225,7 +225,7 @@ func main() {
 		s.Every(60).Seconds().Do(jobRunner.GetAndSetStats, jobs.NewJobLogger("STATS"))
 		s.Every(15).Seconds().SingletonMode().Do(jobRunner.HandleOutputsWithNoEmbedding, jobs.NewJobLogger("EMBEDDINGS"))
 		if utils.GetEnv().DiscordWebhookUrl != "" {
-			s.Every(60).Seconds().Do(jobRunner.CheckSCWorkerHealth, jobs.NewJobLogger("HEALTH"))
+			s.Every(60).Seconds().SingletonMode().Do(jobRunner.CheckSCWorkerHealth, jobs.NewJobLogger("HEALTH"))
 		}
 		s.Every(60).Seconds().Do(jobRunner.AddFreeCreditsToEligibleUsers, jobs.NewJobLogger("FREE_CREDITS"))
 		// Sync stripe

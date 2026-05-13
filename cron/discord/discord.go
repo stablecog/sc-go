@@ -55,7 +55,13 @@ func NewDiscordHealthTracker(ctx context.Context) *DiscordHealthTracker {
 	}
 }
 
-// Sends a discord notification on either the healthy/unhealthy interval depending on status
+// Sends a discord notification on either the healthy/unhealthy interval depending on status.
+// `asOf` is the reference time used to format relative timestamps and the embed footer — it
+// should be the moment the input data was sampled, NOT the moment the notification is being
+// sent. Otherwise, a slow health check (e.g. one that spent minutes in test-generation
+// retries) would render its old snapshot against `time.Now()` and produce timestamps like
+// "20m ago" right next to a fresh run reporting "Just now" — looking like an impossible
+// flip-flop in the channel.
 func (d *DiscordHealthTracker) SendDiscordNotificationIfNeeded(
 	status shared.HEALTH_STATUS,
 	generations []*ent.Generation,
@@ -63,6 +69,7 @@ func (d *DiscordHealthTracker) SendDiscordNotificationIfNeeded(
 	lastSuccessfulGenerationTime time.Time,
 	isRunpodServerlessActive bool,
 	runpodServerlessErr error,
+	asOf time.Time,
 ) error {
 	sinceHealthyNotification := time.Since(d.lastHealthyNotificationTime)
 	sinceUnhealthyNotification := time.Since(d.lastUnhealthyNotificationTime)
@@ -103,6 +110,7 @@ func (d *DiscordHealthTracker) SendDiscordNotificationIfNeeded(
 		lastSuccessfulGenerationTime,
 		isRunpodServerlessActive,
 		runpodServerlessErr,
+		asOf,
 	)
 	reqBody, err := json.Marshal(webhookBody)
 	if err != nil {
@@ -144,6 +152,7 @@ func getDiscordWebhookBody(
 	lastSuccessfulGenerationTime time.Time,
 	isRunpodServerlessActive bool,
 	runpodServerlessErr error,
+	asOf time.Time,
 ) models.DiscordWebhookBody {
 	generationsStr := ""
 	generationsStrArr := []string{}
@@ -196,11 +205,11 @@ func getDiscordWebhookBody(
 					},
 					{
 						Name:  "Last Generation",
-						Value: fmt.Sprintf("```%s```", utils.RelativeTimeStr(lastGenerationTime)),
+						Value: fmt.Sprintf("```%s```", utils.RelativeTimeStrFrom(lastGenerationTime, asOf)),
 					},
 					{
 						Name:  "Last Successful Generation",
-						Value: fmt.Sprintf("```%s```", utils.RelativeTimeStr(lastSuccessfulGenerationTime)),
+						Value: fmt.Sprintf("```%s```", utils.RelativeTimeStrFrom(lastSuccessfulGenerationTime, asOf)),
 					},
 					{
 						Name:  "Runpod Serverless Status",
@@ -208,7 +217,7 @@ func getDiscordWebhookBody(
 					},
 				},
 				Footer: models.DiscordWebhookEmbedFooter{
-					Text: time.Now().Format(time.RFC1123),
+					Text: asOf.Format(time.RFC1123),
 				},
 			},
 		},
