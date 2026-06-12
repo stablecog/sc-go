@@ -80,9 +80,9 @@ func TestSendDiscordNotificationIfNeeded(t *testing.T) {
 		Status:        successStatus,
 	})
 
-	// ! Test notification not needed
-	MockDiscordHealthTracker.lastStatus = shared.UNKNOWN
-	err := MockDiscordHealthTracker.SendDiscordNotificationIfNeeded(shared.HEALTHY, generations, time.Now(), time.Now(), false, nil, time.Now())
+	// ! Test notification not needed (first observed status is never notified)
+	MockDiscordHealthTracker.seenFirstStatus = false
+	err := MockDiscordHealthTracker.SendDiscordNotificationIfNeeded(shared.HEALTHY, generations, time.Now(), time.Now(), false, nil, nil, time.Now())
 	assert.Nil(t, err)
 	assert.Equal(t, "Skipping Discord notification, not needed", logs[0])
 
@@ -91,9 +91,15 @@ func TestSendDiscordNotificationIfNeeded(t *testing.T) {
 	MockDiscordHealthTracker.lastUnhealthyNotificationTime = time.Now()
 
 	MockDiscordHealthTracker.lastStatus = shared.UNHEALTHY
-	err = MockDiscordHealthTracker.SendDiscordNotificationIfNeeded(shared.UNHEALTHY, generations, time.Now(), time.Now(), false, nil, time.Now())
+	err = MockDiscordHealthTracker.SendDiscordNotificationIfNeeded(shared.UNHEALTHY, generations, time.Now(), time.Now(), false, nil, nil, time.Now())
 	assert.Nil(t, err)
 	assert.Equal(t, "Skipping Discord notification, not needed", logs[1])
+
+	// UNKNOWN repeats follow the unhealthy notification cadence
+	MockDiscordHealthTracker.lastStatus = shared.UNKNOWN
+	err = MockDiscordHealthTracker.SendDiscordNotificationIfNeeded(shared.UNKNOWN, generations, time.Now(), time.Now(), false, nil, nil, time.Now())
+	assert.Nil(t, err)
+	assert.Equal(t, "Skipping Discord notification, not needed", logs[2])
 
 	// Reset keys
 	MockDiscordHealthTracker.lastNotificationTime = time.Time{}
@@ -123,6 +129,6 @@ func TestSendDiscordNotificationIfNeeded(t *testing.T) {
 	)
 
 	MockDiscordHealthTracker.lastStatus = shared.UNHEALTHY
-	err = MockDiscordHealthTracker.SendDiscordNotificationIfNeeded(shared.HEALTHY, generations, time.Now(), time.Now(), false, nil, time.Now())
+	err = MockDiscordHealthTracker.SendDiscordNotificationIfNeeded(shared.HEALTHY, generations, time.Now(), time.Now(), false, nil, nil, time.Now())
 	assert.Nil(t, err)
 }

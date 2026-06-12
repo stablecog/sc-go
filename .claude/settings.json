@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C /Users/yekta/sc-go log --oneline -10)"
+    ]
+  }
+}

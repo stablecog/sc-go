@@ -33,6 +33,15 @@ type JobRunner struct {
 	AsynqClient  *asynq.Client
 	SupabaseAuth *database.SupabaseAuth
 	HTTP         *http.Client
+
+	// Health-check hysteresis state. Lives in memory and persists across cron
+	// firings within one process; a process restart resets the streaks, which
+	// only delays a failover/recovery by a couple of runs — never causes one.
+	consecutiveHealthyChecks   int
+	consecutiveUnhealthyChecks int
+	// True only if CheckSCWorkerHealth enabled Runpod serverless itself, so
+	// auto-recovery never disables a manually (admin) enabled failover.
+	runpodAutoEnabled bool
 }
 
 // Just wrap logger so we can include the job name without repeating it

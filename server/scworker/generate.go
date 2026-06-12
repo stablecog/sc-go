@@ -64,6 +64,17 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 	} else {
 		qMax = shared.MAX_QUEUED_ITEMS_FREE
 	}
+
+	// The health-check tester account. It must never hit the per-user queue cap:
+	// an abandoned health-check attempt keeps its generation alive server-side
+	// for up to REQUEST_COG_TIMEOUT, and with a free-tier cap of 1 the next
+	// attempt lands in the queue-overflow penalty loop — turning health-check
+	// retries into guaranteed timeouts and false UNHEALTHY verdicts.
+	isTester := slices.Contains(roles, "TESTER")
+	if isTester {
+		free = false
+		qMax = math.MaxInt64
+	}
 	if !isSuperAdmin && user.ActiveProductID != nil {
 		switch *user.ActiveProductID {
 		// Starter
@@ -124,6 +135,12 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 		if paidCount > 0 {
 			queuePriority = shared.QUEUE_PRIORITY_5
 		}
+	}
+
+	// Health checks measure worker liveness, not queue depth — don't let test
+	// generations starve behind a burst of real traffic.
+	if isTester {
+		queuePriority = shared.QUEUE_PRIORITY_5
 	}
 
 	if user.BannedAt != nil {
@@ -342,6 +359,14 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 	modelName := model.NameInWorker
 
 	useRunpod := ShouldUseRunpodGenerate(model, w.Redis)
+	// The tester account always probes the main SC worker. During a Runpod
+	// failover every real generation routes to Runpod, so a tester generation
+	// that followed the same flag could never tell whether the main worker
+	// recovered (or that it's still down) — the health check would just be
+	// measuring Runpod. Forcing the MQ path keeps the probe meaningful.
+	if isTester {
+		useRunpod = false
+	}
 
 	// Format prompts
 	generateReq.Prompt = utils.FormatPrompt(generateReq.Prompt)
@@ -379,119 +404,127 @@ func (w *SCWorker) CreateGeneration(source enttypes.SourceType,
 			return responses.InsufficientCreditsErr
 		}
 
-		// Translate prompts
-		translatedPrompt, translatedNegativePrompt, err := w.SafetyChecker.TranslatePrompt(generateReq.Prompt, generateReq.NegativePrompt)
-		if err != nil {
-			log.Error("Error translating prompt", "err", err)
-			return err
-		}
-
-		nsfwModerationAPIResultChan := make(chan bool)
-		bannedPromptResultChan := make(chan bool)
-		errChan := make(chan error)
-
-		// Goroutine to check NSFW
-		go func() {
-			isNSFW, reason, score, err := w.SafetyChecker.IsPromptNSFW(translatedPrompt)
+		// The tester account (health checks) uses a fixed, trusted prompt. Skip
+		// translation and the NSFW/banned-prompt checks for it: they call external
+		// services (translator, moderation API, CLIP), and an outage in any of
+		// them would fail the synthetic generation and get misattributed to the
+		// worker, triggering a false failover.
+		translatedPrompt := generateReq.Prompt
+		translatedNegativePrompt := generateReq.NegativePrompt
+		if !isTester {
+			translatedPrompt, translatedNegativePrompt, err = w.SafetyChecker.TranslatePrompt(generateReq.Prompt, generateReq.NegativePrompt)
 			if err != nil {
-				log.Error("Error checking prompt NSFW", "err", err)
-				errChan <- err
-				return
+				log.Error("Error translating prompt", "err", err)
+				return err
 			}
-			if isNSFW {
-				w.Track.GenerationFailedNSFWPrompt(
-					user,
-					requests.BaseCogRequest{
-						Prompt: generateReq.Prompt,
-					},
-					"Moderation API",
-					source,
-					translatedPrompt,
-					"",
-					0.0,
-					reason,
-					score,
-					ipAddress,
-				)
-				errChan <- fmt.Errorf("nsfw: %s", reason)
-				return
-			}
-			nsfwModerationAPIResultChan <- true
-		}()
 
-		// Goroutine to check banned embedding
-		if clipSvc != nil {
+			nsfwModerationAPIResultChan := make(chan bool)
+			bannedPromptResultChan := make(chan bool)
+			errChan := make(chan error)
+
+			// Goroutine to check NSFW
 			go func() {
-				embedding, err := clipSvc.GetEmbeddingFromText(translatedPrompt, false)
+				isNSFW, reason, score, err := w.SafetyChecker.IsPromptNSFW(translatedPrompt)
 				if err != nil {
-					log.Error("Error fetching embedding", "err", err)
+					log.Error("Error checking prompt NSFW", "err", err)
 					errChan <- err
 					return
 				}
-				bannedMatches, err := w.Repo.IsBannedPromptEmbedding(embedding, DB)
-				if err != nil {
-					log.Error("Error checking banned embedding", "err", err)
-					// errChan <- err
-					bannedPromptResultChan <- true
-					return
-				}
-				if len(bannedMatches) > 0 {
-					// Special case for prompts that should also cause a user ban
-					isSpecialBanned := false
-					hasShouldBanUser := false
-					for _, match := range bannedMatches {
-						if match.ShouldBanUser {
-							hasShouldBanUser = true
-							break
-						}
-					}
-					isNewAccount := time.Since(user.CreatedAt) < 24*time.Hour
-					if hasShouldBanUser && isNewAccount {
-						err := discord.FireBannedUserWebhook(ipAddress, user.Email, user.Email, user.ID.String(), countryCode, thumbmarkID, []string{"New account used special banned prompt."})
-						if err == nil {
-							_, err = w.Repo.BanUsers([]uuid.UUID{user.ID}, false)
-							if err != nil {
-								log.Error("Error banning user", "err", err)
-							}
-							time.Sleep(150 * time.Second)
-							isSpecialBanned = true
-						}
-					}
+				if isNSFW {
 					w.Track.GenerationFailedNSFWPrompt(
 						user,
 						requests.BaseCogRequest{
 							Prompt: generateReq.Prompt,
 						},
-						"Banned Prompt Embedding",
+						"Moderation API",
 						source,
 						translatedPrompt,
-						bannedMatches[0].ID.String(),
-						float64(bannedMatches[0].Similarity),
 						"",
-						0,
+						0.0,
+						reason,
+						score,
 						ipAddress,
 					)
-					if isSpecialBanned {
-						errChan <- fmt.Errorf("error: unknown")
-					} else {
-						errChan <- fmt.Errorf("nsfw: %s", "sexual_minors")
-					}
+					errChan <- fmt.Errorf("nsfw: %s", reason)
 					return
 				}
-				bannedPromptResultChan <- true
+				nsfwModerationAPIResultChan <- true
 			}()
-		}
 
-		// Wait for either of the two to complete successfully or fail
-		nsfwModerationAPIDone, bannedPromptDone := false, clipSvc == nil // If clipSvc is nil, mark bannedPromptDone as true
-		for !(nsfwModerationAPIDone && bannedPromptDone) {
-			select {
-			case <-nsfwModerationAPIResultChan:
-				nsfwModerationAPIDone = true
-			case <-bannedPromptResultChan:
-				bannedPromptDone = true
-			case err := <-errChan:
-				return err
+			// Goroutine to check banned embedding
+			if clipSvc != nil {
+				go func() {
+					embedding, err := clipSvc.GetEmbeddingFromText(translatedPrompt, false)
+					if err != nil {
+						log.Error("Error fetching embedding", "err", err)
+						errChan <- err
+						return
+					}
+					bannedMatches, err := w.Repo.IsBannedPromptEmbedding(embedding, DB)
+					if err != nil {
+						log.Error("Error checking banned embedding", "err", err)
+						// errChan <- err
+						bannedPromptResultChan <- true
+						return
+					}
+					if len(bannedMatches) > 0 {
+						// Special case for prompts that should also cause a user ban
+						isSpecialBanned := false
+						hasShouldBanUser := false
+						for _, match := range bannedMatches {
+							if match.ShouldBanUser {
+								hasShouldBanUser = true
+								break
+							}
+						}
+						isNewAccount := time.Since(user.CreatedAt) < 24*time.Hour
+						if hasShouldBanUser && isNewAccount {
+							err := discord.FireBannedUserWebhook(ipAddress, user.Email, user.Email, user.ID.String(), countryCode, thumbmarkID, []string{"New account used special banned prompt."})
+							if err == nil {
+								_, err = w.Repo.BanUsers([]uuid.UUID{user.ID}, false)
+								if err != nil {
+									log.Error("Error banning user", "err", err)
+								}
+								time.Sleep(150 * time.Second)
+								isSpecialBanned = true
+							}
+						}
+						w.Track.GenerationFailedNSFWPrompt(
+							user,
+							requests.BaseCogRequest{
+								Prompt: generateReq.Prompt,
+							},
+							"Banned Prompt Embedding",
+							source,
+							translatedPrompt,
+							bannedMatches[0].ID.String(),
+							float64(bannedMatches[0].Similarity),
+							"",
+							0,
+							ipAddress,
+						)
+						if isSpecialBanned {
+							errChan <- fmt.Errorf("error: unknown")
+						} else {
+							errChan <- fmt.Errorf("nsfw: %s", "sexual_minors")
+						}
+						return
+					}
+					bannedPromptResultChan <- true
+				}()
+			}
+
+			// Wait for either of the two to complete successfully or fail
+			nsfwModerationAPIDone, bannedPromptDone := false, clipSvc == nil // If clipSvc is nil, mark bannedPromptDone as true
+			for !(nsfwModerationAPIDone && bannedPromptDone) {
+				select {
+				case <-nsfwModerationAPIResultChan:
+					nsfwModerationAPIDone = true
+				case <-bannedPromptResultChan:
+					bannedPromptDone = true
+				case err := <-errChan:
+					return err
+				}
 			}
 		}
 

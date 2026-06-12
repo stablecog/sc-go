@@ -35,8 +35,13 @@ func StatusString(h shared.HEALTH_STATUS) string {
 var logInfo = log.Info
 
 type DiscordHealthTracker struct {
-	ctx                           context.Context
-	webhookUrl                    string
+	ctx        context.Context
+	webhookUrl string
+	// seenFirstStatus is false until the first check after process start has
+	// been observed; that first run has no baseline to compare against, so it
+	// never notifies. (lastStatus can't double as this flag anymore since
+	// UNKNOWN is now a real, reportable status.)
+	seenFirstStatus               bool
 	lastStatus                    shared.HEALTH_STATUS
 	lastNotificationTime          time.Time
 	lastUnhealthyNotificationTime time.Time
@@ -62,6 +67,9 @@ func NewDiscordHealthTracker(ctx context.Context) *DiscordHealthTracker {
 // retries) would render its old snapshot against `time.Now()` and produce timestamps like
 // "20m ago" right next to a fresh run reporting "Just now" — looking like an impossible
 // flip-flop in the channel.
+// `healthErr` is the reason behind a non-HEALTHY status (test generation error,
+// traffic failure rate); it is rendered as its own embed field so the alert
+// itself says what went wrong.
 func (d *DiscordHealthTracker) SendDiscordNotificationIfNeeded(
 	status shared.HEALTH_STATUS,
 	generations []*ent.Generation,
@@ -69,6 +77,7 @@ func (d *DiscordHealthTracker) SendDiscordNotificationIfNeeded(
 	lastSuccessfulGenerationTime time.Time,
 	isRunpodServerlessActive bool,
 	runpodServerlessErr error,
+	healthErr error,
 	asOf time.Time,
 ) error {
 	sinceHealthyNotification := time.Since(d.lastHealthyNotificationTime)
@@ -78,8 +87,9 @@ func (d *DiscordHealthTracker) SendDiscordNotificationIfNeeded(
 	statusUnchanged := status == d.lastStatus
 
 	// The first time we run we skip notification
-	if d.lastStatus == shared.UNKNOWN {
+	if !d.seenFirstStatus {
 		shouldSkip = true
+		d.seenFirstStatus = true
 	}
 
 	// If status didn't change and healthy notification interval hasn't passed, skip
@@ -87,8 +97,10 @@ func (d *DiscordHealthTracker) SendDiscordNotificationIfNeeded(
 		shouldSkip = true
 	}
 
-	// If status didn't change and unhealthy notification interval hasn't passed, skip
-	if statusUnchanged && status == shared.UNHEALTHY && sinceUnhealthyNotification < unhealthyNotificationInterval {
+	// If status didn't change and the unhealthy notification interval hasn't
+	// passed, skip. UNKNOWN (broken health check: bad key, no credits, ...)
+	// uses the same cadence — it needs human attention just like UNHEALTHY.
+	if statusUnchanged && status != shared.HEALTHY && sinceUnhealthyNotification < unhealthyNotificationInterval {
 		shouldSkip = true
 	}
 
@@ -110,6 +122,7 @@ func (d *DiscordHealthTracker) SendDiscordNotificationIfNeeded(
 		lastSuccessfulGenerationTime,
 		isRunpodServerlessActive,
 		runpodServerlessErr,
+		healthErr,
 		asOf,
 	)
 	reqBody, err := json.Marshal(webhookBody)
@@ -152,6 +165,7 @@ func getDiscordWebhookBody(
 	lastSuccessfulGenerationTime time.Time,
 	isRunpodServerlessActive bool,
 	runpodServerlessErr error,
+	healthErr error,
 	asOf time.Time,
 ) models.DiscordWebhookBody {
 	generationsStr := ""
@@ -222,6 +236,13 @@ func getDiscordWebhookBody(
 			},
 		},
 		Attachments: []models.DiscordWebhookAttachment{},
+	}
+
+	if healthErr != nil {
+		body.Embeds[0].Fields = append(body.Embeds[0].Fields, models.DiscordWebhookField{
+			Name:  "Health Check Error",
+			Value: fmt.Sprintf("```%s```", healthErr.Error()),
+		})
 	}
 
 	if runpodServerlessErr != nil {
