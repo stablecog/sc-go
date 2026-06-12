@@ -18,10 +18,10 @@ func NewEntClient(connInfo SqlDBConn) (*ent.Client, error) {
 		return nil, err
 	}
 
-	// Set up connection pool and configure it
-	db.SetMaxOpenConns(25) // Adjust the max open connections according to your needs
-	db.SetMaxIdleConns(25) // Adjust the max idle connections
-	db.SetConnMaxLifetime(5 * time.Minute)
+	db.SetMaxOpenConns(12)
+	db.SetMaxIdleConns(4)
+	db.SetConnMaxLifetime(30 * time.Minute)
+	db.SetConnMaxIdleTime(5 * time.Minute)
 
 	// For some reason, ent doesn't recognize pgx as a valid dialect
 	entDialect := connInfo.Dialect()
