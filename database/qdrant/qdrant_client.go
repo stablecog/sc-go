@@ -22,9 +22,10 @@ import (
 const QDRANT_TIMEOUT_S = 30
 
 type qdrantIndexField struct {
-	Name   string            `json:"name"`
-	Type   PayloadSchemaType `json:"type"`
-	OnDisk bool              `json:"on_disk,omitempty"`
+	Name     string            `json:"name"`
+	Type     PayloadSchemaType `json:"type"`
+	OnDisk   bool              `json:"on_disk,omitempty"`
+	IsTenant bool              `json:"is_tenant,omitempty"`
 }
 
 // The fields we create indexes for on app startup
@@ -34,8 +35,10 @@ var fieldsToIndex = []qdrantIndexField{
 		Type: PayloadSchemaTypeKeyword,
 	},
 	{
-		Name: "user_id",
-		Type: PayloadSchemaTypeUUID,
+		Name:     "user_id",
+		Type:     PayloadSchemaTypeUUID,
+		OnDisk:   true,
+		IsTenant: true,
 	},
 	{
 		Name: "width",
@@ -46,8 +49,9 @@ var fieldsToIndex = []qdrantIndexField{
 		Type: PayloadSchemaTypeInteger,
 	},
 	{
-		Name: "created_at",
-		Type: PayloadSchemaTypeInteger,
+		Name:   "created_at",
+		Type:   PayloadSchemaTypeInteger,
+		OnDisk: true,
 	},
 	{
 		Name: "deleted_at",
@@ -178,10 +182,11 @@ func (q *QdrantClient) DeleteIndex(fieldName string, noRetry bool) error {
 	return nil
 }
 
-func (q *QdrantClient) CreateIndex(fieldName string, schemaType PayloadSchemaType, onDisk bool, noRetry bool) error {
+func (q *QdrantClient) CreateIndex(fieldName string, schemaType PayloadSchemaType, onDisk bool, isTenant bool, noRetry bool) error {
 	schema := &CreateFieldIndex_FieldSchema{
-		Type:   schemaType,
-		OnDisk: onDisk,
+		Type:     schemaType,
+		OnDisk:   onDisk,
+		IsTenant: isTenant,
 	}
 	// Create indexes
 	res, err := q.Client.CreateFieldIndexWithResponse(q.Ctx, q.CollectionName, &CreateFieldIndexParams{}, CreateFieldIndex{
@@ -190,7 +195,7 @@ func (q *QdrantClient) CreateIndex(fieldName string, schemaType PayloadSchemaTyp
 	})
 	if err != nil {
 		if !noRetry && (os.IsTimeout(err) || strings.Contains(err.Error(), "connection refused")) {
-			return q.CreateIndex(fieldName, schemaType, onDisk, true)
+			return q.CreateIndex(fieldName, schemaType, onDisk, isTenant, true)
 		}
 		log.Errorf("Error creating index %v", err)
 		return err
@@ -762,7 +767,7 @@ func (q *QdrantClient) CreateAllIndexes() error {
 	var mErr *multierror.Error
 	for _, field := range fieldsToIndex {
 		if !slices.Contains(indexFields, field.Name) {
-			mErr = multierror.Append(q.CreateIndex(field.Name, field.Type, field.OnDisk, false))
+			mErr = multierror.Append(q.CreateIndex(field.Name, field.Type, field.OnDisk, field.IsTenant, false))
 		}
 	}
 	return mErr.ErrorOrNil()

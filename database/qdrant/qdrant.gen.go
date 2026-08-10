@@ -592,8 +592,9 @@ type CreateFieldIndexFieldSchema1 = interface{}
 
 // CreateFieldIndex_FieldSchema defines model for CreateFieldIndex.FieldSchema.
 type CreateFieldIndex_FieldSchema struct {
-	Type PayloadSchemaType `json:"type"`
-	OnDisk bool           `json:"on_disk,omitempty"`
+	Type     PayloadSchemaType `json:"type"`
+	OnDisk   bool              `json:"on_disk,omitempty"`
+	IsTenant bool              `json:"is_tenant,omitempty"`
 }
 
 // DeleteAlias Delete alias if exists
